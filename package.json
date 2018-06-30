@@ -1,0 +1,32 @@
+
+{
+    "name": "node-typescript-seed",
+    "version": "0.0.1",
+    "description": "A simple Node/TypeScript seed with watch support.",
+    "main": "src/module.ts",
+    "scripts": {
+      "build": "tsc",
+      "prestart": "npm run build",
+      "start": "node ./dist/module.js",
+      "test": "",
+      "lint": "tslint -c tslint.json \"./src/**/*.ts\""
+    },
+    "contributors": [
+        {
+          "name": "Kewde",
+          "email": "kewde@particl.io",
+          "url": "https://github.com/kewde"
+        },
+        {
+            "name": "Cube",
+            "email": "cube@particl.io"
+          }
+      ],
+    "license": "MIT",
+    "dependencies": {},
+    "devDependencies": {
+      "nodemon": "^1.11.0",
+      "tslint": "^3.15.1",
+      "typescript": "^2.0.3"
+    }
+  }
