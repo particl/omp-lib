@@ -1,3 +1,6 @@
+/**
+ * All the interfaces of OMP.
+ */
 export interface MPA {
 
 }

@@ -5,6 +5,8 @@ We need to build the OMP interfaces in the interfaces/omp.ts file.
 Any changes to the current implementation should be denoted with // !implementation
 Any changes to the current protocol spec should be denoted with // !protocol
 
+A lot was missing from protocol and the implementation however continued and has undocumented fields.
+
 # Build the validation step by step.
 Once we have all the right interfaces we build the "step validator".
 Cast any input to the MPA interface.
@@ -24,4 +26,4 @@ A MPA_ACCEPT is always preceded by a MPA_BID etc..
 We build the transaction based on a sequence of MPAs.
 If we always rebuild the transaction from the sequence then we reduce:
 * the amount of untrusted data to the bare minimum
-* thus reduce the amount of validation required
+* thus the amount of validation required
