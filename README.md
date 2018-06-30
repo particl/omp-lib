@@ -2,7 +2,7 @@
     * build(..MPA_*):  rebuilds the transaction for a given and spits outs the rawtx.
     * validate(MPA_*): validate that a marketplace action conforms to the protocol.
     * verify(..MPA_*): verifies a _chain_ of MarketPlaceActions.
-    * strip(MPA_*):  strip any fields that do not belong in the protocol (styleguide: delete all that start with "_").
+    * strip(MPA_*):  strip any fields that do not belong in the protocol (simple: delete all that start with "_").
 
     * create(MPA_LISTING): returns MPA_BID.
     * accept(MPA_LISTING, MPA_BID): returns MPA_ACCEPT.
