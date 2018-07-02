@@ -10,14 +10,6 @@ export interface MPA {
  * as documented in protocol.
  */
 export interface MPA_LISTING extends MPA {
-    label: string;
-}
-
-/**
- * This is the extended listing.
- * It can also include additional fields.
- */
-export interface MPA_LISTING extends MPA {
     "item": {
         "hash": String, //item hash
         "information": {
@@ -79,6 +71,14 @@ export interface MPA_LISTING extends MPA {
 }
 
 /**
+ * This is the extended listing.
+ * It can also include additional fields.
+ */
+export interface MPA_EXT_LISTING extends MPA_LISTING {
+
+}
+
+/**
  *  MPA_BID (buyer -> sender)
  *  It includes their payment details and links to the listing.
  */
@@ -92,7 +92,6 @@ export interface MPA_BID extends MPA {
             value: any
         }
     ]
-
 }
 
 /**
