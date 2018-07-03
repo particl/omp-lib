@@ -282,6 +282,30 @@ export interface MPA_LOCK extends MPA {
   //   }
   // ]
 }
+// app1_1       | 2018-07-03T11:46:19.500Z - debug: [api/services/SmsgService] smsgSend, from: pkiYihS3no9xdyDG11Hj3Ww3rQJ9eCFpZU, to: pqneJdwrqMXV8g3p4uzfJ8FGkyE6PGLQ9C, value: {
+// app1_1       |   "version": "0.0.1.0",
+// app1_1       |   "mpaction": {
+// app1_1       |     "action": "MPA_RELEASE",
+// app1_1       |     "item": "58db8b7020e166cc6cc4dd3a648b8013aaf65fec069b23de46a907cc9e9f76a5",
+// app1_1       |     "memo": "memo",
+// app1_1       |     "escrow": {
+// app1_1       |       "type": "release",
+// app1_1       |       "rawtx": "a0000000000001ec6a05b037501a5d516da977c18526ea80c088f77de2eeccd61b8f017a1e08180000000000ffffffff0201f569d717000000001976a914d8cecf0740e547b50a52436b7c34db9963f054c888ac01fbb4eb0b000000001976a9144be67c745e02fe6b0157dff28aaa764c9532ca4d88ac0300483045022100dfba02dcf855bb52b284d81320ce33a38cd58283b5a4bb98d4e1993f968adb6e02204349bbeed81e98df31d39c09b6b2d50d2b2b55825c5644c76990e24bb0eb53050147522103d5f04ac1a51fa91916b0a5fd8d882a4ec926b0305ea7bd87c6b8cddb84a99bfd2103faa0a225a3e971378309422b781b3098a3f078f0b7ab780ded7ded988213db8152ae"
+// app1_1       |     }
+// app1_1       |   }
+// app1_1       | } 
+
+// app2_1       | 2018-07-03T11:48:00.885Z - debug: [api/services/SmsgService] smsgSend, from: pqneJdwrqMXV8g3p4uzfJ8FGkyE6PGLQ9C, to: pkiYihS3no9xdyDG11Hj3Ww3rQJ9eCFpZU, value: {
+// app2_1       |   "version": "0.0.1.0",
+// app2_1       |   "mpaction": {
+// app2_1       |     "action": "MPA_RELEASE",
+// app2_1       |     "item": "58db8b7020e166cc6cc4dd3a648b8013aaf65fec069b23de46a907cc9e9f76a5",
+// app2_1       |     "escrow": {
+// app2_1       |       "type": "release",
+// app2_1       |       "rawtx": "88e249a3cb52d37bdedc88023d018fbb112a8c405cda6eee04e168f48e31492f"
+// app2_1       |     }
+// app2_1       |   }
+// app2_1       | }
 
 // matches MPA_LOCK, mostly
 export interface MPA_RELEASE  extends MPA{
@@ -353,6 +377,13 @@ export interface MPA_REJECT extends MPA {
   //   "item": String
   // }
 }
+// app1_1       | 2018-07-03T11:34:54.277Z - debug: [api/services/SmsgService] smsgSend, from: pkiYihS3no9xdyDG11Hj3Ww3rQJ9eCFpZU, to: pqneJdwrqMXV8g3p4uzfJ8FGkyE6PGLQ9C, value: {
+// app1_1       |   "version": "0.0.1.0",
+// app1_1       |   "mpaction": {
+// app1_1       |     "action": "MPA_REJECT",
+// app1_1       |     "item": "4cea37e4182738f6b37316ea79f4c9e6a2dc9fdf001fa3ce0c073f3ac9549839"
+// app1_1       |   }
+// app1_1       | }
 
 // TODO: Check what this is in marketplace, add those fields
 export interface MPA_CANCEL extends MPA {
@@ -365,6 +396,13 @@ export interface MPA_CANCEL extends MPA {
   //   "item": String
   // }
 }
+// app2_1       | 2018-07-03T11:29:39.805Z - debug: [api/services/SmsgService] smsgSend, from: pqneJdwrqMXV8g3p4uzfJ8FGkyE6PGLQ9C, to: pkiYihS3no9xdyDG11Hj3Ww3rQJ9eCFpZU, value: {
+// app2_1       |   "version": "0.0.1.0",
+// app2_1       |   "mpaction": {
+// app2_1       |     "action": "MPA_CANCEL",
+// app2_1       |     "item": "3a59564f2a0179c74937544e6687d3d3506a5f67fa34a5a8ef0a1ea05b2708fe"
+// app2_1       |   }
+// app2_1       | }
 
 // TODO: Check what this is in marketplace, add those fields
 export interface MPA_REQUEST_REFUND extends MPA {
