@@ -1,8 +1,29 @@
 /**
  * All the interfaces of OMP.
  */
-export interface MPA {
+
+import { Output } from "./crypto";
+import { DSN } from "./dsn";
+
+/**
+ * Key-Value Store.
+ */
+export interface KVS {
+  id: String,
+  value: String
 }
+
+/**
+ * All the interfaces of OMP.
+ */
+export interface MPA {
+  version: String,
+  action: {
+    type: String
+  }
+}
+
+
 
 /**
  * This is the most basic listing.
@@ -10,39 +31,41 @@ export interface MPA {
  * as documented in protocol.
  */
 export interface MPA_LISTING extends MPA {
-  version: String
-  item: {
-    hash: String, //item hash // Missing from spec
-    information: {
-      title: String,
-      short_description: String,
-      long_description: String,
-      category: String[],
-    },
-    payment: {
-      type: String, // SALE | FREE
-      escrow: {
-        type: String,
-        ratio: { // Missing from spec
-          buyer: Number,
-          seller: Number
-        }
+  action: {
+    type: 'MPA_LISTING',
+    item: {
+      hash: String, //item hash // Missing from spec
+      information: {
+        title: String,
+        short_description: String,
+        long_description: String,
+        category: String[],
       },
-      cryptocurrency: [
+      payment: {
+        type: String, // SALE | FREE
+        escrow: {
+          type: String,
+          ratio: { // Missing from spec
+            buyer: Number,
+            seller: Number
+          }
+        },
+        cryptocurrency: [
+          {
+            currency: String, // PARTICL | BITCOIN
+            base_price: Number,
+          }
+        ]
+      },
+      messaging: [
         {
-          currency: String, // PARTICL | BITCOIN
-          base_price: Number,
+          protocol: String,
+          public_key: String
         }
-      ]
-    },
-    messaging: [
-      {
-        protocol: String,
-        public_key: String
-      }
-    ],
-    //// rm !implementation
-    // objects: any[]
+      ],
+      //// rm !implementation
+      // objects: any[]
+    }
   }
 }
 
@@ -52,345 +75,164 @@ export interface MPA_LISTING extends MPA {
  * It can also include additional fields.
  */
 export interface MPA_EXT_LISTING extends MPA_LISTING {
-  item: {
-    hash: String, //item hash // Missing from spec
-    information: {
-      title: String,
-      short_description: String,
-      long_description: String,
-      category: String[],
-      location: {
-        country: String,
-        address: String,
-        gps: {
-          lng: Number,
-          lat: Number,
-          marker_title: String,
-          marker_text: String
-        }
-      },
-      shipping_destinations: String[],
-      images: [
-        {
-            hash: String,
-            data: [
-                {
-                   protocol: String, // LOCAL |
-                   encoding: String, // BASE64 | 
-                   data: String,
-                   id: Number
-                }
-            ]
-        }
-      ]
-    },
-    payment: {
-      type: String, // SALE | FREE
-      escrow: {
-        type: String,
-        ratio: {
-          buyer: Number,
-          seller: Number
-        }
-      },
-      cryptocurrency: [
-        {
-          currency: String, // PARTICL | BITCOIN
-          base_price: Number,
-          shipping_price: {
-            domestic: Number,
-            international: Number
-          },
-          address: {
-            type: String, // NORMAL | 
-            address: String
+  action: {
+    type: 'MPA_LISTING',
+    item: {
+      hash: String, //item hash // Missing from spec
+      information: {
+        title: String,
+        short_description: String,
+        long_description: String,
+        category: String[],
+        location: {
+          country: String,
+          address: String,
+          gps: {
+            lng: Number,
+            lat: Number,
+            marker_title: String,
+            marker_text: String
           }
+        },
+        shipping_destinations: String[],
+        images: DSN[]
+      },
+      payment: {
+        type: String, // SALE | FREE
+        escrow: {
+          type: String,
+          ratio: {
+            buyer: Number,
+            seller: Number
+          }
+        },
+        cryptocurrency: [
+          {
+            currency: String, // PARTICL | BITCOIN
+            base_price: Number,
+            shipping_price: {
+              domestic: Number,
+              international: Number
+            },
+            address: {
+              type: String, // NORMAL | 
+              address: String
+            }
+          }
+        ]
+      },
+      messaging: [
+        {
+          protocol: String,
+          public_key: String
         }
-      ]
-    },
-    messaging: [
-      {
-        protocol: String,
-        public_key: String
-      }
-    ],
-    //// rm !implementation !spec
-    // objects: []
-  }
-}
-
-/**
- *  MPA_BID (buyer -> sender)
- *  It includes their payment details and links to the listing.
- */
-// matches MPA_ACCEPT
-export interface MPA_BID extends MPA {
-    action: 'MPA_BID',
-    item: String, //item hash
-    //// rm !implementation
-    // objects: [
-    //    {
-    //        id: String
-    //        value: any
-    //     }
-    // ]
-}
-
-/**
- *  MPA_BID (buyer -> sender)
- *  It includes their payment details and links to the listing.
- */
-export interface MPA_BID extends MPA {
-  version: String,
-  action: 'MPA_BID',
-  item: String,
-  Buyer: {
-    pubKey: String,
-    changeAddress: String,
-    change: Number,
-    address: String,
-    firstName: String,
-    lastName: String,
-    ShippingAddress: {
-      addressLine1: String,
-      addressLine2: String,
-      city: String,
-      state: String,
-      zipCode: Number,
-      country: String,
+      ],
+      //// rm !implementation !spec
+      // objects: []
     }
   }
-  //// rm !spec
-  // "mpaction": {
-  //   "action": "MPA_BID", 
-  //   "item": "f08f3d6e",
-  //   "objects":[
-  //     {
-  //       "id": "colour",
-  //       "value": "black"
-  //     }
-  //   ]
-  // }
-}
-
-
-/**
- *  MPA_ACCEPT (sender -> buyer)
- *  It is the seller payment details.
- */
-// matches MPA_BID
-export interface MPA_ACCEPT extends MPA {
-  action: 'MPA_ACCEPT',
-  item: String, //item hash
-  //// rm !implementation
-  // objects: [
-  //   id: String
-  //   value: any
-  //     ]
-  // }
 }
 
 /**
- *  MPA_ACCEPT (sender -> buyer)
- *  It is the seller payment details.
+ *  MPA_BID (buyer -> sender)
+ *  It includes their payment details and links to the listing.
  */
-export interface MPA_ACCEPT extends MPA { // Extended
-  version: String,
-  action: 'MPA_ACCEPT',
-  item: String,
-  rawtx: String
-  orderHash: String,
-  sellerDetails: {
-    sellerPubKey: String,
-    sellerOutputs: [{
-      txid: String,
-      vout: Number,
-      amount: Number
-    }]
+export interface MPA_BID extends MPA {
+  action: {
+    type: 'MPA_BID',
+    created: Number, // timestamp
+    item: String,
+    buyer: { // completely refactored, !implementation !protocol
+      payment: { // TODO: which fields required?
+        pubKey: String,
+        outputs: Output[],
+        changeAddress: String,
+        change: Number,
+        address: String,
+        // TODO: inputs?
+      },
+      shippingAddress: {
+        firstName: String,
+        lastName: String,
+        addressLine1: String,
+        addressLine2: String,
+        city: String,
+        state: String,
+        zipCode: Number,
+        country: String,
+      }
+    },
+    objects: KVS[]
   }
-  //// rm !spec
-  // "mpaction": {
-  //   "action": "MPA_ACCEPT", 
-  //   "item": "f08f3d6e"
-  // }
-  //// rm !implementation
-  // objects: [
-  // {
-  //   id: sellerOutputs,
-  //   value: [
-  //     {
-  //       txid: String,
-  //       vout: Number,
-  //       amount: Number
-  //     }
-  //   ]
-  // },
-  //// rm !implementation
-  // {
-  //    id: buyerOutputs,
-  //    value: [
-  //     {
-  //       txid: String,
-  //       vout: Number,
-  //       amount: Number
-  //     }
-  //   ]
-  // },
-  // {
-  //   id: sellerPubkey,
-  //   value: String
-  // },
-  //// rm !implementation
-  // {
-  //   id: buyerPubkey,
-  //   value: String
-  // },
-  // {
-  //   id: rawtx,
-  //   value: String
-  // },
-  // {
-  //   id: orderHash,
-  //   value: String
-  // }
-  // ]
 }
 
-
-// matches MPA_RELEASE, mostly
-export interface MPA_LOCK extends MPA {
-  action: 'MPA_LOCK',
-  item: String, // item hash
-  info: {},
-  escrow: {
-    type: "lock",
-    rawtx: String
-  }
-  // rm !spec
-  // "mpaction": [
-  //   {
-  //     "action": "MPA_LOCK",
-  //     "listing": "listings_hash" 
-  //     "nonce": "randomness",
-  //     "info": {
-  //       "address": "20 seventeen street, march city, 2017",
-  //       "memo": "Please deliver by 17 March 2017"
-  //     },
-  //     "escrow": {
-  //       "rawtx": "...."
-  //     }
-  //   }
-  // ]
-}
-
-// matches MPA_LOCK, mostly
-export interface MPA_RELEASE  extends MPA{
-  version: String,
-  action: 'MPA_RELEASE',
-  item: String, // item hash
-  // add !spec or rm if not neccessary
-  address: String,
-  memo: String,
-  escrow: {
-    type: "release",
-    //// rm !implementation
-    // rawtx: String
-    //// add !implementation
-    signature: String
-  }
-  // add !implementation [might already be in there, TODO: check]
-  nonce: String
-
-  // rm !spec
-  // "mpaction": {
-  //   "action": "MPA_RELEASE", 
-  //   "item": "f08f3d6e",
-  //   "memo": "Release the funds, greetings buyer",
-  //   "escrow": {
-  //     "type": "release",
-  //     "rawtx": "The buyer sends the half signed rawtx which releases the escrow and paymeny. The vendor then recreates the whole transaction (check ouputs, inputs, scriptsigs and the fee), verifying that buyer's rawtx is indeed legitimate. The vendor then signs the rawtx and broadcasts it."
-  //   }
-  // }
-}
-
-//// rm !spec
-// {
-//  "version":"0.0.1.0",
-//  "mpaction": [
-//     {
-//       "action": "MPA_LOCK",
-//       "listing": "listings_hash" 
-//       "nonce": "randomness",
-//       "info": {
-//         "memo": "Will deliver by then, setting lockup lower, no more negotiations..."
-//       },
-//       "escrow": {
-//         "rawtx": "...."
-//       }
-//     }
-//   ]
-// }
-
-export interface MPA_RELEASE_REQ extends MPA { // !implementation !protocol
-    bid_nonce: string; // !implementation !protocol
-    label: string;
-}
-
-export interface MPA_RELEASE_OK extends MPA { // !implementation !protocol
-    bid_nonce: string;
-    label: string;
-}
-
-// TODO: Check what this is in marketplace
 export interface MPA_REJECT extends MPA {
-  "version":"0.0.1.0",
-  action: 'MPA_REJECT',
-  item: String // item hash
-  //// rm !spec !implementation
-  // "mpaction": {
-  //   "action": 'MPA_REJECT',
-  //   "item": String
-  // }
+  action: {
+    type: 'MPA_REJECT',
+    bid: String // item hash
+  }
 }
 
-// TODO: Check what this is in marketplace, add those fields
-export interface MPA_CANCEL extends MPA {
-  "version":"0.0.1.0",
-  action: 'MPA_CANCEL',
-  item: String // item hash
-  //// rm !spec !implementation
-  // "mpaction": {
-  //   "action": 'MPA_CANCEL',
-  //   "item": String
-  // }
+/**
+ *  MPA_ACCEPT (seller -> buyer)
+ *  Seller added his payment data.
+ */
+export interface MPA_ACCEPT extends MPA {
+  action: {
+    type: 'MPA_ACCEPT',
+    bid: String, // hash of MPA_BID
+    seller: {
+      pubKey: String,
+      outputs: Output[],
+      signatures: String[]
+    }
+  }
 }
 
-// TODO: Check what this is in marketplace, add those fields
-export interface MPA_REQUEST_REFUND extends MPA {
-  version: String,
-  // rm !spec
-  // mpaction: {
-  //   nAction: 'MPA_REQUEST_REFUND', 
-  //   item: String, // item hash
-  //   memo: String,
-  //   escrow: {
-  //     type: 'refund',
-  //     rawtx: String
-  //   }
-  // }
+export interface MPA_CANCEL extends MPA { // !implementation !protocol
+  action: {
+    type: 'MPA_CANCEL',
+    bid: String, // hash of MPA_BID
+  }
 }
 
-// TODO: Check what this is in marketplace, add those fields
+/**
+ *  MPA_LOCK (buyer -> seller)
+ *  Buyer signed the tx too.
+ */
+export interface MPA_LOCK extends MPA {
+  action: {
+    type: 'MPA_LOCK',
+    bid: String, // hash of MPA_BID
+    buyer: {
+      signatures: String[]
+    },
+    info: {
+      memo: String // is  this useful?
+    }
+  }
+}
+
+/**
+ *  MPA_RELEASE (seller -> buyer)
+ *  Seller automatically requests the release of the escrow.
+ */
+export interface MPA_RELEASE extends MPA { // !implementation !protocol
+  action: {
+    type: 'MPA_RELEASE',
+    bid: String, // hash of MPA_BID
+    seller: {
+      signatures: String[]
+    }
+  }
+}
+
 export interface MPA_REFUND extends MPA {
-  version: String,
-  // mpaction: {
-  //   action: 'MPA_REFUND',
-  //   item: String,
-  //   accepted: boolean,
-  //   memo: String,
-  //   escrow: {
-  //     type: 'refund',
-  //     rawtx: String
-  //   }
-  // }
+  action: {
+    type: 'MPA_REFUND',
+    bid: String, // hash of MPA_BID
+    buyer: {
+      signatures: String[]
+    }
+  }
 }
