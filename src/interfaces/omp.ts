@@ -40,6 +40,7 @@ export interface MPA_LISTING extends MPA {
                         }
                     ]
                 }
+            ]
     },
         payment: {
             type: String, // SALE | FREE
