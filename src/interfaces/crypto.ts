@@ -6,3 +6,11 @@ export interface Output {
     vout: Number,
     amount: Number
 }
+
+/**
+ * An address from a cryptocurrency.
+ */
+export interface CryptoAddress {
+    type: String, // NORMAL | 
+    address: String
+  }

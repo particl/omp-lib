@@ -2,7 +2,7 @@
  * All the interfaces of OMP.
  */
 
-import { Output } from "./crypto";
+import { Output, CryptoAddress } from "./crypto";
 import { DSN } from "./dsn";
 
 /**
@@ -114,10 +114,7 @@ export interface MPA_EXT_LISTING extends MPA_LISTING {
               domestic: Number,
               international: Number
             },
-            address: {
-              type: String, // NORMAL | 
-              address: String
-            }
+            address: CryptoAddress
           }
         ]
       },
@@ -127,8 +124,7 @@ export interface MPA_EXT_LISTING extends MPA_LISTING {
           public_key: String
         }
       ],
-      //// rm !implementation !spec
-      // objects: []
+      objects: KVS[]
     }
   }
 }
@@ -137,19 +133,16 @@ export interface MPA_EXT_LISTING extends MPA_LISTING {
  *  MPA_BID (buyer -> sender)
  *  It includes their payment details and links to the listing.
  */
-export interface MPA_BID extends MPA {
+export interface MPA_BID extends MPA { // completely refactored, !implementation !protocol
   action: {
     type: 'MPA_BID',
     created: Number, // timestamp
-    item: String,
-    buyer: { // completely refactored, !implementation !protocol
-      payment: { // TODO: which fields required?
+    item: String, // item hash
+    buyer: { 
+      payment: {
         pubKey: String,
         outputs: Output[],
-        changeAddress: String,
-        change: Number,
-        address: String,
-        // TODO: inputs?
+        changeAddress: String
       },
       shippingAddress: {
         firstName: String,
