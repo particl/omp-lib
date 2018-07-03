@@ -158,61 +158,60 @@ export interface MPA_BID extends MPA {
  *  It includes their payment details and links to the listing.
  */
 export interface MPA_BID extends MPA { // Extended
-  mpaction: {
-    action: MPA_BID,
-    item: string, // item hash
-    objects: [
-      {
-        id: buyerPubkey,
-        value: String
-      },
-      {
-        id: buyerChangeAddress,
-        value: String
-      },
-      {
-        id: buyerChange,
-        value: Number
-      },
-      {
-        id: buyerAddress,
-        value: String
-      },
-      {
-        id: ship.firstName,
-        value: String
-      },
-      {
-        id: ship.lastName,
-        value: String
-      },
-      {
-        id: ship.addressLine1,
-        value: String
-      },
-      {
-        id: ship.addressLine2,
-        value: String
-      },
-      {
-        id: ship.city,
-        value: String
-      },
-      {
-        id: ship.state,
-        value: String
-      },
-      {
-        id: ship.zipCode,
-        value: String
-      },
-      {
-        id: ship.country,
-        value: String
-      }
-    ]
-  }
+  action: MPA_BID,
+  item: string, // item hash
+  objects: [
+    {
+      id: buyerPubkey,
+      value: String
+    },
+    {
+      id: buyerChangeAddress,
+      value: String
+    },
+    {
+      id: buyerChange,
+      value: Number
+    },
+    {
+      id: buyerAddress,
+      value: String
+    },
+    {
+      id: ship.firstName,
+      value: String
+    },
+    {
+      id: ship.lastName,
+      value: String
+    },
+    {
+      id: ship.addressLine1,
+      value: String
+    },
+    {
+      id: ship.addressLine2,
+      value: String
+    },
+    {
+      id: ship.city,
+      value: String
+    },
+    {
+      id: ship.state,
+      value: String
+    },
+    {
+      id: ship.zipCode,
+      value: String
+    },
+    {
+      id: ship.country,
+      value: String
+    }
+  ]
 }
+
 
 /**
  *  MPA_ACCEPT (sender -> buyer)
@@ -220,15 +219,14 @@ export interface MPA_BID extends MPA { // Extended
  */
 // matches MPA_BID
 export interface MPA_ACCEPT extends MPA {
-  mpaction: {
-    action: MPA_ACCEPT,
-    item: String, //item hash
-    //// rm !implementation
-    // objects: [
-    //   id: String
-    //   value: any
-    //     ]
-    // }
+  action: MPA_ACCEPT,
+  item: String, //item hash
+  //// rm !implementation
+  // objects: [
+  //   id: String
+  //   value: any
+  //     ]
+  // }
 }
 
 /**
@@ -236,76 +234,73 @@ export interface MPA_ACCEPT extends MPA {
  *  It is the seller payment details.
  */
 export interface MPA_ACCEPT extends MPA { // Extended
-  mpaction: {
-    action: MPA_ACCEPT,
-    item: 647dd1841eb669b9e923d521c6d5e66981bcf6ec07cd62a27574425691179eb8,
-    objects: [
-      {
-        id: sellerOutputs,
-        value: [
-          {
-            txid: String,
-            vout: Number,
-            amount: Number
-          }
-        ]
-      },
-      //// rm !implementation
-      // {
-      //    id: buyerOutputs,
-      //    value: [
-      //     {
-      //       txid: String,
-      //       vout: Number,
-      //       amount: Number
-      //     }
-      //   ]
-      // },
-      {
-        id: sellerPubkey,
-        value: String
-      },
-      //// rm !implementation
-      // {
-      //   id: buyerPubkey,
-      //   value: String
-      // },
-      {
-        id: rawtx,
-        value: String
-      },
-      {
-        id: orderHash,
-        value: String
-      }
-    ]
-  }
+  action: MPA_ACCEPT,
+  item: 647dd1841eb669b9e923d521c6d5e66981bcf6ec07cd62a27574425691179eb8,
+  objects: [
+    {
+      id: sellerOutputs,
+      value: [
+        {
+          txid: String,
+          vout: Number,
+          amount: Number
+        }
+      ]
+    },
+    //// rm !implementation
+    // {
+    //    id: buyerOutputs,
+    //    value: [
+    //     {
+    //       txid: String,
+    //       vout: Number,
+    //       amount: Number
+    //     }
+    //   ]
+    // },
+    {
+      id: sellerPubkey,
+      value: String
+    },
+    //// rm !implementation
+    // {
+    //   id: buyerPubkey,
+    //   value: String
+    // },
+    {
+      id: rawtx,
+      value: String
+    },
+    {
+      id: orderHash,
+      value: String
+    }
+  ]
 }
+
 
 // matches MPA_RELEASE, mostly
 export interface MPA_LOCK extends MPA {
-  mpaction: {
-    action: MPA_LOCK,
-    item: String, // item hash
-    info: {},
-    escrow: {
-      type: "lock",
-      rawtx: String
-    }
+  action: MPA_LOCK,
+  item: String, // item hash
+  info: {},
+  escrow: {
+    type: "lock",
+    rawtx: String
+  }
 }
 
 // matches MPA_LOCK, mostly
 export interface MPA_RELEASE  extends MPA{
-  mpaction: {
-    action: MPA_RELEASE,
-    item: String, // item hash
-    escrow: {
-      type: "release",
-      //// rm !implementation
-      // rawtx: String
-      //// add !implementation
-      signature: String
-    }
+  action: MPA_RELEASE,
+  item: String, // item hash
+  escrow: {
+    type: "release",
+    //// rm !implementation
+    // rawtx: String
+    //// add !implementation
+    signature: String
+  }
 }
 
 export interface MPA_RELEASE_REQ extends MPA { // !implementation !protocol
