@@ -10,66 +10,68 @@ export interface MPA {
  * as documented in protocol.
  */
 export interface MPA_LISTING extends MPA {
-    item: {
-        hash: String, //item hash
-        information: {
-            title: String,
-            short_description: String,
-            long_description: String,
-            category: String[],
-            location: {
-                country: String,
-                address: String,
-                gps: {
-                    lng: Number,
-                    lat: Number,
-                    marker_title: String,
-                    marker_text: String
-                }
-            },
-            shipping_destinations: String[],
-            images: [
-                {
-                    hash: String, // item hash
-                    data: [
-                        {
-                            protocol: String, // LOCAL |
-                            encoding: String, // BASE64 | 
-                            data: String,
-                            id: Number
-                        }
-                    ]
-                }
-            ]
+  item: {
+    hash: String, //item hash
+    information: {
+      title: String,
+      short_description: String,
+      long_description: String,
+      category: String[],
+      location: {
+        country: String,
+        address: String,
+        gps: {
+          lng: Number,
+          lat: Number,
+          marker_title: String,
+          marker_text: String
+        }
+      },
+      shipping_destinations: String[],
+      images: [
+        {
+          hash: String, // item hash
+          data: [
+            {
+              protocol: String, // LOCAL |
+              encoding: String, // BASE64 | 
+              data: String,
+              id: Number
+            }
+          ]
+        }
+      ]
     },
-        payment: {
-            type: String, // SALE | FREE
-            escrow: {
-                type: String,
-                ratio: {
-                    buyer: Number,
-                    seller: Number
-                }
-            },
-            cryptocurrency: [
-                {
-                    currency: String, // PARTICL | BITCOIN
-                    base_price: Number,
-                    shipping_price: {
-                        domestic: Number,
-                        international: Number
-                    },
-                    address: {
-                        type: String, // NORMAL | 
-                        address: String
-                    }
-                }
-            ]
-        },
-        messaging: [],
-        objects: []
-    }
+    payment: {
+      type: String, // SALE | FREE
+      escrow: {
+        type: String,
+        ratio: {
+          buyer: Number,
+          seller: Number
+        }
+      },
+      cryptocurrency: [
+        {
+          currency: String, // PARTICL | BITCOIN
+          base_price: Number,
+          shipping_price: {
+            domestic: Number,
+            international: Number
+          },
+          address: {
+            type: String, // NORMAL | 
+            address: String
+          }
+        }
+      ]
+    },
+    messaging: any[],
+    //// rm !implementation
+    // objects: any[]
+  }
 }
+
 
 /**
  * This is the extended listing.
@@ -132,7 +134,7 @@ export interface MPA_EXT_LISTING extends MPA_LISTING {
         }
       ]
     },
-    messaging: [],
+    messaging: any[],
     //// rm !implementation
     // objects: []
   }
@@ -144,7 +146,7 @@ export interface MPA_EXT_LISTING extends MPA_LISTING {
  */
 // matches MPA_ACCEPT
 export interface MPA_BID extends MPA {
-    action: MPA_BID,
+    action: 'MPA_BID',
     item: String, //item hash
     //// rm !implementation
     // objects: [
@@ -187,7 +189,7 @@ export interface MPA_BID extends MPA {
  */
 // matches MPA_BID
 export interface MPA_ACCEPT extends MPA {
-  action: MPA_ACCEPT,
+  action: 'MPA_ACCEPT',
   item: String, //item hash
   //// rm !implementation
   // objects: [
@@ -202,7 +204,7 @@ export interface MPA_ACCEPT extends MPA {
  *  It is the seller payment details.
  */
 export interface MPA_ACCEPT extends MPA { // Extended
-  action: MPA_ACCEPT,
+  action: 'MPA_ACCEPT',
   item: String,
   rawtx: String
   orderHash: String,
@@ -260,7 +262,7 @@ export interface MPA_ACCEPT extends MPA { // Extended
 
 // matches MPA_RELEASE, mostly
 export interface MPA_LOCK extends MPA {
-  action: MPA_LOCK,
+  action: 'MPA_LOCK',
   item: String, // item hash
   info: {},
   escrow: {
@@ -271,7 +273,7 @@ export interface MPA_LOCK extends MPA {
 
 // matches MPA_LOCK, mostly
 export interface MPA_RELEASE  extends MPA{
-  action: MPA_RELEASE,
+  action: 'MPA_RELEASE',
   item: String, // item hash
   escrow: {
     type: "release",
