@@ -106,6 +106,7 @@ export interface MPA_EXT_LISTING extends MPA_LISTING {
                 }
             ]
         }
+      ]
     },
     payment: {
       type: String, // SALE | FREE
@@ -158,59 +159,25 @@ export interface MPA_BID extends MPA {
  *  MPA_BID (buyer -> sender)
  *  It includes their payment details and links to the listing.
  */
-export interface MPA_BID extends MPA { // Extended
-  action: MPA_BID,
-  item: string, // item hash
-  objects: [
-    {
-      id: buyerPubkey,
-      value: String
-    },
-    {
-      id: buyerChangeAddress,
-      value: String
-    },
-    {
-      id: buyerChange,
-      value: Number
-    },
-    {
-      id: buyerAddress,
-      value: String
-    },
-    {
-      id: ship.firstName,
-      value: String
-    },
-    {
-      id: ship.lastName,
-      value: String
-    },
-    {
-      id: ship.addressLine1,
-      value: String
-    },
-    {
-      id: ship.addressLine2,
-      value: String
-    },
-    {
-      id: ship.city,
-      value: String
-    },
-    {
-      id: ship.state,
-      value: String
-    },
-    {
-      id: ship.zipCode,
-      value: String
-    },
-    {
-      id: ship.country,
-      value: String
+export interface MPA_BID extends MPA {
+  action: 'MPA_BID',
+  item: String,
+  Buyer: {
+    pubKey: String,
+    changeAddress: String,
+    change: Number,
+    address: String,
+    firstName: String,
+    lastName: String,
+    ShippingAddress: {
+      addressLine1: String,
+      addressLine2: String,
+      city: String,
+      state: String,
+      zipCode: Number,
+      country: String,
     }
-  ]
+  }
 }
 
 
@@ -236,47 +203,58 @@ export interface MPA_ACCEPT extends MPA {
  */
 export interface MPA_ACCEPT extends MPA { // Extended
   action: MPA_ACCEPT,
-  item: 647dd1841eb669b9e923d521c6d5e66981bcf6ec07cd62a27574425691179eb8,
-  objects: [
-    {
-      id: sellerOutputs,
-      value: [
-        {
-          txid: String,
-          vout: Number,
-          amount: Number
-        }
-      ]
-    },
-    //// rm !implementation
-    // {
-    //    id: buyerOutputs,
-    //    value: [
-    //     {
-    //       txid: String,
-    //       vout: Number,
-    //       amount: Number
-    //     }
-    //   ]
-    // },
-    {
-      id: sellerPubkey,
-      value: String
-    },
-    //// rm !implementation
-    // {
-    //   id: buyerPubkey,
-    //   value: String
-    // },
-    {
-      id: rawtx,
-      value: String
-    },
-    {
-      id: orderHash,
-      value: String
-    }
-  ]
+  item: String,
+  rawtx: String
+  orderHash: String,
+  sellerDetails: {
+    sellerPubKey: String,
+    sellerOutputs: [{
+      txid: String,
+      vout: Number,
+      amount: Number
+    }]
+  }
+  //// rm !implementation
+  // objects: [
+  // {
+  //   id: sellerOutputs,
+  //   value: [
+  //     {
+  //       txid: String,
+  //       vout: Number,
+  //       amount: Number
+  //     }
+  //   ]
+  // },
+  //// rm !implementation
+  // {
+  //    id: buyerOutputs,
+  //    value: [
+  //     {
+  //       txid: String,
+  //       vout: Number,
+  //       amount: Number
+  //     }
+  //   ]
+  // },
+  // {
+  //   id: sellerPubkey,
+  //   value: String
+  // },
+  //// rm !implementation
+  // {
+  //   id: buyerPubkey,
+  //   value: String
+  // },
+  // {
+  //   id: rawtx,
+  //   value: String
+  // },
+  // {
+  //   id: orderHash,
+  //   value: String
+  // }
+  // ]
 }
 
 
