@@ -1,5 +1,7 @@
 /**
  * All the interfaces of OMP.
+ * 
+ * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
 import { Output, CryptoAddress } from "./crypto";
@@ -9,17 +11,17 @@ import { DSN } from "./dsn";
  * Key-Value Store.
  */
 export interface KVS {
-  id: String,
-  value: String
+  id: string,
+  value: string
 }
 
 /**
  * All the interfaces of OMP.
  */
 export interface MPA {
-  version: String,
+  version: string,
   action: {
-    type: String
+    type: string
   }
 }
 
@@ -30,21 +32,21 @@ export interface MPA {
  * It should only contain the necessary fields
  * as documented in protocol.
  */
-export interface MPA_LISTING extends MPA {
+export interface MPA_LISTING_ADD extends MPA {
   action: {
-    type: 'MPA_LISTING',
+    type: 'MPA_LISTING_ADD',
     item: {
-      hash: String, //item hash // Missing from spec
+      hash: string, //item hash // Missing from spec
       information: {
-        title: String,
-        short_description: String,
-        long_description: String,
-        category: String[],
+        title: string,
+        short_description: string,
+        long_description: string,
+        category: string[],
       },
       payment: {
-        type: String, // SALE | FREE
+        type: string, // SALE | FREE
         escrow: {
-          type: String,
+          type: string,
           ratio: { // Missing from spec
             buyer: Number,
             seller: Number
@@ -52,15 +54,15 @@ export interface MPA_LISTING extends MPA {
         },
         cryptocurrency: [
           {
-            currency: String, // PARTICL | BITCOIN
+            currency: string, // PARTICL | BITCOIN
             base_price: Number,
           }
         ]
       },
       messaging: [
         {
-          protocol: String,
-          public_key: String
+          protocol: string,
+          public_key: string
         }
       ],
       //// rm !implementation
@@ -74,33 +76,33 @@ export interface MPA_LISTING extends MPA {
  * This is the extended listing.
  * It can also include additional fields.
  */
-export interface MPA_EXT_LISTING extends MPA_LISTING {
+export interface MPA_EXT_LISTING extends MPA_LISTING_ADD {
   action: {
-    type: 'MPA_LISTING',
+    type: 'MPA_LISTING_ADD',
     item: {
-      hash: String, //item hash // Missing from spec
+      hash: string, //item hash // Missing from spec
       information: {
-        title: String,
-        short_description: String,
-        long_description: String,
-        category: String[],
+        title: string,
+        short_description: string,
+        long_description: string,
+        category: string[],
         location: {
-          country: String,
-          address: String,
+          country: string,
+          address: string,
           gps: {
             lng: Number,
             lat: Number,
-            marker_title: String,
-            marker_text: String
+            marker_title: string,
+            marker_text: string
           }
         },
-        shipping_destinations: String[],
+        shipping_destinations: string[],
         images: DSN[]
       },
       payment: {
-        type: String, // SALE | FREE
+        type: string, // SALE | FREE
         escrow: {
-          type: String,
+          type: string,
           ratio: {
             buyer: Number,
             seller: Number
@@ -108,7 +110,7 @@ export interface MPA_EXT_LISTING extends MPA_LISTING {
         },
         cryptocurrency: [
           {
-            currency: String, // PARTICL | BITCOIN
+            currency: string, // PARTICL | BITCOIN
             base_price: Number,
             shipping_price: {
               domestic: Number,
@@ -120,8 +122,8 @@ export interface MPA_EXT_LISTING extends MPA_LISTING {
       },
       messaging: [
         {
-          protocol: String,
-          public_key: String
+          protocol: string,
+          public_key: string
         }
       ],
       objects: KVS[]
@@ -137,22 +139,22 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
   action: {
     type: 'MPA_BID',
     created: Number, // timestamp
-    item: String, // item hash
+    item: string, // item hash
     buyer: { 
       payment: {
-        pubKey: String,
+        pubKey: string,
         outputs: Output[],
-        changeAddress: String
+        changeAddress: string
       },
       shippingAddress: {
-        firstName: String,
-        lastName: String,
-        addressLine1: String,
-        addressLine2: String,
-        city: String,
-        state: String,
+        firstName: string,
+        lastName: string,
+        addressLine1: string,
+        addressLine2: string,
+        city: string,
+        state: string,
         zipCode: Number,
-        country: String,
+        country: string,
       }
     },
     objects: KVS[]
@@ -162,7 +164,7 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
 export interface MPA_REJECT extends MPA {
   action: {
     type: 'MPA_REJECT',
-    bid: String // item hash
+    bid: string // item hash
   }
 }
 
@@ -173,11 +175,11 @@ export interface MPA_REJECT extends MPA {
 export interface MPA_ACCEPT extends MPA {
   action: {
     type: 'MPA_ACCEPT',
-    bid: String, // hash of MPA_BID
+    bid: string, // hash of MPA_BID
     seller: {
-      pubKey: String,
+      pubKey: string,
       outputs: Output[],
-      signatures: String[]
+      signatures: string[]
     }
   }
 }
@@ -185,7 +187,7 @@ export interface MPA_ACCEPT extends MPA {
 export interface MPA_CANCEL extends MPA { // !implementation !protocol
   action: {
     type: 'MPA_CANCEL',
-    bid: String, // hash of MPA_BID
+    bid: string, // hash of MPA_BID
   }
 }
 
@@ -196,12 +198,12 @@ export interface MPA_CANCEL extends MPA { // !implementation !protocol
 export interface MPA_LOCK extends MPA {
   action: {
     type: 'MPA_LOCK',
-    bid: String, // hash of MPA_BID
+    bid: string, // hash of MPA_BID
     buyer: {
-      signatures: String[]
+      signatures: string[]
     },
     info: {
-      memo: String // is  this useful?
+      memo: string // is  this useful?
     }
   }
 }
@@ -213,9 +215,9 @@ export interface MPA_LOCK extends MPA {
 export interface MPA_RELEASE extends MPA { // !implementation !protocol
   action: {
     type: 'MPA_RELEASE',
-    bid: String, // hash of MPA_BID
+    bid: string, // hash of MPA_BID
     seller: {
-      signatures: String[]
+      signatures: string[]
     }
   }
 }
@@ -223,9 +225,9 @@ export interface MPA_RELEASE extends MPA { // !implementation !protocol
 export interface MPA_REFUND extends MPA {
   action: {
     type: 'MPA_REFUND',
-    bid: String, // hash of MPA_BID
+    bid: string, // hash of MPA_BID
     buyer: {
-      signatures: String[]
+      signatures: string[]
     }
   }
 }

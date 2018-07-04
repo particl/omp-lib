@@ -2,12 +2,12 @@
  * Data Storage Network Refence.
  */
 export interface DSN {
-    hash: String,
+    hash: string,
     data: [
         {
-            protocol: String, // LOCAL |
-            encoding: String, // BASE64 | 
-            data: String,
+            protocol: string, // LOCAL |
+            encoding: string, // BASE64 | 
+            data: string,
             id: Number
         }
     ]

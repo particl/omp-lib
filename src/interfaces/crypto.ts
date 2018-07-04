@@ -2,7 +2,7 @@
  * A Output from a cryptocurrency.
  */
 export interface Output {
-    txid: String,
+    txid: string,
     vout: Number,
     amount: Number
 }
@@ -11,6 +11,6 @@ export interface Output {
  * An address from a cryptocurrency.
  */
 export interface CryptoAddress {
-    type: String, // NORMAL | 
-    address: String
+    type: string, // NORMAL | 
+    address: string
   }
