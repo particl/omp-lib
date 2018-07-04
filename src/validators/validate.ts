@@ -27,10 +27,7 @@ class Validator {
         return true;
     }
 
-    private validate_MPA_ITEM_ADD(msg: MPA): boolean {
 
-        return true;
-    }
 
     private validate_MPA_ACCEPT(msg: MPA): boolean {
 
