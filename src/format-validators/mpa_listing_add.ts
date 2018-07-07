@@ -1,15 +1,17 @@
-import { MPA, MPA_LISTING_ADD } from "../interfaces/omp"
+import { MPA, MPA_EXT_LISTING_ADD } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isString, isObject, isArray, isNumber } from './util'
+import { Crypto } from "./crypto";
 
-// TODO: DSN validation
+// TODO: DSN validation (images)
+// TODO: shippingPrice
 export class ValidateMpaListingAdd {
 
   constructor() {
   }
 
   // Only after MPA base class has already validated
-  static validate(msg: MPA_LISTING_ADD): boolean {
+  static validate(msg: MPA_EXT_LISTING_ADD): boolean {
     const action = msg.action;
     const item = action.item;
 
@@ -112,6 +114,10 @@ export class ValidateMpaListingAdd {
 
           if (elem.basePrice <= 0) {
             throw new Error('action.item.payment.cryptocurrency: only basePrice > 0 is allowed, fault in element=' + i);
+          }
+
+          if(elem.address) {
+            Crypto.validateCryptoAddress(elem.address);
           }
         });
 

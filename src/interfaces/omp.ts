@@ -70,7 +70,7 @@ export interface MPA_LISTING_ADD extends MPA {
  * This is the extended listing.
  * It can also include additional fields.
  */
-export interface MPA_EXT_LISTING extends MPA_LISTING_ADD {
+export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
   action: {
     type: MPAction.MPA_LISTING_ADD,
     item: {
