@@ -43,6 +43,10 @@ export class Crypto {
             throw new Error('CryptoAddress.address: missing');
         }
 
+        if(typeof address.address !== 'string') {
+            throw new Error('CryptoAddress.address: address is of the wrong type, expecting string');
+        }
+
         return true;
       }
 
