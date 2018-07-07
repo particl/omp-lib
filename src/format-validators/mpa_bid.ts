@@ -3,7 +3,7 @@ import { MPAction } from "../interfaces/omp-enums";
 import { Crypto } from "./crypto";
 import { isNumber, isObject, isArray, isString } from "./util";
 
-
+// TODO: Objects!
 export class ValidateMpaBid {
 
   constructor() {
@@ -28,6 +28,10 @@ export class ValidateMpaBid {
 
     if (action.created <= 0) {
       throw new Error('action.created: negative timestamp not allowed');
+    }
+
+    if (!isString(action.item)) {
+      throw new Error('action.item: item hash is missing or not a string');
     }
 
     if (!isObject(buyer)) {
@@ -94,6 +98,24 @@ export class ValidateMpaBid {
     // TODO: check length?
     if (!isString(shipping.country)) {
       throw new Error('action.buyer.shippingAddress.country: missing');
+    }
+
+
+
+    if(action.objects) {
+      if(!isArray(action.objects)) {
+        throw new Error('action.objects: not an array');
+      }
+
+      action.objects.forEach((elem, i) => {
+        if (!isObject(elem)) {
+          throw new Error('action.objects: not an object element=' + i);
+        }
+  
+        if (!isString(elem.id) || !(isString(elem.value) && isNumber(elem.value))) {
+          throw new Error('action.objects: missing elements in element=' + i);
+        }
+      });
     }
 
     return true;

@@ -2,7 +2,7 @@ import { MPA, MPA_LISTING_ADD } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isString, isObject, isArray, isNumber } from './util'
 
-
+// TODO: DSN validation
 export class ValidateMpaListingAdd {
 
   constructor() {
@@ -140,6 +140,24 @@ export class ValidateMpaListingAdd {
         throw new Error('action.item.messaging: missing elements in element=' + i);
       }
     });
+
+
+    if(item.objects) {
+      if(!isArray(item.objects)) {
+        throw new Error('action.item.objects: not an array');
+      }
+
+      item.objects.forEach((elem, i) => {
+        if (!isObject(elem)) {
+          throw new Error('action.item.objects: not an object element=' + i);
+        }
+  
+        if (!isString(elem.id) || !(isString(elem.value) && isNumber(elem.value))) {
+          throw new Error('action.item.objects: missing elements in element=' + i);
+        }
+      });
+
+    }
 
     return true;
   }

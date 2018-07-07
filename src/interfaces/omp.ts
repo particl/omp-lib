@@ -30,6 +30,7 @@ export interface MPA_LISTING_ADD extends MPA {
   action: {
     type: MPAction.MPA_LISTING_ADD,
     item: {
+      // created: Number, // timestamp // add?
       // hash: string, //item hash // TODO: remove
       information: {
         title: string,

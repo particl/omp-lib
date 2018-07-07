@@ -3,5 +3,5 @@
  */
 export interface KVS {
     id: string,
-    value: string
+    value: string | number
   }
