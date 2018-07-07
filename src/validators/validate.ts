@@ -1,12 +1,12 @@
 import { MPA } from "../interfaces/omp"
 
 
-class Validator {
+export class Validator {
 
     constructor() {
     }
 
-    validate(msg: MPA): boolean {
+    public validate(msg: MPA): boolean {
         if (!msg.version) {
             throw new Error('version: missing');
         }

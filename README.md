@@ -4,10 +4,10 @@
     * verify(..MPA_*): verifies a _chain_ of MarketPlaceActions.
     * strip(MPA_*):  strip any fields that do not belong in the protocol (simple: delete all that start with "_").
 
-    * create(MPA_LISTING): returns MPA_BID.
-    * accept(MPA_LISTING, MPA_BID): returns MPA_ACCEPT.
-    * lock(MPA_LISTING, MPA_BID, MPA_ACCEPT): make this also create the release tx. returns MPA_LOCK.
-    * release(MPA_LISTING, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns MPA_RELEASE.
+    * create(MPA_LISTING_ADD): returns MPA_BID.
+    * accept(MPA_LISTING_ADD, MPA_BID): returns MPA_ACCEPT.
+    * lock(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT): make this also create the release tx. returns MPA_LOCK.
+    * release(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns MPA_RELEASE.
 
 ## Deterministic transaction generation
 

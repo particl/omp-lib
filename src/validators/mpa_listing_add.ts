@@ -1,25 +1,19 @@
 import { MPA, MPA_LISTING_ADD } from "../interfaces/omp"
 
 
-class ValidateMpaListingAdd {
+export class ValidateMpaListingAdd {
 
     constructor() {
     }
 
     // Only after MPA base class has already validated
-    validate(msg: MPA_LISTING_ADD): boolean {
+    static validate(msg: MPA_LISTING_ADD): boolean {
       const action = msg.action;
       const item = action.item;
 
       if (!action.type || action.type !== 'MPA_LISTING_ADD') {
         throw new Error('action.type: wrong or missing');
       }
-
-      // TODO check length of hash
-      if (!item.hash) {
-        throw new Error('action.item.hash: missing');
-      }
-
 
 
 
@@ -43,6 +37,10 @@ class ValidateMpaListingAdd {
         }
 
         if (information.category) {
+          if(!Array.isArray(information.category)) {
+            throw new Error('action.item.information.category: not an array');
+          }
+
           if(information.category.length === 0) {
             throw new Error('action.item.information.category: no categories specified!');
           }
@@ -62,7 +60,6 @@ class ValidateMpaListingAdd {
         const payment = item.payment;
 
         if (payment.type) {
-          // do checks inner fields
           if(['FREE', 'SALE'].indexOf(payment.type) === -1) {
             throw new Error('action.item.payment.type: unknown value');
           }
@@ -70,50 +67,77 @@ class ValidateMpaListingAdd {
           throw new Error('action.item.payment.type: missing');
         }
 
-        // TODO check length?
-        if (payment.cryptocurrency) {
-          // do checks inner fields
-        } else {
-          throw new Error('action.item.payment.cryptocurrency: missing');
+        // If it's a sale,
+        // it must contain some payment information.
+        if(payment.type === "SALE") {
+
+          if (!payment.escrow) {
+            throw new Error('action.item.payment.escrow: missing');
+          }
+
+          if (!payment.escrow.ratio || !payment.escrow.type) {
+            throw new Error('action.item.payment.escrow: missing or incomplete');
+          }
+
+          if (!payment.escrow.ratio.buyer || !payment.escrow.ratio.seller) {
+            throw new Error('action.item.payment.escrow.ratio: missing or incomplete');
+          }
+
+          if(payment.escrow.ratio.buyer < 0 || payment.escrow.ratio.seller < 0) {
+            throw new Error('action.item.payment.escrow.ratio: negative ratios are not allowed');
+          }
+
+          if (!payment.cryptocurrency) {
+            throw new Error('action.item.payment.cryptocurrency: missing');
+          }
+
+          if (!payment.cryptocurrency) {
+            throw new Error('action.item.payment.cryptocurrency: missing');
+          }
+
+          if(!Array.isArray(payment.cryptocurrency)) {
+            throw new Error('action.item.payment.cryptocurrency: not an array');
+          }
+
+          if (payment.cryptocurrency.length === 0) {
+            throw new Error('action.item.payment.cryptocurrency: length of array is 0, missing?');
+          }
+
+          payment.cryptocurrency.forEach((elem, i) => {
+            if(!elem.base_price || !elem.currency) {
+              throw new Error('action.item.payment.cryptocurrency: missing currency or base_price, fault in element=' + i);
+            }
+
+            if(elem.base_price <= 0) {
+              throw new Error('action.item.payment.cryptocurrency: only base_price > 0 is allowed, fault in element=' + i);
+            }
+          });
         }
 
       } else {
         throw new Error('action.item.payment: missing');
       }
 
+      if(!item.messaging) {
+        throw new Error('action.item.messaging: missing');
+      }
+
+      if(!Array.isArray(item.messaging)) {
+        throw new Error('action.item.messaging: not an array');
+      }
+
+      if(item.messaging.length === 0) {
+        throw new Error('action.item.messaging: length of array is 0, missing?');
+      }
+
+      item.messaging.forEach((elem, i) => {
+        if(!elem.protocol || !elem.public_key) {
+          throw new Error('action.item.messaging: missing elements in element=' + i);
+        }
+      });
 
       return true;
     }
 
 
 }
-
-/*
-    type: 'MPA_LISTING_ADD',
-    item: {
-      payment: {
-        type: string, // SALE | FREE
-        escrow: {
-          type: string,
-          ratio: { // Missing from spec
-            buyer: Number,
-            seller: Number
-          }
-        },
-        cryptocurrency: [
-          {
-            currency: string, // PARTICL | BITCOIN
-            base_price: Number,
-          }
-        ]
-      },
-      messaging: [
-        {
-          protocol: string,
-          public_key: string
-        }
-      ],
-      //// rm !implementation
-      // objects: any[]
-    }
-    */

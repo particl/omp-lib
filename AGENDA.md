@@ -18,7 +18,7 @@ We verify a chain of MPAs.
 Validate that each individual element is a valid MPA.
 Check if the MPA is preceded by the right MPA.
 
-A MPA_BID is always preceded by a MPA_LISTING. 
+A MPA_BID is always preceded by a MPA_LISTING_ADD. 
 A MPA_ACCEPT is always preceded by a MPA_BID etc..
 ```
 

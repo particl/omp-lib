@@ -36,7 +36,7 @@ export interface MPA_LISTING_ADD extends MPA {
   action: {
     type: 'MPA_LISTING_ADD',
     item: {
-      hash: string, //item hash // Missing from spec
+      // hash: string, //item hash // TODO: remove
       information: {
         title: string,
         short_description: string,
@@ -65,8 +65,7 @@ export interface MPA_LISTING_ADD extends MPA {
           public_key: string
         }
       ],
-      //// rm !implementation
-      // objects: any[]
+      objects: any[]
     }
   }
 }
