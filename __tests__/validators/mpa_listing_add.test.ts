@@ -1,4 +1,4 @@
-import { ValidateMpaListingAdd } from "../../src/validators/mpa_listing_add";
+import { ValidateMpaListingAdd } from "../../src/format-validators/mpa_listing_add";
 
 const validate = ValidateMpaListingAdd.validate;
 

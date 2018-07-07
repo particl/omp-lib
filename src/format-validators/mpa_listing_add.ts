@@ -136,7 +136,7 @@ export class ValidateMpaListingAdd {
         throw new Error('action.item.messaging: not an object element=' + i);
       }
 
-      if (!elem.protocol || !elem.publicKey) {
+      if (!isString(elem.protocol) || !isString(elem.publicKey)) {
         throw new Error('action.item.messaging: missing elements in element=' + i);
       }
     });

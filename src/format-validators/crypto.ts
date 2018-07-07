@@ -8,7 +8,7 @@ export class Crypto {
     }
 
     static validateOutput(out: Output): boolean {
-      if(!out) {
+      if(!isObject(out)) {
         throw new Error('output: missing');
       }
 
@@ -16,7 +16,7 @@ export class Crypto {
         throw new Error('output: must be an object!');
       }
 
-      if(!out.txid) {
+      if(!isString(out.txid)) {
         throw new Error('output: txid missing');
       }
 
@@ -32,28 +32,20 @@ export class Crypto {
     }
 
     static validateCryptoAddress(address: CryptoAddress): boolean {
-        if(!address) {
-          throw new Error('CryptoAddress: missing');
-        }
-
         if(!isObject(address)) {
-          throw new Error('CryptoAddress: must be an object!');
+          throw new Error('CryptoAddress: missing or not an object!');
         }
   
-        if(!address.type) {
-          throw new Error('CryptoAddress.type: missing');
+        if(!isString(address.type)) {
+          throw new Error('CryptoAddress.type: missing or not a string');
         }
 
         if(!(address.type in CryptoAddressType)) {
             throw new Error('CryptoAddress.type: unrecognized value');
         }
 
-        if(!address.address) {
-            throw new Error('CryptoAddress.address: missing');
-        }
-
         if(!isString(address.address)) {
-            throw new Error('CryptoAddress.address: address is of the wrong type, expecting string');
+            throw new Error('CryptoAddress.address: address is missing or wrong type, expecting string');
         }
 
         return true;

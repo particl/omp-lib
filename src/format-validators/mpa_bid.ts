@@ -91,6 +91,7 @@ export class ValidateMpaBid {
     }
 
     // TODO: validate country against list?
+    // TODO: check length?
     if (!isString(shipping.country)) {
       throw new Error('action.buyer.shippingAddress.country: missing');
     }

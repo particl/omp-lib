@@ -1,4 +1,4 @@
-import { Validator } from "../../src/validators/validate";
+import { Validator } from "../../src/format-validators/validate";
 
 const v = new Validator();
 const success = JSON.parse(

@@ -1,4 +1,4 @@
-import { Crypto } from "../../src/validators/crypto";
+import { Crypto } from "../../src/format-validators/crypto";
 
 const success = JSON.parse(
     `{
