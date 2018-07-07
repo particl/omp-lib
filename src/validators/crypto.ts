@@ -1,4 +1,5 @@
 import { Output, CryptoAddress, CryptoAddressType } from "../interfaces/crypto";
+import { isObject, isNumber, isString } from "./util";
 
 
 export class Crypto {
@@ -11,7 +12,7 @@ export class Crypto {
         throw new Error('output: missing');
       }
 
-      if(typeof out !== 'object') {
+      if(!isObject(out)) {
         throw new Error('output: must be an object!');
       }
 
@@ -19,7 +20,7 @@ export class Crypto {
         throw new Error('output: txid missing');
       }
 
-      if(typeof out.vout !== 'number') {
+      if(!isNumber(out.vout)) {
         throw new Error('output: vout is of the wrong type, expecting number');
       }
 
@@ -35,7 +36,7 @@ export class Crypto {
           throw new Error('CryptoAddress: missing');
         }
 
-        if(typeof address !== 'object') {
+        if(!isObject(address)) {
           throw new Error('CryptoAddress: must be an object!');
         }
   
@@ -51,7 +52,7 @@ export class Crypto {
             throw new Error('CryptoAddress.address: missing');
         }
 
-        if(typeof address.address !== 'string') {
+        if(!isString(address.address)) {
             throw new Error('CryptoAddress.address: address is of the wrong type, expecting string');
         }
 

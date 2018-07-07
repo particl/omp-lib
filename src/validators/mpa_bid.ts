@@ -1,6 +1,7 @@
 import { MPA, MPA_LISTING_ADD, MPA_BID } from "../interfaces/omp"
 import { MPAction } from "../interfaces/omp-enums";
 import { Crypto } from "./crypto";
+import { isNumber, isObject, isArray, isString } from "./util";
 
 
 export class ValidateMpaBid {
@@ -13,7 +14,7 @@ export class ValidateMpaBid {
     const action = msg.action;
     const buyer = action.buyer;
 
-    if (!action.type) {
+    if (!isString(action.type)) {
       throw new Error('action.type: missing');
     }
 
@@ -21,78 +22,76 @@ export class ValidateMpaBid {
       throw new Error('action.type: expecting MPA_BID got ' + action.type);
     }
 
-    if (!action.created) {
-      throw new Error('action.created: missing');
+    if (!action.created || !isNumber(action.created)) {
+      throw new Error('action.created: missing or not a number');
     }
 
-
-    if (!buyer) {
-      throw new Error('action.buyer: missing');
+    if (action.created <= 0) {
+      throw new Error('action.created: negative timestamp not allowed');
     }
 
-    if (buyer.payment) {
-      if (typeof buyer.payment === 'object') {
-        const payment = buyer.payment;
+    if (!isObject(buyer)) {
+      throw new Error('action.buyer: missing or not an object');
+    }
 
-        if (!payment.pubKey) {
-          throw new Error('action.buyer.payment.pubKey: missing');
-        }
+    if (isObject(buyer.payment)) {
+      const payment = buyer.payment;
 
-        if (!payment.outputs) {
-          throw new Error('action.buyer.payment.outputs: missing');
-        }
-
-        if (!Array.isArray(payment.outputs)) {
-          throw new Error('action.buyer.payment.outputs: not an array');
-        }
-
-        payment.outputs.forEach((elem, i) => {
-          Crypto.validateOutput(elem);
-        });
-
-        if (!payment.changeAddress) {
-          throw new Error('action.buyer.payment.changeAddress: missing');
-        }
-
-        Crypto.validateCryptoAddress(payment.changeAddress);
-
-      } else {
-        throw new Error('action.buyer.payment: not an object');
+      if (!isString(payment.pubKey)) {
+        throw new Error('action.buyer.payment.pubKey: missing or not a string');
       }
+
+      if (!isArray(payment.outputs)) {
+        throw new Error('action.buyer.payment.outputs: not an array');
+      }
+
+      payment.outputs.forEach((elem, i) => {
+        Crypto.validateOutput(elem);
+      });
+
+      if (!isString(payment.changeAddress)) {
+        throw new Error('action.buyer.payment.changeAddress: missing');
+      }
+
+      Crypto.validateCryptoAddress(payment.changeAddress);
+
+    } else {
+      throw new Error('action.buyer.payment: not an object');
     }
 
-    if (!buyer.shippingAddress) {
-      throw new Error('action.created: missing');
+
+    if (!buyer.shippingAddress || !isObject(buyer.shippingAddress)) {
+      throw new Error('action.buyer.shippingAddress: missing or not an object');
     }
 
     const shipping = buyer.shippingAddress;
-    if (!shipping.firstName) {
+    if (!isString(shipping.firstName)) {
       throw new Error('action.buyer.shippingAddress.firstName: missing');
     }
 
-    if (!shipping.lastName) {
+    if (!isString(shipping.lastName)) {
       throw new Error('action.buyer.shippingAddress.lastName: missing');
     }
 
-    if (!shipping.addressLine1) {
+    if (!isString(shipping.addressLine1)) {
       throw new Error('action.buyer.shippingAddress.addressLine1: missing');
     }
     //addressLine2 is not required!
 
-    if (!shipping.city) {
+    if (!isString(shipping.city)) {
       throw new Error('action.buyer.shippingAddress.city: missing');
     }
 
-    if (!shipping.state) {
+    if (!isString(shipping.state)) {
       throw new Error('action.buyer.shippingAddress.state: missing');
     }
 
-    if (!shipping.zipCode) {
+    if (!isString(shipping.zipCode)) {
       throw new Error('action.buyer.shippingAddress.zipCode: missing');
     }
 
     // TODO: validate country against list?
-    if (!shipping.country) {
+    if (!isString(shipping.country)) {
       throw new Error('action.buyer.shippingAddress.country: missing');
     }
 
