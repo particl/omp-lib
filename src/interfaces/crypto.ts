@@ -3,8 +3,7 @@
  */
 export interface Output {
     txid: string,
-    vout: Number,
-    amount: Number
+    vout: Number
 }
 
 export enum Crypto {
@@ -12,11 +11,16 @@ export enum Crypto {
     PART = 'PART'
 }
 
+export enum CryptoAddressType {
+    NORMAL = 'NORMAL',
+    STEALTH = 'STEALTH'
+}
+
 /**
  * An address from a cryptocurrency.
  */
 export interface CryptoAddress {
-    type: string, // NORMAL | 
+    type: CryptoAddressType,
     address: string
 }
 
@@ -24,6 +28,6 @@ export interface CryptoAddress {
  * An address from a cryptocurrency.
  */
 export interface CryptoAmount {
-    type: Crypto, // NORMAL | 
+    type: Crypto,
     base_price: number
 }
