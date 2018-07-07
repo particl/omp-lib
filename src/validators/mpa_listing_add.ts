@@ -1,5 +1,5 @@
 import { MPA, MPA_LISTING_ADD } from "../interfaces/omp"
-import { PaymentType, MPAction } from "../interfaces/omp-enums";
+import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
 
 
 export class ValidateMpaListingAdd {
@@ -19,7 +19,7 @@ export class ValidateMpaListingAdd {
 
 
       // Validate information
-      if (item.information) {
+      if (item.information && typeof item.information === 'object') {
         const information = item.information;
 
         // TODO check length?
@@ -57,7 +57,7 @@ export class ValidateMpaListingAdd {
 
 
       // Validate Payment
-      if (item.payment) {
+      if (item.payment && typeof item.payment === 'object') {
         const payment = item.payment;
 
         if (payment.type) {
@@ -73,12 +73,16 @@ export class ValidateMpaListingAdd {
         // TODO: RENT?
         if(payment.type === "SALE") {
 
-          if (!payment.escrow) {
+          if (!payment.escrow || !(typeof payment.escrow === 'object')) {
             throw new Error('action.item.payment.escrow: missing');
           }
 
           if (!payment.escrow.ratio || !payment.escrow.type) {
             throw new Error('action.item.payment.escrow: missing or incomplete');
+          }
+
+          if(!(payment.escrow.type in EscrowType)) {
+            throw new Error('action.item.payment.escrow.type: unknown value');
           }
 
           if (!payment.escrow.ratio.buyer || !payment.escrow.ratio.seller) {
@@ -106,6 +110,11 @@ export class ValidateMpaListingAdd {
           }
 
           payment.cryptocurrency.forEach((elem, i) => {
+            
+            if(typeof elem !== 'object'){ 
+              throw new Error('action.item.payment.cryptocurrency: not an object element=' + i);
+            }
+
             if(!elem.basePrice || !elem.currency) {
               throw new Error('action.item.payment.cryptocurrency: missing currency or basePrice, fault in element=' + i);
             }
@@ -114,6 +123,8 @@ export class ValidateMpaListingAdd {
               throw new Error('action.item.payment.cryptocurrency: only basePrice > 0 is allowed, fault in element=' + i);
             }
           });
+
+          // todo shippingPrice!
         }
 
       } else {
@@ -133,6 +144,10 @@ export class ValidateMpaListingAdd {
       }
 
       item.messaging.forEach((elem, i) => {
+        if(typeof elem !== 'object'){ 
+          throw new Error('action.item.messaging: not an object element=' + i);
+        }
+
         if(!elem.protocol || !elem.publicKey) {
           throw new Error('action.item.messaging: missing elements in element=' + i);
         }

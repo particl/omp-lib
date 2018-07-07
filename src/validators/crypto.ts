@@ -11,12 +11,16 @@ export class Crypto {
         throw new Error('output: missing');
       }
 
+      if(typeof out !== 'object') {
+        throw new Error('output: must be an object!');
+      }
+
       if(!out.txid) {
         throw new Error('output: txid missing');
       }
 
       if(typeof out.vout !== 'number') {
-        throw new Error('output: vout missing');
+        throw new Error('output: vout is of the wrong type, expecting number');
       }
 
       if(out.vout < 0) {
@@ -29,6 +33,10 @@ export class Crypto {
     static validateCryptoAddress(address: CryptoAddress): boolean {
         if(!address) {
           throw new Error('CryptoAddress: missing');
+        }
+
+        if(typeof address !== 'object') {
+          throw new Error('CryptoAddress: must be an object!');
         }
   
         if(!address.type) {

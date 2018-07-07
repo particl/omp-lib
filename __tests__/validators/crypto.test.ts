@@ -17,6 +17,17 @@ test('validate a normal output', () => {
     expect(fail).toBe(false);
 });
 
+const horrible_fail = JSON.parse(`"not even an object"`);
+
+test('output not an object', () => {
+    let fail: boolean;
+    try {
+        fail = !Crypto.validateOutput(horrible_fail)
+    } catch (e) {
+        fail = true;
+    }
+    expect(fail).toBe(true);
+});
 
 
 const negative_vout = JSON.parse(
@@ -51,6 +62,18 @@ test('validate an address', () => {
         fail = true;
     }
     expect(fail).toBe(false);
+});
+
+const horrible_fail_address = JSON.parse(`"not even an object"`);
+
+test('address not an object', () => {
+    let fail: boolean;
+    try {
+        fail = !Crypto.validateCryptoAddress(horrible_fail_address)
+    } catch (e) {
+        fail = true;
+    }
+    expect(fail).toBe(true);
 });
 
 const cryptoaddress_fail_number = JSON.parse(

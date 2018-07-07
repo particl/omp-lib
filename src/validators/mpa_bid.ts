@@ -54,6 +54,8 @@ export class ValidateMpaBid {
           throw new Error('action.buyer.payment.changeAddress: missing');
         }
 
+        Crypto.validateCryptoAddress(payment.changeAddress);
+
       } else {
         throw new Error('action.buyer.payment: not an object');
       }
@@ -108,7 +110,7 @@ export class ValidateMpaBid {
       payment: {
         pubKey: string,
         outputs: Output[],
-        changeAddress: string
+        changeAddress: CryptoAddress
       },
       shippingAddress: {
         firstName: string,
