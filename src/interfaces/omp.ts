@@ -7,14 +7,8 @@
 import { Output, CryptoAddress } from "./crypto";
 import { DSN } from "./dsn";
 import { MPAction, PaymentType, EscrowType } from "./omp-enums"
+import { KVS } from './common'
 
-/**
- * Key-Value Store.
- */
-export interface KVS {
-  id: string,
-  value: string
-}
 
 /**
  * All the interfaces of OMP.
@@ -25,7 +19,6 @@ export interface MPA {
     type: MPAction
   }
 }
-
 
 
 /**
@@ -40,8 +33,8 @@ export interface MPA_LISTING_ADD extends MPA {
       // hash: string, //item hash // TODO: remove
       information: {
         title: string,
-        short_description: string,
-        long_description: string,
+        shortDescription: string,
+        longDescription: string,
         category: string[],
       },
       payment: {
@@ -56,14 +49,14 @@ export interface MPA_LISTING_ADD extends MPA {
         cryptocurrency: [
           {
             currency: Crypto,
-            base_price: Number,
+            basePrice: Number,
           }
         ]
       },
       messaging: [
         {
           protocol: string,
-          public_key: string
+          publicKey: string
         }
       ],
       objects: any[]
@@ -80,11 +73,12 @@ export interface MPA_EXT_LISTING extends MPA_LISTING_ADD {
   action: {
     type: MPAction.MPA_LISTING_ADD,
     item: {
+      // created: Number, // timestamp // add?
       // hash: string, // remove!
       information: {
         title: string,
-        short_description: string,
-        long_description: string,
+        shortDescription: string,
+        longDescription: string,
         category: string[],
         location: {
           country: string,
@@ -92,11 +86,11 @@ export interface MPA_EXT_LISTING extends MPA_LISTING_ADD {
           gps: {
             lng: Number,
             lat: Number,
-            marker_title: string,
-            marker_text: string
+            markerTitle: string,
+            markerText: string
           }
         },
-        shipping_destinations: string[],
+        shippingDestinations: string[],
         images: DSN[]
       },
       payment: {
@@ -111,8 +105,8 @@ export interface MPA_EXT_LISTING extends MPA_LISTING_ADD {
         cryptocurrency: [
           {
             currency: Crypto,
-            base_price: Number,
-            shipping_price: {
+            basePrice: Number,
+            shippingPrice: {
               domestic: Number,
               international: Number
             },
@@ -123,7 +117,7 @@ export interface MPA_EXT_LISTING extends MPA_LISTING_ADD {
       messaging: [
         {
           protocol: string,
-          public_key: string
+          publicKey: string
         }
       ],
       objects: KVS[]
@@ -150,7 +144,7 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
         firstName: string,
         lastName: string,
         addressLine1: string,
-        addressLine2: string,
+        addressLine2: string, // optional
         city: string,
         state: string,
         zipCode: Number,

@@ -28,13 +28,13 @@ export class ValidateMpaListingAdd {
         }
 
         // TODO check length?
-        if (!information.short_description) {
-          throw new Error('action.item.information.short_description: missing');
+        if (!information.shortDescription) {
+          throw new Error('action.item.information.shortDescription: missing');
         }
 
         // TODO check length?
-        if (!information.long_description) {
-          throw new Error('action.item.information.long_description: missing');
+        if (!information.longDescription) {
+          throw new Error('action.item.information.longDescription: missing');
         }
 
         if (information.category) {
@@ -106,12 +106,12 @@ export class ValidateMpaListingAdd {
           }
 
           payment.cryptocurrency.forEach((elem, i) => {
-            if(!elem.base_price || !elem.currency) {
-              throw new Error('action.item.payment.cryptocurrency: missing currency or base_price, fault in element=' + i);
+            if(!elem.basePrice || !elem.currency) {
+              throw new Error('action.item.payment.cryptocurrency: missing currency or basePrice, fault in element=' + i);
             }
 
-            if(elem.base_price <= 0) {
-              throw new Error('action.item.payment.cryptocurrency: only base_price > 0 is allowed, fault in element=' + i);
+            if(elem.basePrice <= 0) {
+              throw new Error('action.item.payment.cryptocurrency: only basePrice > 0 is allowed, fault in element=' + i);
             }
           });
         }
@@ -133,7 +133,7 @@ export class ValidateMpaListingAdd {
       }
 
       item.messaging.forEach((elem, i) => {
-        if(!elem.protocol || !elem.public_key) {
+        if(!elem.protocol || !elem.publicKey) {
           throw new Error('action.item.messaging: missing elements in element=' + i);
         }
       });

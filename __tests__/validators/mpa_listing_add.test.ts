@@ -11,8 +11,8 @@ const basic_listing_sale_mad_ok = JSON.parse(
             "item": {
               "information": {
                 "title": "a 6 month old dog",
-                "short_description": "very cute",
-                "long_description": "not for eating",
+                "shortDescription": "very cute",
+                "longDescription": "not for eating",
                 "category": [
                     "Animals"
                 ]
@@ -29,14 +29,14 @@ const basic_listing_sale_mad_ok = JSON.parse(
                 "cryptocurrency": [
                   {
                     "currency": "PART",
-                    "base_price": 10
+                    "basePrice": 10
                   }
                 ]
               },
               "messaging": [
                 {
                   "protocol": "TODO",
-                  "public_key": "TODO"
+                  "publicKey": "TODO"
                 }
               ]
             }
@@ -123,20 +123,20 @@ test('missing cryptocurrency basic market listing', () => {
     expect(error).toEqual(expect.stringContaining("action.item.payment.cryptocurrency: length of array is 0"));
 });
 
-const basic_listing_sale_mad_negative_base_price = JSON.parse(JSON.stringify(basic_listing_sale_mad_ok));
-basic_listing_sale_mad_negative_base_price.action.item.payment.cryptocurrency = [
+const basic_listing_sale_mad_negative_basePrice = JSON.parse(JSON.stringify(basic_listing_sale_mad_ok));
+basic_listing_sale_mad_negative_basePrice.action.item.payment.cryptocurrency = [
     {
         currency: "PART",
-        base_price: -40
+        basePrice: -40
     }];
-test('negative base_price cryptocurrency basic market listing', () => {
+test('negative basePrice cryptocurrency basic market listing', () => {
     let error: string = "";
     try {
-        validate(basic_listing_sale_mad_negative_base_price)
+        validate(basic_listing_sale_mad_negative_basePrice)
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("action.item.payment.cryptocurrency: only base_price > 0 is allowed"));
+    expect(error).toEqual(expect.stringContaining("action.item.payment.cryptocurrency: only basePrice > 0 is allowed"));
 });
 
 

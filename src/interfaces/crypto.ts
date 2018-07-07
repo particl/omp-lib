@@ -29,5 +29,5 @@ export interface CryptoAddress {
  */
 export interface CryptoAmount {
     type: Crypto,
-    base_price: number
+    basePrice: number
 }
