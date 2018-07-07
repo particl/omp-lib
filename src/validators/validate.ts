@@ -1,4 +1,5 @@
 import { MPA } from "../interfaces/omp"
+import { MPAction } from "../interfaces/omp-enums";
 
 
 export class Validator {
@@ -19,8 +20,12 @@ export class Validator {
             throw new Error('action.type: missing');
         }
 
+        if (!(msg.action.type in MPAction)) {
+            throw new Error('action.type: unrecognized value');
+        }
+
         switch (msg.action.type) {
-            case 'MPA_ACCEPT':
+            case MPAction.MPA_ACCEPT:
                 this.validate_MPA_ACCEPT(msg);
                 break;
         }

@@ -1,5 +1,5 @@
 import { MPA, MPA_LISTING_ADD, MPA_BID } from "../interfaces/omp"
-import { MPAction } from "../interfaces/actions";
+import { MPAction } from "../interfaces/omp-enums";
 import { Crypto } from "./crypto";
 
 

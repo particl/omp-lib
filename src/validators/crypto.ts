@@ -1,4 +1,4 @@
-import { Output } from "../interfaces/crypto";
+import { Output, CryptoAddress, CryptoAddressType } from "../interfaces/crypto";
 
 
 export class Crypto {
@@ -15,8 +15,8 @@ export class Crypto {
         throw new Error('output: txid missing');
       }
 
-      if(!out.vout) {
-        throw new Error('output: txid missing');
+      if(typeof out.vout !== 'number') {
+        throw new Error('output: vout missing');
       }
 
       if(out.vout < 0) {
@@ -26,12 +26,24 @@ export class Crypto {
       return true;
     }
 
+    static validateCryptoAddress(address: CryptoAddress): boolean {
+        if(!address) {
+          throw new Error('CryptoAddress: missing');
+        }
+  
+        if(!address.type) {
+          throw new Error('CryptoAddress.type: missing');
+        }
+
+        if(!(address.type in CryptoAddressType)) {
+            throw new Error('CryptoAddress.type: unrecognized value');
+        }
+
+        if(!address.address) {
+            throw new Error('CryptoAddress.address: missing');
+        }
+
+        return true;
+      }
 
 }
-
-/*
- export interface Output {
-    txid: string,
-    vout: Number
-  }
- */

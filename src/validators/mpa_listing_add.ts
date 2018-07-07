@@ -1,4 +1,5 @@
 import { MPA, MPA_LISTING_ADD } from "../interfaces/omp"
+import { PaymentType, MPAction } from "../interfaces/omp-enums";
 
 
 export class ValidateMpaListingAdd {
@@ -11,7 +12,7 @@ export class ValidateMpaListingAdd {
       const action = msg.action;
       const item = action.item;
 
-      if (!action.type || action.type !== 'MPA_LISTING_ADD') {
+      if (!action.type || action.type !== MPAction.MPA_LISTING_ADD) {
         throw new Error('action.type: wrong or missing');
       }
 
@@ -60,7 +61,7 @@ export class ValidateMpaListingAdd {
         const payment = item.payment;
 
         if (payment.type) {
-          if(['FREE', 'SALE'].indexOf(payment.type) === -1) {
+          if(!(payment.type in PaymentType)) {
             throw new Error('action.item.payment.type: unknown value');
           }
         } else {
@@ -69,6 +70,7 @@ export class ValidateMpaListingAdd {
 
         // If it's a sale,
         // it must contain some payment information.
+        // TODO: RENT?
         if(payment.type === "SALE") {
 
           if (!payment.escrow) {

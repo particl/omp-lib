@@ -11,7 +11,7 @@ const success = JSON.parse(
 
 
 test('validate a complete action', () => {
-    let fail: boolean = false;
+    let fail: boolean;
     try {
         fail = !v.validate(success)
     } catch (e) {
@@ -31,7 +31,7 @@ const missing_type = JSON.parse(
     }`);
 
 test('validate missing type', () => {
-    let fail: boolean = false;
+    let fail: boolean;
     try {
         fail = !v.validate(missing_type)
     } catch (e) {
@@ -51,7 +51,7 @@ const empty_version = JSON.parse(
     }`);
 
 test('validate empty version', () => {
-    let fail: boolean = false;
+    let fail: boolean;
     try {
         fail = !v.validate(empty_version)
     } catch (e) {
@@ -68,9 +68,29 @@ const missing_version = JSON.parse(
     }`);
 
 test('validate missing version', () => {
-    let fail: boolean = false;
+    let fail: boolean;
     try {
         fail = !v.validate(missing_version)
+    } catch (e) {
+        fail = true;
+    }
+    expect(fail).toBe(true);
+});
+
+
+
+const unknown_action = JSON.parse(
+    `{
+        "version": "0.1.0.0",
+        "action": {
+            "type": "MPA_GAWGD_WFTF"
+        }
+    }`);
+
+test('validate unknown action', () => {
+    let fail: boolean;
+    try {
+        fail = !v.validate(unknown_action)
     } catch (e) {
         fail = true;
     }
