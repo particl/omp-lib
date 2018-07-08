@@ -5,7 +5,7 @@
  */
 
 import { Output, CryptoAddress } from "./crypto";
-import { DSN } from "./dsn";
+import { DSN, ContentReference } from "./dsn";
 import { MPAction, PaymentType, EscrowType } from "./omp-enums"
 import { KVS } from './common'
 
@@ -92,7 +92,7 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
           }
         },
         shippingDestinations: string[],
-        images: DSN[]
+        images: ContentReference[]
       },
       payment: {
         type: PaymentType,

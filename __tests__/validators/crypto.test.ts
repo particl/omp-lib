@@ -2,7 +2,7 @@ import { Crypto } from "../../src/format-validators/crypto";
 
 const success = JSON.parse(
     `{
-        "txid": "somelongtxid",
+        "txid": "1234567812345678123456781234567812345678123456781234567812345678",
         "vout": 0
     }`);
 

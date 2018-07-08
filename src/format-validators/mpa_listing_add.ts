@@ -1,7 +1,8 @@
 import { MPA, MPA_EXT_LISTING_ADD } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
-import { isString, isObject, isArray, isNumber } from './util'
+import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage } from './util'
 import { Crypto } from "./crypto";
+import { ValidateContent } from "./content";
 
 // TODO: DSN validation (images)
 // TODO: shippingPrice
@@ -47,8 +48,24 @@ export class ValidateMpaListingAdd {
 
       if (information.category.length === 0) {
         throw new Error('action.item.information.category: no categories specified!');
+      };
+
+      information.category.forEach((elem, i) => {
+        if (!isString(elem)) {
+          throw new Error('action.item.information.categories: not a string, element=' + i);
+        }
+      });
+
+      if(information.images) {
+        if (!isArray(information.images)) {
+          throw new Error('action.item.information.images: not an array');
+        }
+
+        // validate the content references
+        information.images.forEach((elem) => {
+          ValidateContent.validate(elem);
+        });
       }
-      
 
     } else {
       throw new Error('action.item.information: missing');
@@ -86,12 +103,8 @@ export class ValidateMpaListingAdd {
           throw new Error('action.item.payment.escrow.type: unknown value');
         }
 
-        if (!isNumber(payment.escrow.ratio.buyer) || !isNumber(payment.escrow.ratio.seller)) {
-          throw new Error('action.item.payment.escrow.ratio: missing or incomplete');
-        }
-
-        if (payment.escrow.ratio.buyer < 0 || payment.escrow.ratio.seller < 0) {
-          throw new Error('action.item.payment.escrow.ratio: negative ratios are not allowed');
+        if (!isValidPercentage(payment.escrow.ratio.buyer) || !isValidPercentage(payment.escrow.ratio.seller)) {
+          throw new Error('action.item.payment.escrow.ratio: missing or invalid percentages');
         }
 
         if (!isArray(payment.cryptocurrency)) {
@@ -112,8 +125,24 @@ export class ValidateMpaListingAdd {
             throw new Error('action.item.payment.cryptocurrency: missing currency or basePrice, fault in element=' + i);
           }
 
-          if (elem.basePrice <= 0) {
+          if (!isValidPrice(elem.basePrice)) {
             throw new Error('action.item.payment.cryptocurrency: only basePrice > 0 is allowed, fault in element=' + i);
+          }
+
+          if(elem.shippingPrice) {
+            if(isObject(elem.shippingPrice)) {
+              const s = elem.shippingPrice;
+              if (!isValidPrice(s.domestic)) {
+                throw new Error('action.item.payment.cryptocurrency.shippingPrice.domestic: not a number or negative, fault in element=' + i);
+              }
+
+              if (!isValidPrice(s.international)) {
+                throw new Error('action.item.payment.cryptocurrency.shippingPrice.international: not a number or negative, fault in element=' + i);
+              }
+
+            } else {
+              throw new Error('action.item.payment.cryptocurrency.shippingPrice: not an object, fault in element=' + i);
+            }
           }
 
           if(elem.address) {
@@ -121,7 +150,6 @@ export class ValidateMpaListingAdd {
           }
         });
 
-        // todo shippingPrice!
       }
 
     } else {

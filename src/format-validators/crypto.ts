@@ -1,5 +1,5 @@
 import { Output, CryptoAddress, CryptoAddressType } from "../interfaces/crypto";
-import { isObject, isNumber, isString } from "./util";
+import { isObject, isNumber, isString, isTxid } from "./util";
 
 
 export class Crypto {
@@ -8,15 +8,12 @@ export class Crypto {
     }
 
     static validateOutput(out: Output): boolean {
-      if(!isObject(out)) {
-        throw new Error('output: missing');
-      }
 
       if(!isObject(out)) {
-        throw new Error('output: must be an object!');
+        throw new Error('output: missing or not an object!');
       }
 
-      if(!isString(out.txid)) {
+      if(!isTxid(out.txid)) {
         throw new Error('output: txid missing');
       }
 
