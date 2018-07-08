@@ -105,7 +105,7 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
         },
         cryptocurrency: [
           {
-            currency: Crypto,
+            currency: CryptoType,
             basePrice: Number,
             shippingPrice: {
               domestic: Number,
