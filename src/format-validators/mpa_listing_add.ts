@@ -243,7 +243,7 @@ export class ValidateMpaListingAdd {
           throw new Error('action.item.objects: not an object element=' + i);
         }
 
-        if (!isString(elem.id) || !(isString(elem.value) && isNumber(elem.value))) {
+        if (!isString(elem.id) || !(isString(elem.value) || isNumber(elem.value))) {
           throw new Error('action.item.objects: missing elements in element=' + i);
         }
       });

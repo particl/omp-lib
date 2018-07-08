@@ -22,8 +22,17 @@ export function isNaturalNumber(v: any): boolean {
     return isNumber(v) && (v.toString().indexOf('.') === -1);
 }
 
+/**
+ * Non negative natural number means:
+ * 0, 1, 2, ...
+ * @param t value to test
+ */
+export function isNonNegativeNaturalNumber(t: any) {
+    return isNaturalNumber(t) && t >= 0
+}
+
 export function isValidPrice(v: any) {
-    return isNaturalNumber(v) && v >= 0 // perhaps more checks.
+    return isNaturalNumber(v) && v > 0 // perhaps more checks.
 }
 
 export function isValidPercentage(v: any) {
@@ -36,4 +45,8 @@ export function isSHA256Hash(h: any): boolean {
 
 export function isTxid(txid: any) {
     return isSHA256Hash(txid);
+}
+
+export function isTimestamp(t: any) {
+    return isNonNegativeNaturalNumber(t)
 }

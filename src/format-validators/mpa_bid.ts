@@ -1,7 +1,7 @@
 import { MPA, MPA_LISTING_ADD, MPA_BID } from "../interfaces/omp"
 import { MPAction } from "../interfaces/omp-enums";
 import { Crypto } from "./crypto";
-import { isNumber, isObject, isArray, isString } from "./util";
+import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash } from "./util";
 
 // TODO: Objects!
 export class ValidateMpaBid {
@@ -22,16 +22,12 @@ export class ValidateMpaBid {
       throw new Error('action.type: expecting MPA_BID got ' + action.type);
     }
 
-    if (!action.created || !isNumber(action.created)) {
-      throw new Error('action.created: missing or not a number');
+    if (!isTimestamp(action.created)) {
+      throw new Error('action.created: missing or not a valid timestamp');
     }
 
-    if (action.created <= 0) {
-      throw new Error('action.created: negative timestamp not allowed');
-    }
-
-    if (!isString(action.item)) {
-      throw new Error('action.item: item hash is missing or not a string');
+    if (!isSHA256Hash(action.item)) {
+      throw new Error('action.item: missing or not a valid hash');
     }
 
     if (!isObject(buyer)) {
@@ -64,7 +60,7 @@ export class ValidateMpaBid {
     }
 
 
-    if (!buyer.shippingAddress || !isObject(buyer.shippingAddress)) {
+    if (!isObject(buyer.shippingAddress)) {
       throw new Error('action.buyer.shippingAddress: missing or not an object');
     }
 
@@ -112,7 +108,7 @@ export class ValidateMpaBid {
           throw new Error('action.objects: not an object element=' + i);
         }
   
-        if (!isString(elem.id) || !(isString(elem.value) && isNumber(elem.value))) {
+        if (!isString(elem.id) || !(isString(elem.value) || isNumber(elem.value))) {
           throw new Error('action.objects: missing elements in element=' + i);
         }
       });
@@ -123,26 +119,3 @@ export class ValidateMpaBid {
 
 
 }
-
-/*
-    type: 'MPA_BID',
-    created: Number, // timestamp
-    item: string, // item hash
-    buyer: { 
-      payment: {
-        pubKey: string,
-        outputs: Output[],
-        changeAddress: CryptoAddress
-      },
-      shippingAddress: {
-        firstName: string,
-        lastName: string,
-        addressLine1: string,
-        addressLine2: string,
-        city: string,
-        state: string,
-        zipCode: Number,
-        country: string,
-      }
-    }
-    */
