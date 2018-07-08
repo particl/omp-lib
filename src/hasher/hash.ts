@@ -18,45 +18,14 @@ export function hash(v: any): string {
 
 function hashObject(unordered: object): string {
     const sorted = deepSortObject(unordered);
+
     let keyHashes = sha256.update('OpenMarketProtocol');
-    // const ordered = deepSortObject(unordered);
-    // console.log(JSON.stringify(ordered, null, 4));
     deep(sorted, (toHash) => {
         keyHashes.update(toHash);
     });
 
     return sha256(keyHashes.array().join());
 }
-
-/*export function deep(unordered: any, callback: Function): object {
-    // order the keys alphabetically!
-    let result = {};
-    let ordered = undefined;
-    if(isArray(unordered)) {
-        ordered = unordered.sort();
-    } else if(isObject(unordered)) {
-        ordered = Object.keys(unordered).sort();
-    } else {
-        return callback("",unordered);
-    }
-
-    ordered.forEach(function(key) {
-        // if value is object, recursively sort it
-        if(isArray(unordered[key])) {
-            result[key] = [];
-            unordered[key].sort().forEach((elem) => {
-                result[key].push(callback(key, deep(elem, callback)));
-            })
-        }
-        else if(isObject(unordered[key])) {
-            result[key] = callback(key, deep(unordered[key], callback))
-        } else {
-            result[key] = callback(key, unordered[key]);
-        }
-    });
-
-    return result;
-} */
 
 export function hashListing(l: MPA_EXT_LISTING_ADD) {
 
@@ -127,7 +96,6 @@ function deep(sorted: any, callback: Function, parentKey?: string) {
         });
     } else {
         const toHash = parentKey + sorted;
-        console.log(toHash);
         callback(toHash)
     }
 }
@@ -151,11 +119,11 @@ function deepCompare (a, b) {
     }
 
     if(a > b) {
-        return -1
+        return 1
     }
 
     if (b > a) {
-        return 1
+        return -1
     }
 
     return 0;
