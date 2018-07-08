@@ -6,7 +6,7 @@ export interface Output {
     vout: Number
 }
 
-export enum Crypto {
+export enum CryptoType {
     BTC = 'BTC',
     PART = 'PART'
 }

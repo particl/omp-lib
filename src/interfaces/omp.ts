@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Output, CryptoAddress } from "./crypto";
+import { Output, CryptoAddress, CryptoType } from "./crypto";
 import { DSN, ContentReference } from "./dsn";
 import { MPAction, PaymentType, EscrowType } from "./omp-enums"
 import { KVS } from './common'
@@ -49,7 +49,7 @@ export interface MPA_LISTING_ADD extends MPA {
         },
         cryptocurrency: [
           {
-            currency: Crypto,
+            currency: CryptoType,
             basePrice: Number,
           }
         ]

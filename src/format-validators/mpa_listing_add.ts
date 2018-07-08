@@ -2,6 +2,7 @@ import { MPA, MPA_EXT_LISTING_ADD } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage } from './util'
 import { Crypto } from "./crypto";
+import { CryptoType } from "../interfaces/crypto"
 import { ValidateContent } from "./content";
 
 // TODO: DSN validation (images)
@@ -20,7 +21,9 @@ export class ValidateMpaListingAdd {
       throw new Error('action.type: wrong or missing');
     }
 
-
+    if (!isObject(item)) {
+      throw new Error('action.item: missing or not an object');
+    }
 
     // Validate information
     if (isObject(item.information)) {
@@ -56,7 +59,53 @@ export class ValidateMpaListingAdd {
         }
       });
 
-      if(information.images) {
+      if (isObject(information.location)) {
+        const location = information.location;
+
+        if (!isString(location.country)) {
+          throw new Error('action.item.information.location.country: not a string');
+        }
+
+        if (location.address && !isString(location.address)) {
+          throw new Error('action.item.information.location.address: not a string');
+        }
+
+        if (location.gps) {
+          if (!isObject(location.gps)) {
+            throw new Error('action.item.information.location.gps: not an object');
+          }
+
+          if (!isNumber(location.gps.lat)) {
+            throw new Error('action.item.information.location.gps.lat: not a number');
+          }
+
+          if (!isNumber(location.gps.lng)) {
+            throw new Error('action.item.information.location.gps.lng: not a number');
+          }
+
+          if (!isString(location.gps.markerText)) {
+            throw new Error('action.item.information.location.gps.markerText: not a string');
+          }
+
+          if (!isString(location.gps.markerTitle)) {
+            throw new Error('action.item.information.location.gps.markerTitle: not a string');
+          }
+        }
+      }
+
+      if (information.shippingDestinations) {
+        if (!isArray(information.shippingDestinations)) {
+          throw new Error('action.item.information.shippingDestinations: not an array');
+        }
+
+        information.shippingDestinations.forEach((value, i) => {
+          if (!isString(value)) {
+            throw new Error('shippingDestinations: not a string, fault at element=' + i);
+          }
+        })
+      }
+
+      if (information.images) {
         if (!isArray(information.images)) {
           throw new Error('action.item.information.images: not an array');
         }
@@ -88,19 +137,24 @@ export class ValidateMpaListingAdd {
 
       // If it's a sale,
       // it must contain some payment information.
+      // TODO: FREE
       // TODO: RENT?
-      if (payment.type === "SALE") {
+      if (["SALE", "RENT"].includes(payment.type)) {
 
         if (!isObject(payment.escrow)) {
           throw new Error('action.item.payment.escrow: missing');
         }
 
-        if (!isObject(payment.escrow.ratio) || !isString(payment.escrow.type)) {
-          throw new Error('action.item.payment.escrow: missing or incomplete');
+        if (!isString(payment.escrow.type)) {
+          throw new Error('action.item.payment.escrow.type: missing or not a string');
         }
 
         if (!(payment.escrow.type in EscrowType)) {
           throw new Error('action.item.payment.escrow.type: unknown value');
+        }
+
+        if (!isObject(payment.escrow.ratio)) {
+          throw new Error('action.item.payment.escrow: missing or not an object');
         }
 
         if (!isValidPercentage(payment.escrow.ratio.buyer) || !isValidPercentage(payment.escrow.ratio.seller)) {
@@ -121,31 +175,34 @@ export class ValidateMpaListingAdd {
             throw new Error('action.item.payment.cryptocurrency: not an object element=' + i);
           }
 
-          if (!isNumber(elem.basePrice) || !isString(elem.currency)) {
-            throw new Error('action.item.payment.cryptocurrency: missing currency or basePrice, fault in element=' + i);
+          if (!isString(elem.currency)) {
+            throw new Error('action.item.payment.cryptocurrency.currency: missing or not a string, fault in element=' + i);
+          }
+
+          if (!(elem.currency in CryptoType)) {
+            throw new Error('action.item.payment.cryptocurrency.currency: unknown value, fault in element=' + i);
           }
 
           if (!isValidPrice(elem.basePrice)) {
             throw new Error('action.item.payment.cryptocurrency: only basePrice > 0 is allowed, fault in element=' + i);
           }
 
-          if(elem.shippingPrice) {
-            if(isObject(elem.shippingPrice)) {
-              const s = elem.shippingPrice;
-              if (!isValidPrice(s.domestic)) {
-                throw new Error('action.item.payment.cryptocurrency.shippingPrice.domestic: not a number or negative, fault in element=' + i);
-              }
-
-              if (!isValidPrice(s.international)) {
-                throw new Error('action.item.payment.cryptocurrency.shippingPrice.international: not a number or negative, fault in element=' + i);
-              }
-
-            } else {
+          if (elem.shippingPrice) {
+            if (!isObject(elem.shippingPrice)) {
               throw new Error('action.item.payment.cryptocurrency.shippingPrice: not an object, fault in element=' + i);
+            }
+
+            const s = elem.shippingPrice;
+            if (!isValidPrice(s.domestic)) {
+              throw new Error('action.item.payment.cryptocurrency.shippingPrice.domestic: not a number or negative, fault in element=' + i);
+            }
+
+            if (!isValidPrice(s.international)) {
+              throw new Error('action.item.payment.cryptocurrency.shippingPrice.international: not a number or negative, fault in element=' + i);
             }
           }
 
-          if(elem.address) {
+          if (elem.address) {
             Crypto.validateCryptoAddress(elem.address);
           }
         });
@@ -176,8 +233,8 @@ export class ValidateMpaListingAdd {
     });
 
 
-    if(item.objects) {
-      if(!isArray(item.objects)) {
+    if (item.objects) {
+      if (!isArray(item.objects)) {
         throw new Error('action.item.objects: not an array');
       }
 
@@ -185,7 +242,7 @@ export class ValidateMpaListingAdd {
         if (!isObject(elem)) {
           throw new Error('action.item.objects: not an object element=' + i);
         }
-  
+
         if (!isString(elem.id) || !(isString(elem.value) && isNumber(elem.value))) {
           throw new Error('action.item.objects: missing elements in element=' + i);
         }
