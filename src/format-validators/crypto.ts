@@ -2,7 +2,7 @@ import { Output, CryptoAddress, CryptoAddressType } from "../interfaces/crypto";
 import { isObject, isNumber, isString, isTxid } from "./util";
 
 
-export class Crypto {
+export class FV_CRYPTO {
 
     constructor() {
     }

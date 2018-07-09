@@ -70,8 +70,8 @@ test('normalize and hash', () => {
     let output = "one"
     let two = "two"
     try {
-        console.log(JSON.stringify(deepSortObject(deepNestOne), null, 4));
-        console.log(JSON.stringify(deepSortObject(deepNestTwo), null, 4));
+        //console.log(JSON.stringify(deepSortObject(deepNestOne), null, 4));
+        //console.log(JSON.stringify(deepSortObject(deepNestTwo), null, 4));
 
         output = hash(deepNestOne)
         two = hash(deepNestTwo)
@@ -152,71 +152,13 @@ ok_less_img_data.action.item.information.images.push({
         }
     ]
 });
-/*
-test('compare hashes of two listings full vs less local images', () => {
-    let output = "one"
-    let two = "two"
-    try {
-        output = hash(ok_full_img_data)
-        two = hash(ok_less_img_data)
-        console.log(output + " === " + two);
-    } catch (e) {
-        console.log(e);
-    }
-    expect(output).toBe(two);
-});*/
-
-
-
-
-// different order of the keys
-const ok_two = JSON.parse(
-    `{
-        "version": "0.1.0.0",
-        "action": {
-            "type": "MPA_LISTING_ADD",
-            "item": {
-              "information": {
-                "longDescription": "not for eating",
-                "shortDescription": "very cute",
-                "title": "a 6 month old dog",
-                "category": [
-                    "Animals"
-                ]
-              },
-              "payment": {
-                "type": "SALE",
-                "escrow": {
-                  "ratio": {
-                    "buyer": 100,
-                    "seller": 100
-                  },
-                  "type": "MAD"
-                },
-                "cryptocurrency": [
-                  {
-                    "currency": "PART",
-                    "basePrice": 10
-                  }
-                ]
-              },
-              "messaging": [
-                {
-                  "publicKey": "TODO",
-                  "protocol": "TODO"
-                }
-              ]
-            }
-        }
-    }`);
-
 
 test('compare hashes of two listings full vs less local images', () => {
     let output = "one"
     let two = "two"
     try {
-        output = hashListing(ok)
-        two = hashListing(ok_two)
+        output = hashListing(ok_full_img_data)
+        two = hashListing(ok_less_img_data)
         console.log(output + " === " + two);
     } catch (e) {
         console.log(e);

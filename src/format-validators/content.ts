@@ -2,7 +2,7 @@ import { isObject, isNumber, isString, isTxid, isSHA256Hash, isArray } from "./u
 import { ContentReference, DSN, ProtocolDSN } from "../interfaces/dsn";
 
 
-export class ValidateContent {
+export class FV_CONTENT {
 
     constructor() {
     }

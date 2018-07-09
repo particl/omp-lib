@@ -1,16 +1,18 @@
 import { MPA, MPA_LISTING_ADD, MPA_BID } from "../interfaces/omp"
 import { MPAction } from "../interfaces/omp-enums";
-import { Crypto } from "./crypto";
+import { FV_CRYPTO } from "./crypto";
 import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash } from "./util";
+import { FV_MPA } from "./mpa";
 
-// TODO: Objects!
-export class ValidateMpaBid {
+export class FV_MPA_BID {
 
   constructor() {
   }
 
-  // Only after MPA base class has already validated
   static validate(msg: MPA_BID): boolean {
+      // validate base class
+      FV_MPA.validate(msg);
+
     const action = msg.action;
     const buyer = action.buyer;
 
@@ -46,14 +48,14 @@ export class ValidateMpaBid {
       }
 
       payment.outputs.forEach((elem, i) => {
-        Crypto.validateOutput(elem);
+        FV_CRYPTO.validateOutput(elem);
       });
 
       if (!isString(payment.changeAddress)) {
         throw new Error('action.buyer.payment.changeAddress: missing');
       }
 
-      Crypto.validateCryptoAddress(payment.changeAddress);
+      FV_CRYPTO.validateCryptoAddress(payment.changeAddress);
 
     } else {
       throw new Error('action.buyer.payment: not an object');

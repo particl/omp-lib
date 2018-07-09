@@ -1,41 +1,27 @@
 import { MPA } from "../interfaces/omp"
 import { MPAction } from "../interfaces/omp-enums";
-
+import { FV_MPA } from "./mpa";
+import { FV_MPA_LISTING } from "./mpa_listing_add";
+import { FV_MPA_BID } from "./mpa_bid";
 
 export class Validator {
 
     constructor() {
     }
 
-    public validate(msg: MPA): boolean {
-        if (!msg.version) {
-            throw new Error('version: missing');
-        }
-
-        if (!msg.action) {
-            throw new Error('action: missing');
-        }
-
-        if (!msg.action.type) {
-            throw new Error('action.type: missing');
-        }
-
-        if (!(msg.action.type in MPAction)) {
-            throw new Error('action.type: unrecognized value');
-        }
+    public validate(msg: any): boolean {
+        // validate base class
+        FV_MPA.validate(msg);
 
         switch (msg.action.type) {
-            case MPAction.MPA_ACCEPT:
-                this.validate_MPA_ACCEPT(msg);
+            case MPAction.MPA_LISTING_ADD:
+                FV_MPA_LISTING.validate(msg);
+                break;
+            case MPAction.MPA_BID:
+                FV_MPA_BID.validate(msg);
                 break;
         }
         return true;
     }
 
-
-
-    private validate_MPA_ACCEPT(msg: MPA): boolean {
-
-        return true;
-    }
 }

@@ -1,7 +1,7 @@
-import { ValidateMpaListingAdd } from "../../src/format-validators/mpa_listing_add";
-import { hash } from "../../src/util";
+import { FV_MPA_LISTING } from "../../src/format-validators/mpa_listing_add";
+import { hash } from "../../src/hasher/hash";
 
-const validate = ValidateMpaListingAdd.validate;
+const validate = FV_MPA_LISTING.validate;
 
 
 const ok = JSON.parse(

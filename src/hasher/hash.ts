@@ -35,15 +35,15 @@ export function hashListing(l: MPA_EXT_LISTING_ADD) {
     if(l.action.item.information.images) {
         l.action.item.information.images.forEach((img: ContentReference) => {
             img.data.forEach((dsn) => {
-                if(dsn.protocol !== ProtocolDSN.LOCAL) {
+                if(dsn.protocol === ProtocolDSN.LOCAL) {
                     delete dsn.data;
                 }
             });
         })
     } 
 
-    // console.log(JSON.stringify(l, null, 4));
-
+     //console.log(JSON.stringify(l, null, 4));
+    
     return hash(l);
 
 }

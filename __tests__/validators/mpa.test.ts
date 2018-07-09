@@ -1,6 +1,6 @@
-import { Validator } from "../../src/format-validators/validate";
+import { FV_MPA } from "../../src/format-validators/mpa";
 
-const v = new Validator();
+const validate = FV_MPA.validate;
 const success = JSON.parse(
     `{
         "version": "0.1.0.0",
@@ -13,7 +13,7 @@ const success = JSON.parse(
 test('validate a complete action', () => {
     let fail: boolean;
     try {
-        fail = !v.validate(success)
+        fail = !validate(success)
     } catch (e) {
         fail = true;
     }
@@ -33,7 +33,7 @@ const missing_type = JSON.parse(
 test('validate missing type', () => {
     let fail: boolean;
     try {
-        fail = !v.validate(missing_type)
+        fail = !validate(missing_type)
     } catch (e) {
         fail = true;
     }
@@ -53,7 +53,7 @@ const empty_version = JSON.parse(
 test('validate empty version', () => {
     let fail: boolean;
     try {
-        fail = !v.validate(empty_version)
+        fail = !validate(empty_version)
     } catch (e) {
         fail = true;
     }
@@ -70,7 +70,7 @@ const missing_version = JSON.parse(
 test('validate missing version', () => {
     let fail: boolean;
     try {
-        fail = !v.validate(missing_version)
+        fail = !validate(missing_version)
     } catch (e) {
         fail = true;
     }
@@ -90,7 +90,7 @@ const unknown_action = JSON.parse(
 test('validate unknown action', () => {
     let fail: boolean;
     try {
-        fail = !v.validate(unknown_action)
+        fail = !validate(unknown_action)
     } catch (e) {
         fail = true;
     }

@@ -1,19 +1,22 @@
 import { MPA, MPA_EXT_LISTING_ADD } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage } from './util'
-import { Crypto } from "./crypto";
+import { FV_MPA } from "./mpa";
+import { FV_CRYPTO } from "./crypto";
 import { CryptoType } from "../interfaces/crypto"
-import { ValidateContent } from "./content";
+import { FV_CONTENT } from "./content";
 
 // TODO: DSN validation (images)
 // TODO: shippingPrice
-export class ValidateMpaListingAdd {
+export class FV_MPA_LISTING {
 
   constructor() {
   }
 
-  // Only after MPA base class has already validated
   static validate(msg: MPA_EXT_LISTING_ADD): boolean {
+    // validate base class
+    FV_MPA.validate(msg);
+
     const action = msg.action;
     const item = action.item;
 
@@ -112,7 +115,7 @@ export class ValidateMpaListingAdd {
 
         // validate the content references
         information.images.forEach((elem) => {
-          ValidateContent.validate(elem);
+          FV_CONTENT.validate(elem);
         });
       }
 
@@ -203,7 +206,7 @@ export class ValidateMpaListingAdd {
           }
 
           if (elem.address) {
-            Crypto.validateCryptoAddress(elem.address);
+            FV_CRYPTO.validateCryptoAddress(elem.address);
           }
         });
 

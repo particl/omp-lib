@@ -1,15 +1,16 @@
-import { Crypto } from "../../src/format-validators/crypto";
+import { FV_CRYPTO } from "../../src/format-validators/crypto";
+import { hash } from "../../src/hasher/hash";
 
 const success = JSON.parse(
     `{
-        "txid": "1234567812345678123456781234567812345678123456781234567812345678",
+        "txid": "${hash("txid")}",
         "vout": 0
     }`);
 
 test('validate a normal output', () => {
     let fail: boolean;
     try {
-        fail = !Crypto.validateOutput(success)
+        fail = !FV_CRYPTO.validateOutput(success)
     } catch (e) {
         console.log(e);
         fail = true;
@@ -22,7 +23,7 @@ const horrible_fail = JSON.parse(`"not even an object"`);
 test('output not an object', () => {
     let fail: boolean;
     try {
-        fail = !Crypto.validateOutput(horrible_fail)
+        fail = !FV_CRYPTO.validateOutput(horrible_fail)
     } catch (e) {
         fail = true;
     }
@@ -39,7 +40,7 @@ const negative_vout = JSON.parse(
 test('try negative vout', () => {
     let fail: boolean;
     try {
-        fail = !Crypto.validateOutput(negative_vout)
+        fail = !FV_CRYPTO.validateOutput(negative_vout)
     } catch (e) {
         fail = true;
     }
@@ -57,7 +58,7 @@ const cryptoaddress_success = JSON.parse(
 test('validate an address', () => {
     let fail: boolean;
     try {
-        fail = !Crypto.validateCryptoAddress(cryptoaddress_success)
+        fail = !FV_CRYPTO.validateCryptoAddress(cryptoaddress_success)
     } catch (e) {
         fail = true;
     }
@@ -69,7 +70,7 @@ const horrible_fail_address = JSON.parse(`"not even an object"`);
 test('address not an object', () => {
     let fail: boolean;
     try {
-        fail = !Crypto.validateCryptoAddress(horrible_fail_address)
+        fail = !FV_CRYPTO.validateCryptoAddress(horrible_fail_address)
     } catch (e) {
         fail = true;
     }
@@ -85,7 +86,7 @@ const cryptoaddress_fail_number = JSON.parse(
 test('validate an address with wrong type', () => {
     let fail: boolean;
     try {
-        fail = !Crypto.validateCryptoAddress(cryptoaddress_fail_number)
+        fail = !FV_CRYPTO.validateCryptoAddress(cryptoaddress_fail_number)
     } catch (e) {
         fail = true;
     }
@@ -102,7 +103,7 @@ const cryptoaddress_fail_type = JSON.parse(
 test('validate an address with wrong type', () => {
     let fail: boolean;
     try {
-        fail = !Crypto.validateCryptoAddress(cryptoaddress_fail_type)
+        fail = !FV_CRYPTO.validateCryptoAddress(cryptoaddress_fail_type)
     } catch (e) {
         fail = true;
     }
