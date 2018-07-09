@@ -1,17 +1,17 @@
-import { MPA_LOCK } from "../interfaces/omp"
+import { MPA_REFUND } from "../interfaces/omp"
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isObject, isArray, isString, isSHA256Hash } from "./util";
 
 import { FV_CRYPTO } from "./crypto";
 import { FV_MPA } from "./mpa";
-import { FV_MPA_LOCK_ESCROW_MULTISIG } from "./escrow/multisig";
+import { FV_MPA_REFUND_ESCROW_MULTISIG } from "./escrow/multisig";
 
-export class FV_MPA_LOCK {
+export class FV_MPA_REFUND {
 
     constructor() {
     }
 
-    static validate(msg: MPA_LOCK): boolean {
+    static validate(msg: MPA_REFUND): boolean {
         // validate base class
         FV_MPA.validate(msg);
 
@@ -22,8 +22,8 @@ export class FV_MPA_LOCK {
             throw new Error('action.type: missing');
         }
 
-        if (action.type !== MPAction.MPA_LOCK) {
-            throw new Error('action.type: expecting MPA_LOCK got ' + action.type);
+        if (action.type !== MPAction.MPA_REFUND) {
+            throw new Error('action.type: expecting MPA_REFUND got ' + action.type);
         }
 
         if (!isSHA256Hash(action.bid)) {
@@ -39,7 +39,7 @@ export class FV_MPA_LOCK {
             // TODO: implement all validators
             switch (payment.escrow) {
                 case EscrowType.MULTISIG:
-                    FV_MPA_LOCK_ESCROW_MULTISIG.validate(payment);
+                    FV_MPA_REFUND_ESCROW_MULTISIG.validate(payment);
                     break;
                 default:
                     throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);

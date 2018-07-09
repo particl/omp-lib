@@ -45,6 +45,79 @@ export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
 
     static validate(payment: any): boolean {
         FV_MPA_BID_ESCROW_MULTISIG.validate(payment);
+
+        if (!isArray(payment.signatures)) {
+            throw new Error('action.seller.payment.signatures: missing or not an array');
+        }
+
+        payment.signatures.forEach((elem, i) => {
+            FV_CRYPTO.validateSignature(elem);
+        });
+
+        if (payment.signatures.length !== payment.outputs.length) {
+            throw new Error('action.seller.payment.signatures: amount of signatures does not match amount of outputs');
+        }
+
+        return true;
+    }
+
+}
+
+export class FV_MPA_LOCK_ESCROW_MULTISIG {
+
+    constructor() {
+    }
+
+    static validate(payment: any): boolean {
+
+        if (!isArray(payment.signatures)) {
+            throw new Error('action.buyer.payment.signatures: missing or not an array');
+        }
+
+        payment.signatures.forEach((elem, i) => {
+            FV_CRYPTO.validateSignature(elem);
+        });
+
+        return true;
+    }
+
+}
+
+export class FV_MPA_RELEASE_ESCROW_MULTISIG {
+
+    constructor() {
+    }
+
+    static validate(payment: any): boolean {
+
+        if (!isArray(payment.signatures)) {
+            throw new Error('action.seller.payment.signatures: missing or not an array');
+        }
+
+        payment.signatures.forEach((elem, i) => {
+            FV_CRYPTO.validateSignature(elem);
+        });
+
+        return true;
+    }
+
+}
+
+export class FV_MPA_REFUND_ESCROW_MULTISIG {
+
+    constructor() {
+    }
+
+    static validate(payment: any): boolean {
+
+        if (!isArray(payment.signatures)) {
+            throw new Error('action.buyer.payment.signatures: missing or not an array');
+        }
+
+        payment.signatures.forEach((elem, i) => {
+            FV_CRYPTO.validateSignature(elem);
+        });
+
         return true;
     }
 

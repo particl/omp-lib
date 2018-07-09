@@ -1,18 +1,17 @@
-import { MPA_ACCEPT } from "../interfaces/omp"
+import { MPA_RELEASE } from "../interfaces/omp"
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
-import { isNumber, isObject, isArray, isString, isSHA256Hash } from "./util";
+import { isObject, isArray, isString, isSHA256Hash } from "./util";
 
-import { FV_MPA } from "./mpa";
 import { FV_CRYPTO } from "./crypto";
-import { FV_OBJECTS } from "./objects";
-import { FV_MPA_ACCEPT_ESCROW_MULTISIG } from "./escrow/multisig";
+import { FV_MPA } from "./mpa";
+import { FV_MPA_RELEASE_ESCROW_MULTISIG } from "./escrow/multisig";
 
-export class FV_MPA_ACCEPT {
+export class FV_MPA_RELEASE {
 
     constructor() {
     }
 
-    static validate(msg: MPA_ACCEPT): boolean {
+    static validate(msg: MPA_RELEASE): boolean {
         // validate base class
         FV_MPA.validate(msg);
 
@@ -23,8 +22,8 @@ export class FV_MPA_ACCEPT {
             throw new Error('action.type: missing');
         }
 
-        if (action.type !== MPAction.MPA_ACCEPT) {
-            throw new Error('action.type: expecting MPA_ACCEPT got ' + action.type);
+        if (action.type !== MPAction.MPA_RELEASE) {
+            throw new Error('action.type: expecting MPA_RELEASE got ' + action.type);
         }
 
         if (!isSHA256Hash(action.bid)) {
@@ -37,14 +36,10 @@ export class FV_MPA_ACCEPT {
 
         if (isObject(seller.payment)) {
             const payment = seller.payment;
-            if (!(payment.escrow in EscrowType)) {
-                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + payment.escrow);
-            }
-
             // TODO: implement all validators
             switch (payment.escrow) {
                 case EscrowType.MULTISIG:
-                    FV_MPA_ACCEPT_ESCROW_MULTISIG.validate(payment);
+                    FV_MPA_RELEASE_ESCROW_MULTISIG.validate(payment);
                     break;
                 default:
                     throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);

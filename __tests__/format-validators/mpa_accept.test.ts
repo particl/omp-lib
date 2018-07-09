@@ -21,6 +21,9 @@ const ok = JSON.parse(
                         "txid": "${hash('txid')}",
                         "vout": 0
                     }
+                ],
+                "signatures": [
+                    "signature1"
                 ]
               }
             }
@@ -49,6 +52,19 @@ test('validate missing bid hash MPA_ACCEPT', () => {
     }
     expect(error).toEqual(expect.stringContaining("bid: missing or not a valid hash"));
 });
+
+const missing_seller = JSON.parse(JSON.stringify(ok));
+delete missing_seller.action.seller;
+test('validate missing seller object MPA_ACCEPT', () => {
+    let error: string = "";
+    try {
+        validate(missing_seller)
+    } catch (e) {
+        error = e.toString();
+    }
+    expect(error).toEqual(expect.stringContaining("seller: missing or not an object"));
+});
+
 
 const missing_payment = JSON.parse(JSON.stringify(ok));
 missing_payment.action.seller.payment = "UNKWONSDFS"
