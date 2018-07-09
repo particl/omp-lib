@@ -52,5 +52,4 @@ export class FV_MPA_RELEASE {
         return true;
     }
 
-
 }

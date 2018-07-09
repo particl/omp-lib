@@ -2,6 +2,9 @@
 import { FV_MPA_BID } from "../../../src/format-validators/mpa_bid";
 import { hash } from "../../../src/hasher/hash";
 import { FV_MPA_ACCEPT } from "../../../src/format-validators/mpa_accept";
+import { FV_MPA_RELEASE } from "../../../src/format-validators/mpa_release";
+import { FV_MPA_LOCK } from "../../../src/format-validators/mpa_lock";
+import { FV_MPA_REFUND } from "../../../src/format-validators/mpa_refund";
 
 const validate = FV_MPA_BID.validate;
 const ok_bid = JSON.parse(
@@ -219,4 +222,110 @@ test('validate missing signatures MPA_ACCEPT', () => {
         error = e.toString();
     }
     expect(error).toEqual(expect.stringContaining("signatures: amount of signatures does not match amount of outputs"));
+});
+
+
+
+
+
+const validateLock = FV_MPA_LOCK.validate;
+const ok_lock = JSON.parse(
+    `{
+        "version": "0.1.0.0",
+        "action": {
+            "type": "MPA_LOCK",
+            "bid": "${hash('bid')}",
+            "buyer": { 
+              "payment": {
+                "escrow": "MULTISIG",
+                "signatures": [
+                    "signature1"
+                ]
+              }
+            }
+        }
+    }`);
+
+const lock_missing_signatures = JSON.parse(JSON.stringify(ok_lock));
+delete lock_missing_signatures.action.buyer.payment.signatures;
+test('validate missing signatures MPA_LOCK', () => {
+    let error: string = "";
+    try {
+        validateLock(lock_missing_signatures)
+    } catch (e) {
+        error = e.toString();
+    }
+    expect(error).toEqual(expect.stringContaining("signatures: missing or not an array"));
+});
+
+
+
+
+
+
+
+const validateRelease = FV_MPA_RELEASE.validate;
+const ok_release = JSON.parse(
+    `{
+        "version": "0.1.0.0",
+        "action": {
+            "type": "MPA_RELEASE",
+            "bid": "${hash('bid')}",
+            "seller": { 
+              "payment": {
+                "escrow": "MULTISIG",
+                "signatures": [
+                    "signature1"
+                ]
+              }
+            }
+        }
+    }`);
+
+const release_missing_signatures = JSON.parse(JSON.stringify(ok_release));
+delete release_missing_signatures.action.seller.payment.signatures;
+test('validate missing signatures MPA_RELEASE', () => {
+    let error: string = "";
+    try {
+        validateRelease(release_missing_signatures)
+    } catch (e) {
+        error = e.toString();
+    }
+    expect(error).toEqual(expect.stringContaining("signatures: missing or not an array"));
+});
+
+
+
+
+
+
+
+const validateRefund = FV_MPA_REFUND.validate;
+const ok_refund = JSON.parse(
+    `{
+        "version": "0.1.0.0",
+        "action": {
+            "type": "MPA_REFUND",
+            "bid": "${hash('bid')}",
+            "buyer": { 
+              "payment": {
+                "escrow": "MULTISIG",
+                "signatures": [
+                    "signature1"
+                ]
+              }
+            }
+        }
+    }`);
+
+const refund_missing_signatures = JSON.parse(JSON.stringify(ok_refund));
+delete refund_missing_signatures.action.buyer.payment.signatures;
+test('validate missing signatures MPA_REFUND', () => {
+    let error: string = "";
+    try {
+        validateRefund(refund_missing_signatures)
+    } catch (e) {
+        error = e.toString();
+    }
+    expect(error).toEqual(expect.stringContaining("signatures: missing or not an array"));
 });

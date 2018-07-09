@@ -22,6 +22,8 @@ These purely verify that the provide sequence of actions is correct:
 * validate format of action first
 * check the sequence to verify that the order is correct (e.g. no bids before listing)
 * verify that the sequence linked by the hashes is correct
+* verify that the cryptocurrency in the bid is allowed in the listing
+* verify that the escrow type over the sequence doesn't change
 
 ## Deterministic transaction generation
 
