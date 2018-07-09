@@ -5,7 +5,7 @@ export enum MPAction {
     MPA_LISTING_ADD = 'MPA_LISTING_ADD',
 
     MPA_BID = 'MPA_BID',
-    MPA_ACCEPT = 'MPA_BID',
+    MPA_ACCEPT = 'MPA_ACCEPT',
     MPA_REJECT = 'MPA_REJECT',
     MPA_CANCEL = 'MPA_CANCEL',
 
@@ -21,7 +21,8 @@ export enum PaymentType {
 }
 
 export enum EscrowType {
-    NOP = "NOP",
-    MAD = "MAD",
-    MADCT = "MADCT",
+    FE = 'FE', // Finalize early
+    MULTISIG = 'MULTISIG', // Normal 2-on-2 multisig
+    MAD = 'MAD', // Mutual assured destruction
+    MAD_CT = 'MAD_CT' // Mutual assured destruction with Confidential Tx
 }

@@ -50,3 +50,7 @@ export function isTxid(txid: any) {
 export function isTimestamp(t: any) {
     return isNonNegativeNaturalNumber(t)
 }
+
+export function isCountry(c: any) {
+    return isString(c); // TODO: check the list of country code
+}

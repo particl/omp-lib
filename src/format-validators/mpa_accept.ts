@@ -1,10 +1,11 @@
 import { MPA_ACCEPT } from "../interfaces/omp"
-import { MPAction } from "../interfaces/omp-enums";
+import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isNumber, isObject, isArray, isString, isSHA256Hash } from "./util";
 
 import { FV_MPA } from "./mpa";
 import { FV_CRYPTO } from "./crypto";
 import { FV_OBJECTS } from "./objects";
+import { FV_MPA_BID_ESCROW_MULTISIG } from "./escrow/multisig";
 
 export class FV_MPA_ACCEPT {
 
@@ -35,28 +36,19 @@ export class FV_MPA_ACCEPT {
     }
 
     if (isObject(seller.payment)) {
-
-      if (!isString(seller.payment.pubKey)) {
-        throw new Error('action.seller.pubKey: missing or not a string');
-      }
-
-      if (!isArray(seller.payment.outputs)) {
-        throw new Error('action.seller.payment.outputs: missing or not an array');
-      }
-
-      seller.payment.outputs.forEach((elem, i) => {
-        FV_CRYPTO.validateOutput(elem);
-      });
-
-      if (!isArray(seller.payment.signatures)) {
-        throw new Error('action.seller.payment.signatures: missing or not an array');
-      }
-
-      seller.payment.signatures.forEach((elem, i) => {
-        FV_CRYPTO.validateSignature(elem);
-      });
-
-      FV_CRYPTO.validateCryptoAddress(seller.payment.changeAddress);
+        const payment = seller.payment;
+        if (!(payment.escrow in EscrowType)) {
+            throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + payment.escrow);
+          }
+    
+          // TODO: implement all validators
+          switch(payment.escrow) {
+            case EscrowType.MULTISIG:
+              FV_MPA_BID_ESCROW_MULTISIG.validate(payment);
+              break;
+            default:
+              throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
+          }
 
     } else {
         throw new Error('action.seller.payment: missing or not an object');

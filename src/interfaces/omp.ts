@@ -137,6 +137,8 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
     item: string, // item hash
     buyer: { 
       payment: {
+        cryptocurrency: CryptoType,
+        escrow: EscrowType,
         pubKey: string,
         changeAddress: CryptoAddress,
         outputs: Output[]
@@ -148,7 +150,7 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
         addressLine2: string, // optional
         city: string,
         state: string,
-        zipCode: Number,
+        zipCode: string,
         country: string,
       }
     },
@@ -173,6 +175,7 @@ export interface MPA_ACCEPT extends MPA {
     bid: string, // hash of MPA_BID
     seller: {
       payment: {
+        escrow: EscrowType,
         pubKey: string,
         changeAddress: CryptoAddress,
         outputs: Output[],
@@ -199,6 +202,7 @@ export interface MPA_LOCK extends MPA {
     bid: string, // hash of MPA_BID
     buyer: {
       payment: {
+        escrow: EscrowType,
         signatures: string[]
       }
     },
@@ -218,6 +222,7 @@ export interface MPA_RELEASE extends MPA { // !implementation !protocol
     bid: string, // hash of MPA_BID
     seller: {
       payment: {
+        escrow: EscrowType,
         signatures: string[]
       }
     }
@@ -230,6 +235,7 @@ export interface MPA_REFUND extends MPA {
     bid: string, // hash of MPA_BID
     buyer: {
       payment: {
+        escrow: EscrowType,
         signatures: string[]
       }
     }

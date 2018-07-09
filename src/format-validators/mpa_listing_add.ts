@@ -1,6 +1,6 @@
 import { MPA, MPA_EXT_LISTING_ADD } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
-import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage } from './util'
+import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry } from './util'
 import { FV_MPA } from "./mpa";
 import { FV_CRYPTO } from "./crypto";
 import { CryptoType } from "../interfaces/crypto"
@@ -66,8 +66,8 @@ export class FV_MPA_LISTING {
       if (isObject(information.location)) {
         const location = information.location;
 
-        if (!isString(location.country)) {
-          throw new Error('action.item.information.location.country: not a string');
+        if (!isCountry(location.country)) {
+          throw new Error('action.item.information.location.country: not a country');
         }
 
         if (location.address && !isString(location.address)) {

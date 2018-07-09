@@ -1,9 +1,11 @@
 import { MPA, MPA_LISTING_ADD, MPA_BID } from "../interfaces/omp"
-import { MPAction } from "../interfaces/omp-enums";
+import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { FV_CRYPTO } from "./crypto";
-import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash } from "./util";
+import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash, isCountry } from "./util";
 import { FV_MPA } from "./mpa";
 import { FV_OBJECTS } from "./objects";
+import { FV_MPA_BID_ESCROW_MULTISIG } from "./escrow/multisig";
+import { CryptoType } from "../interfaces/crypto";
 
 export class FV_MPA_BID {
 
@@ -40,23 +42,22 @@ export class FV_MPA_BID {
     if (isObject(buyer.payment)) {
       const payment = buyer.payment;
 
-      if (!isString(payment.pubKey)) {
-        throw new Error('action.buyer.payment.pubKey: missing or not a string');
+      if (!(payment.cryptocurrency in CryptoType)) {
+        throw new Error('action.buyer.payment.cryptocurrency: expecting cryptocurrency type, unknown value, got ' + payment.cryptocurrency);
       }
 
-      if (!isArray(payment.outputs)) {
-        throw new Error('action.buyer.payment.outputs: not an array');
+      if (!(payment.escrow in EscrowType)) {
+        throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + payment.escrow);
       }
 
-      payment.outputs.forEach((elem, i) => {
-        FV_CRYPTO.validateOutput(elem);
-      });
-
-      if (!isString(payment.changeAddress)) {
-        throw new Error('action.buyer.payment.changeAddress: missing');
+      // TODO: implement all validators
+      switch(payment.escrow) {
+        case EscrowType.MULTISIG:
+          FV_MPA_BID_ESCROW_MULTISIG.validate(payment);
+          break;
+        default:
+          throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
       }
-
-      FV_CRYPTO.validateCryptoAddress(payment.changeAddress);
 
     } else {
       throw new Error('action.buyer.payment: not an object');
@@ -95,11 +96,9 @@ export class FV_MPA_BID {
 
     // TODO: validate country against list?
     // TODO: check length?
-    if (!isString(shipping.country)) {
-      throw new Error('action.buyer.shippingAddress.country: missing');
+    if (!isCountry(shipping.country)) {
+      throw new Error('action.buyer.shippingAddress.country: missing or not a country');
     }
-
-
 
     if(action.objects) {
       FV_OBJECTS.validate(action.objects);

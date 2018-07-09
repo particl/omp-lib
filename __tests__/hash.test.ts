@@ -1,4 +1,4 @@
-import { hash, hashListing, deepSortObject } from "../../src/hasher/hash";
+import { hash, hashListing, deepSortObject } from "../src/hasher/hash";
 
 const deepNestOne = {
     "b": {
