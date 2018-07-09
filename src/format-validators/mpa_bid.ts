@@ -3,6 +3,7 @@ import { MPAction } from "../interfaces/omp-enums";
 import { FV_CRYPTO } from "./crypto";
 import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash } from "./util";
 import { FV_MPA } from "./mpa";
+import { FV_OBJECTS } from "./objects";
 
 export class FV_MPA_BID {
 
@@ -10,8 +11,8 @@ export class FV_MPA_BID {
   }
 
   static validate(msg: MPA_BID): boolean {
-      // validate base class
-      FV_MPA.validate(msg);
+    // validate base class
+    FV_MPA.validate(msg);
 
     const action = msg.action;
     const buyer = action.buyer;
@@ -101,19 +102,7 @@ export class FV_MPA_BID {
 
 
     if(action.objects) {
-      if(!isArray(action.objects)) {
-        throw new Error('action.objects: not an array');
-      }
-
-      action.objects.forEach((elem, i) => {
-        if (!isObject(elem)) {
-          throw new Error('action.objects: not an object element=' + i);
-        }
-  
-        if (!isString(elem.id) || !(isString(elem.value) || isNumber(elem.value))) {
-          throw new Error('action.objects: missing elements in element=' + i);
-        }
-      });
+      FV_OBJECTS.validate(action.objects);
     }
 
     return true;

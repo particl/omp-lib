@@ -138,8 +138,8 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
     buyer: { 
       payment: {
         pubKey: string,
-        outputs: Output[],
-        changeAddress: CryptoAddress
+        changeAddress: CryptoAddress,
+        outputs: Output[]
       },
       shippingAddress: {
         firstName: string,
@@ -172,9 +172,12 @@ export interface MPA_ACCEPT extends MPA {
     type: MPAction.MPA_ACCEPT,
     bid: string, // hash of MPA_BID
     seller: {
-      pubKey: string,
-      outputs: Output[],
-      signatures: string[]
+      payment: {
+        pubKey: string,
+        changeAddress: CryptoAddress,
+        outputs: Output[],
+        signatures: string[]
+      }
     }
   }
 }
@@ -195,7 +198,9 @@ export interface MPA_LOCK extends MPA {
     type: MPAction.MPA_LOCK,
     bid: string, // hash of MPA_BID
     buyer: {
-      signatures: string[]
+      payment: {
+        signatures: string[]
+      }
     },
     info: {
       memo: string // is  this useful?
@@ -212,7 +217,9 @@ export interface MPA_RELEASE extends MPA { // !implementation !protocol
     type: MPAction.MPA_RELEASE,
     bid: string, // hash of MPA_BID
     seller: {
-      signatures: string[]
+      payment: {
+        signatures: string[]
+      }
     }
   }
 }
@@ -222,7 +229,9 @@ export interface MPA_REFUND extends MPA {
     type: MPAction.MPA_REFUND,
     bid: string, // hash of MPA_BID
     buyer: {
-      signatures: string[]
+      payment: {
+        signatures: string[]
+      }
     }
   }
 }

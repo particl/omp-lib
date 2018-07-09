@@ -5,6 +5,7 @@ import { FV_MPA } from "./mpa";
 import { FV_CRYPTO } from "./crypto";
 import { CryptoType } from "../interfaces/crypto"
 import { FV_CONTENT } from "./content";
+import { FV_OBJECTS } from "./objects";
 
 // TODO: DSN validation (images)
 // TODO: shippingPrice
@@ -237,20 +238,7 @@ export class FV_MPA_LISTING {
 
 
     if (item.objects) {
-      if (!isArray(item.objects)) {
-        throw new Error('action.item.objects: not an array');
-      }
-
-      item.objects.forEach((elem, i) => {
-        if (!isObject(elem)) {
-          throw new Error('action.item.objects: not an object element=' + i);
-        }
-
-        if (!isString(elem.id) || !(isString(elem.value) || isNumber(elem.value))) {
-          throw new Error('action.item.objects: missing elements in element=' + i);
-        }
-      });
-
+      FV_OBJECTS.validate(item.objects);
     }
 
     return true;

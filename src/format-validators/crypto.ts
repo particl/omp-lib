@@ -1,5 +1,5 @@
 import { Output, CryptoAddress, CryptoAddressType } from "../interfaces/crypto";
-import { isObject, isNumber, isString, isTxid } from "./util";
+import { isObject, isNumber, isString, isTxid, isArray } from "./util";
 
 
 export class FV_CRYPTO {
@@ -43,6 +43,15 @@ export class FV_CRYPTO {
 
         if(!isString(address.address)) {
             throw new Error('CryptoAddress.address: address is missing or wrong type, expecting string');
+        }
+
+        return true;
+      }
+
+      static validateSignature(signature: any): boolean {
+
+        if(!isString(signature)) {
+            throw new Error('Signature: missing or not a string');
         }
 
         return true;

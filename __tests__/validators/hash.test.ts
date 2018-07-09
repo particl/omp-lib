@@ -159,7 +159,6 @@ test('compare hashes of two listings full vs less local images', () => {
     try {
         output = hashListing(ok_full_img_data)
         two = hashListing(ok_less_img_data)
-        console.log(output + " === " + two);
     } catch (e) {
         console.log(e);
     }
