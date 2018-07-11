@@ -1,5 +1,5 @@
 import { Output, CryptoAddress, CryptoAddressType } from "../interfaces/crypto";
-import { isObject, isNumber, isString, isTxid, isArray } from "./util";
+import { isObject, isNumber, isString, isTxid, isArray } from "../util";
 
 
 export class FV_CRYPTO {

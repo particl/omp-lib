@@ -1,4 +1,4 @@
-import { isObject, isNumber, isString, isTxid, isSHA256Hash, isArray } from "./util";
+import { isObject, isNumber, isString, isTxid, isSHA256Hash, isArray } from "../util";
 import { ContentReference, DSN, ProtocolDSN } from "../interfaces/dsn";
 
 

@@ -1,5 +1,5 @@
 import { Output, CryptoAddress, CryptoAddressType } from "../../interfaces/crypto";
-import { isObject, isNumber, isString, isTxid, isArray } from "../util";
+import { isObject, isNumber, isString, isTxid, isArray } from "../../util";
 import { FV_CRYPTO } from "../crypto";
 import { EscrowType } from "../../interfaces/omp-enums";
 

@@ -1,6 +1,6 @@
 import { MPA_LOCK } from "../interfaces/omp"
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
-import { isObject, isArray, isString, isSHA256Hash } from "./util";
+import { isObject, isArray, isString, isSHA256Hash } from "../util";
 
 import { FV_CRYPTO } from "./crypto";
 import { FV_MPA } from "./mpa";
