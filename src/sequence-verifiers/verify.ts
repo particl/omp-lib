@@ -5,7 +5,7 @@ import { MPAction } from "../interfaces/omp-enums";
 import { hash } from "../hasher/hash";
 
 
-export class SV_MPA {
+export class Sequence {
 
     constructor() {
     }

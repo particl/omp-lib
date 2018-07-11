@@ -8,7 +8,8 @@ export interface Output {
 
 export enum CryptoType {
     BTC = 'BTC',
-    PART = 'PART'
+    PART = 'PART',
+    ZCASH = 'ZEC'
 }
 
 export enum CryptoAddressType {

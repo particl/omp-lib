@@ -137,7 +137,7 @@ test('seqver complete good cycle', () => {
     expect(fail).toBe(false);
 });
 
-test('seqver listing, bid & accept with wrong escrow type', () => {
+test('seqver listing, bid & bid (fail)', () => {
     let error: string = "";
     try {
         validate([listing_ok, bid_ok, bid_ok])
