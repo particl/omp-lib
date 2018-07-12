@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """
-export PARTICL_BINDIR=/tmp/partbuild/src; python3 test_cs_multisig.py
+Bootstrap the test environment by running:
+python3 test_cs_multisig.py
 
-particld version 0.17
+particld version 0.16.0.7 (if 0.17, re-enable [regtest] in writeConfig)
 
+Credits to tecnovert for the script!
 """
 
 import os
@@ -35,7 +37,7 @@ DEBUG_MODE = toBool(os.getenv("DEBUG_MODE", "True"))
 
 NUM_NODES = 2
 
-DATADIRS = '/home/user/projects/omp/omp-lib/tmp/regnet'
+DATADIRS = './tmp/regnet'
 
 BASE_PORT = 14792
 BASE_RPC_PORT = 19792
@@ -221,8 +223,11 @@ def startDaemon(nodeId, fp, bindir):
     logd(fp, PARTICLD + ' '+"-datadir="+nodeDir+"\n")
 
     p = subprocess.Popen(args,stdin=subprocess.PIPE,stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out = [p.stdout.read(), p.stderr.read()]
 
-    return p
+    if len(out[1]) > 0:
+        print("error ", out[1])
+    return [out[0], out[1], p]
 
 def startNodes(fp, resetData):
 
@@ -241,7 +246,7 @@ def startNodes(fp, resetData):
     for i in range(NUM_NODES):
         prepareDir(DATADIRS, i)
 
-        processes.append(startDaemon(i, fp, PARTICL_BINDIR))
+        processes.append(startDaemon(i, fp, PARTICL_BINDIR)[2])
         logc(fp, 'Process launched, checking')
         # wait until responding
         for k in range(5):
@@ -301,6 +306,7 @@ def main():
         signal.signal(signal.SIGINT, exitNodes)
         logd(fp, os.path.basename(sys.argv[0]) + "\n\n")
         startNodes(fp, RESET_DATA)
+        input("Press Ctrl+C to stop the nodes...")
 
     print('Done.')
 
