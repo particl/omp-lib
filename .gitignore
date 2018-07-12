@@ -1,5 +1,9 @@
-#Temp tests
-tmp/regnet
+# Testing
+tmp/*
+!tmp/particl/README.md
+bins/particl-core/particl*
+!bins/particl-core/README.md
+
 # Logs
 logs
 *.log

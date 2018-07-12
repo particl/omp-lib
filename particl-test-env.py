@@ -7,7 +7,7 @@ python3 test_cs_multisig.py
 
 particld version 0.16.0.7 (if 0.17, re-enable [regtest] in writeConfig)
 
-Credits to tecnovert for the script!
+Copyright & credits go to tecnovert.
 """
 
 import os
@@ -28,7 +28,7 @@ import signal
 def toBool(s):
     return s.lower() in ["1", "true"]
 
-PARTICL_BINDIR = os.path.expanduser(os.getenv("PARTICL_BINDIR", "."))
+PARTICL_BINDIR = os.path.expanduser(os.getenv("PARTICL_BINDIR", "./bins/particl-core"))
 PARTICLD = os.getenv("PARTICLD", "particld")
 PARTICL_CLI = os.getenv("PARTICL_CLI", "particl-cli")
 PARTICL_TX = os.getenv("PARTICL_TX", "particl-tx")
@@ -37,7 +37,7 @@ DEBUG_MODE = toBool(os.getenv("DEBUG_MODE", "True"))
 
 NUM_NODES = 3
 
-DATADIRS = './tmp/regnet'
+DATADIRS = './tmp/particl'
 
 BASE_PORT = 14792
 BASE_RPC_PORT = 19792
