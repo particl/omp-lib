@@ -27,16 +27,7 @@ export class Tx {
             throw new Error('Tx: does not have an MPA_ACCEPT');
         }
 
-        const cryptocurrency: CryptoType = (<MPA_BID>sequence[1]).action.buyer.payment.cryptocurrency;
-
-        switch(cryptocurrency) {
-            case CryptoType.PART:
-                const tx: ParticlTx = new ParticlTx();
-                tx.build(sequence);
-                break;
-            default:
-                throw new Error('Tx: currency not handled, feel free to implement!');
-        }
+        
 
 
         return true;

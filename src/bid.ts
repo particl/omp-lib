@@ -1,10 +1,12 @@
-import { MPA_EXT_LISTING_ADD, MPA_BID } from "./interfaces/omp";
+import { MPA_EXT_LISTING_ADD, MPA_BID, MPM } from "./interfaces/omp";
 import { CryptoType, CryptoAddressType } from "./interfaces/crypto";
-import { MPAction } from "./interfaces/omp-enums";
+import { MPAction, EscrowType } from "./interfaces/omp-enums";
 import { hash } from "./hasher/hash";
+import { MultiSigBuilder } from "./transaction-builder/multisig";
 
 export interface BidConfiguration {
     cryptocurrency: CryptoType,
+    escrow: EscrowType,
     shippingAddress: {
         firstName: string,
         lastName: string,
@@ -16,9 +18,12 @@ export interface BidConfiguration {
         country: string,
       }
 }
-export function bid(config: BidConfiguration, listing: MPA_EXT_LISTING_ADD): MPA_BID {
+export async function bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
+    const mpa_listing = <MPA_EXT_LISTING_ADD>listing.action;
+    config.escrow = mpa_listing.item.payment.escrow.type;
+
     const bid =  {
-        version: "",
+        version: "0.1.0.0",
         action: {
           type: MPAction.MPA_BID,
           created: + new Date(), // timestamp
@@ -26,7 +31,7 @@ export function bid(config: BidConfiguration, listing: MPA_EXT_LISTING_ADD): MPA
           buyer: { 
             payment: {
               cryptocurrency: config.cryptocurrency,
-              escrow: listing.action.item.payment.escrow.type,
+              escrow: config.escrow,
               pubKey: "",
               changeAddress: {
                 type: CryptoAddressType.NORMAL,
@@ -39,5 +44,13 @@ export function bid(config: BidConfiguration, listing: MPA_EXT_LISTING_ADD): MPA
           // objects: KVS[]
         }
       }
+    
+
+    switch(config.escrow) {
+      case EscrowType.MULTISIG:
+        const msb = new MultiSigBuilder();
+        await msb.initiate(bid);
+    }
+    
     return bid;
 }

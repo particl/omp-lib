@@ -22,7 +22,9 @@
     }
   ],
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "inversify": "^4.13.0"
+  },
   "devDependencies": {
     "@types/jest": "^23.1.4",
     "jest": "^23.3.0",
@@ -30,7 +32,8 @@
     "nodemon": "^1.11.0",
     "ts-jest": "^23.0.0",
     "tslint": "^3.15.1",
-    "typescript": "^2.0.3"
+    "typescript": "^2.0.3",
+    "web-request": "^1.0.7"
   },
   "jest": {
     "transform": {
