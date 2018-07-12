@@ -1,7 +1,7 @@
 import { hash } from "../../src/hasher/hash";
-import { SV_MPA } from "../../src/sequence-verifiers/verify";
+import { Sequence } from "../../src/sequence-verifiers/verify";
 
-const validate = SV_MPA.validate;
+const validate = Sequence.validate;
 const listing_ok = JSON.parse(
     `{
         "version": "0.1.0.0",

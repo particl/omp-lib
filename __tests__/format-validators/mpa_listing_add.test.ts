@@ -98,7 +98,37 @@ test('negative ratio seller basic market listing', () => {
     expect(error).toEqual(expect.stringContaining("invalid percentages"));
 });
 
+const overflow_basePrice = JSON.parse(JSON.stringify(ok));
+overflow_basePrice.action.item.payment.cryptocurrency = [
+    {
+        currency: "PART",
+        basePrice: 4000000000000000000000000000000000000
+    }];
+test('overflow basePrice', () => {
+    let error: string = "";
+    try {
+        validate(overflow_basePrice)
+    } catch (e) {
+        error = e.toString();
+    }
+    expect(error).toEqual(expect.stringContaining("faulty basePrice (< 0, fractional or overflow)"));
+});
 
+const fractional_basePrice = JSON.parse(JSON.stringify(ok));
+fractional_basePrice.action.item.payment.cryptocurrency = [
+    {
+        currency: "PART",
+        basePrice: 10/3
+    }];
+test('overflow basePrice', () => {
+    let error: string = "";
+    try {
+        validate(fractional_basePrice)
+    } catch (e) {
+        error = e.toString();
+    }
+    expect(error).toEqual(expect.stringContaining("faulty basePrice (< 0, fractional or overflow)"));
+});
 
 const not_array_cryptocurrency = JSON.parse(JSON.stringify(ok));
 not_array_cryptocurrency.action.item.payment.cryptocurrency = {};
@@ -137,7 +167,7 @@ test('negative basePrice cryptocurrency basic market listing', () => {
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("action.item.payment.cryptocurrency: only basePrice > 0 is allowed"));
+    expect(error).toEqual(expect.stringContaining("action.item.payment.cryptocurrency: faulty basePrice (< 0, fractional or overflow)"));
 });
 
 
@@ -167,16 +197,6 @@ test('cryptocurrency is empty array basic market listing', () => {
 
 const negativeShippingPrice = JSON.parse(JSON.stringify(ok));
 negativeShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice = {};
-test('empty shippingPrice object extended market listing', () => {
-    let error: string = "";
-    try {
-        validate(negativeShippingPrice)
-    } catch (e) {
-        error = e.toString();
-    }
-    expect(error).toEqual(expect.stringContaining("not a number"));
-});
-
 
 negativeShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.domestic = -10;
 negativeShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.international = 10;
@@ -187,19 +207,21 @@ test('negative domestic shipping price extended market listing', () => {
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("negative"));
+    expect(error).toEqual(expect.stringContaining("faulty domestic shipping price (< 0, fractional or overflow)"));
 });
 
-negativeShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.domestic = 10;
-negativeShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.international = -10;
+const negativeInternationalShippingPrice = JSON.parse(JSON.stringify(ok));
+negativeInternationalShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice = {};
+negativeInternationalShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.domestic = 10;
+negativeInternationalShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.international = -10;
 test('negative international shipping price extended market listing', () => {
     let error: string = "";
     try {
-        validate(negativeShippingPrice)
+        validate(negativeInternationalShippingPrice)
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("negative"));
+    expect(error).toEqual(expect.stringContaining("faulty international shipping price (< 0, fractional or overflow)"));
 });
 
 

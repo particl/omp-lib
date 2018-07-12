@@ -188,7 +188,7 @@ export class FV_MPA_LISTING {
           }
 
           if (!isValidPrice(elem.basePrice)) {
-            throw new Error('action.item.payment.cryptocurrency: only basePrice > 0 is allowed, fault in element=' + i);
+            throw new Error('action.item.payment.cryptocurrency: faulty basePrice (< 0, fractional or overflow), fault in element=' + i);
           }
 
           if (elem.shippingPrice) {
@@ -198,11 +198,11 @@ export class FV_MPA_LISTING {
 
             const s = elem.shippingPrice;
             if (!isValidPrice(s.domestic)) {
-              throw new Error('action.item.payment.cryptocurrency.shippingPrice.domestic: not a number or negative, fault in element=' + i);
+              throw new Error('action.item.payment.cryptocurrency.shippingPrice.domestic: faulty domestic shipping price (< 0, fractional or overflow), fault in element=' + i);
             }
 
             if (!isValidPrice(s.international)) {
-              throw new Error('action.item.payment.cryptocurrency.shippingPrice.international: not a number or negative, fault in element=' + i);
+              throw new Error('action.item.payment.cryptocurrency.shippingPrice.international: faulty international shipping price (< 0, fractional or overflow), fault in element=' + i);
             }
           }
 
