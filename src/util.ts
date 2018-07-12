@@ -54,3 +54,7 @@ export function isTimestamp(t: any) {
 export function isCountry(c: any) {
     return isString(c); // TODO: check the list of country code
 }
+
+export function clone(original: any) {
+    return JSON.parse(JSON.stringify(original));
+}

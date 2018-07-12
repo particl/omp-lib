@@ -1,4 +1,5 @@
 import { hash, hashListing, deepSortObject } from "../src/hasher/hash";
+import { clone } from "../src/util";
 
 const deepNestOne = {
     "b": {
@@ -126,7 +127,7 @@ const ok = JSON.parse(
 
 const data_image = "fdgnihdqfgojsodhgofjsgishdfgihsdfpoghsidghipfghidshgyiyriehrtsugquregfudfugbfugd";
 
-const ok_full_img_data = JSON.parse(JSON.stringify(ok));
+const ok_full_img_data = clone(ok);
 ok_full_img_data.action.item.information.images = [];
 ok_full_img_data.action.item.information.images.push({
     hash: hash(data_image),
@@ -140,7 +141,7 @@ ok_full_img_data.action.item.information.images.push({
     ]
 });
 
-const ok_less_img_data = JSON.parse(JSON.stringify(ok));
+const ok_less_img_data = clone(ok);
 ok_less_img_data.action.item.information.images = [];
 ok_less_img_data.action.item.information.images.push({
     hash: hash(data_image),

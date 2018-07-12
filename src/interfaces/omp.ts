@@ -13,11 +13,15 @@ import { KVS } from './common'
 /**
  * All the interfaces of OMP.
  */
-export interface MPA {
+export interface MPM {
   version: string,
   action: {
     type: MPAction
   }
+}
+
+export interface MPA {
+    type: MPAction
 }
 
 
@@ -60,7 +64,7 @@ export interface MPA_LISTING_ADD extends MPA {
           publicKey: string
         }
       ],
-      objects: any[]
+      objects?: any[]
     }
   }
 }
@@ -121,7 +125,7 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
           publicKey: string
         }
       ],
-      objects: KVS[]
+      objects?: KVS[]
     }
   }
 }
@@ -132,7 +136,7 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
  */
 export interface MPA_BID extends MPA { // completely refactored, !implementation !protocol
   action: {
-    type: MPAction.MPA_BID,
+    type: MPAction,
     created: Number, // timestamp
     item: string, // item hash
     buyer: { 
@@ -154,7 +158,7 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
         country: string,
       }
     },
-    objects: KVS[]
+    objects?: KVS[]
   }
 }
 
@@ -178,6 +182,7 @@ export interface MPA_ACCEPT extends MPA {
         escrow: EscrowType,
         pubKey: string,
         changeAddress: CryptoAddress,
+        fee: number,
         outputs: Output[],
         signatures: string[]
       }

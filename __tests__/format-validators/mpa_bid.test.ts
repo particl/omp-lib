@@ -1,6 +1,7 @@
 
 import { FV_MPA_BID } from "../../src/format-validators/mpa_bid";
 import { hash } from "../../src/hasher/hash";
+import { clone } from "../../src/util";
 
 const validate = FV_MPA_BID.validate;
 const ok = JSON.parse(
@@ -50,7 +51,7 @@ test('validate ok MPA_BID', () => {
     expect(fail).toBe(false);
 });
 
-const missing_buyer = JSON.parse(JSON.stringify(ok));
+const missing_buyer = clone(ok);
 missing_buyer.action.buyer = "UNKWONSDFS"
 test('validate missing buyer MPA_BID', () => {
     let error: string = "";
@@ -62,7 +63,7 @@ test('validate missing buyer MPA_BID', () => {
     expect(error).toEqual(expect.stringContaining("buyer: missing or not an object"));
 });
 
-const missing_payment = JSON.parse(JSON.stringify(ok));
+const missing_payment = clone(ok);
 missing_payment.action.buyer.payment = "UNKWONSDFS"
 test('validate unknown escrow type MPA_BID', () => {
     let error: string = "";
@@ -74,7 +75,7 @@ test('validate unknown escrow type MPA_BID', () => {
     expect(error).toEqual(expect.stringContaining("payment: not an object"));
 });
 
-const missing_payment_cryptocurrency = JSON.parse(JSON.stringify(ok));
+const missing_payment_cryptocurrency = clone(ok);
 delete missing_payment_cryptocurrency.action.buyer.payment.cryptocurrency;
 test('validate unknown escrow type MPA_BID', () => {
     let error: string = "";
@@ -86,7 +87,7 @@ test('validate unknown escrow type MPA_BID', () => {
     expect(error).toEqual(expect.stringContaining("payment.cryptocurrency: expecting cryptocurrency type, unknown value"));
 });
 
-const missing_shippingAddress = JSON.parse(JSON.stringify(ok));
+const missing_shippingAddress = clone(ok);
 missing_shippingAddress.action.buyer.shippingAddress = "UNKWONSDFS"
 test('validate unknown escrow type MPA_BID', () => {
     let error: string = "";

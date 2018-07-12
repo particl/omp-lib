@@ -1,6 +1,6 @@
 import { MPA_ACCEPT } from "../interfaces/omp"
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
-import { isNumber, isObject, isArray, isString, isSHA256Hash } from "../util";
+import { isNumber, isObject, isArray, isString, isSHA256Hash, isValidPrice, clone } from "../util";
 
 import { FV_MPA } from "./mpa";
 import { FV_CRYPTO } from "./crypto";
@@ -48,6 +48,10 @@ export class FV_MPA_ACCEPT {
                     break;
                 default:
                     throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
+            }
+
+            if (!isValidPrice(payment.fee)) {
+                throw new Error('action.seller.payment.fee: not a valid fee');
             }
 
         } else {

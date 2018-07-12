@@ -1,9 +1,18 @@
 /**
- * A Output from a cryptocurrency.
+ * An Output from a cryptocurrency.
  */
 export interface Output {
     txid: string,
-    vout: Number
+    vout: Number,
+    signature?: string
+}
+
+/**
+ * A "new" Output, that does not exist yet.
+ */
+export interface ToBeOutput {
+    script: string,
+    amount: Number
 }
 
 export enum CryptoType {

@@ -1,5 +1,6 @@
 import { FV_MPA_LOCK } from "../../src/format-validators/mpa_lock";
 import { hash } from "../../src/hasher/hash";
+import { clone } from "../../src/util";
 
 const validate = FV_MPA_LOCK.validate;
 const ok = JSON.parse(
@@ -30,7 +31,7 @@ test('validate ok MPA_LOCK', () => {
     expect(fail).toBe(false);
 });
 
-const missing_bid_hash = JSON.parse(JSON.stringify(ok));
+const missing_bid_hash = clone(ok);
 delete missing_bid_hash.action.bid;
 test('validate missing bid hash MPA_LOCK', () => {
     let error: string = "";
@@ -42,7 +43,7 @@ test('validate missing bid hash MPA_LOCK', () => {
     expect(error).toEqual(expect.stringContaining("bid: missing or not a valid hash"));
 });
 
-const missing_buyer = JSON.parse(JSON.stringify(ok));
+const missing_buyer = clone(ok);
 delete missing_buyer.action.buyer;
 test('validate missing buyer object MPA_LOCK', () => {
     let error: string = "";
@@ -55,7 +56,7 @@ test('validate missing buyer object MPA_LOCK', () => {
 });
 
 
-const missing_payment = JSON.parse(JSON.stringify(ok));
+const missing_payment = clone(ok);
 missing_payment.action.buyer.payment = "UNKWONSDFS"
 test('validate unknown escrow type MPA_LOCK', () => {
     let error: string = "";

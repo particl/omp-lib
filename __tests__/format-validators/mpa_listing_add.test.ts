@@ -1,5 +1,6 @@
 import { FV_MPA_LISTING } from "../../src/format-validators/mpa_listing_add";
 import { hash } from "../../src/hasher/hash";
+import { clone } from "../../src/util"
 
 const validate = FV_MPA_LISTING.validate;
 
@@ -74,7 +75,7 @@ test('validate a listing', () => {
 });
 
 
-const negative_buyer = JSON.parse(JSON.stringify(ok));
+const negative_buyer = clone(ok);
 negative_buyer.action.item.payment.escrow.ratio.buyer = -0.000000001;
 test('negative ratio buyer basic market listing', () => {
     let error: string = "";
@@ -86,7 +87,7 @@ test('negative ratio buyer basic market listing', () => {
     expect(error).toEqual(expect.stringContaining("invalid percentages"));
 });
 
-const negative_seller = JSON.parse(JSON.stringify(ok));
+const negative_seller = clone(ok);
 negative_seller.action.item.payment.escrow.ratio.buyer = -0.000000001;
 test('negative ratio seller basic market listing', () => {
     let error: string = "";
@@ -98,7 +99,7 @@ test('negative ratio seller basic market listing', () => {
     expect(error).toEqual(expect.stringContaining("invalid percentages"));
 });
 
-const overflow_basePrice = JSON.parse(JSON.stringify(ok));
+const overflow_basePrice = clone(ok);
 overflow_basePrice.action.item.payment.cryptocurrency = [
     {
         currency: "PART",
@@ -114,7 +115,7 @@ test('overflow basePrice', () => {
     expect(error).toEqual(expect.stringContaining("faulty basePrice (< 0, fractional or overflow)"));
 });
 
-const fractional_basePrice = JSON.parse(JSON.stringify(ok));
+const fractional_basePrice = clone(ok);
 fractional_basePrice.action.item.payment.cryptocurrency = [
     {
         currency: "PART",
@@ -130,7 +131,7 @@ test('overflow basePrice', () => {
     expect(error).toEqual(expect.stringContaining("faulty basePrice (< 0, fractional or overflow)"));
 });
 
-const not_array_cryptocurrency = JSON.parse(JSON.stringify(ok));
+const not_array_cryptocurrency = clone(ok);
 not_array_cryptocurrency.action.item.payment.cryptocurrency = {};
 test('cryptocurrency is not an array basic market listing', () => {
     let error: string = "";
@@ -142,7 +143,7 @@ test('cryptocurrency is not an array basic market listing', () => {
     expect(error).toEqual(expect.stringContaining("action.item.payment.cryptocurrency: not an array"));
 });
 
-const missing_cryptocurrency = JSON.parse(JSON.stringify(ok));
+const missing_cryptocurrency = clone(ok);
 missing_cryptocurrency.action.item.payment.cryptocurrency = [];
 test('missing cryptocurrency basic market listing', () => {
     let error: string = "";
@@ -154,7 +155,7 @@ test('missing cryptocurrency basic market listing', () => {
     expect(error).toEqual(expect.stringContaining("action.item.payment.cryptocurrency: not an array"));
 });
 
-const negative_basePrice = JSON.parse(JSON.stringify(ok));
+const negative_basePrice = clone(ok);
 negative_basePrice.action.item.payment.cryptocurrency = [
     {
         currency: "PART",
@@ -171,7 +172,7 @@ test('negative basePrice cryptocurrency basic market listing', () => {
 });
 
 
-const not_array_category = JSON.parse(JSON.stringify(ok));
+const not_array_category = clone(ok);
 not_array_category.action.item.information.category = {};
 test('cryptocurrency is not an array basic market listing', () => {
     let error: string = "";
@@ -183,7 +184,7 @@ test('cryptocurrency is not an array basic market listing', () => {
     expect(error).toEqual(expect.stringContaining("action.item.information.category: not an array"));
 });
 
-const empty_array_category = JSON.parse(JSON.stringify(ok));
+const empty_array_category = clone(ok);
 empty_array_category.action.item.information.category = [];
 test('cryptocurrency is empty array basic market listing', () => {
     let error: string = "";
@@ -195,7 +196,7 @@ test('cryptocurrency is empty array basic market listing', () => {
     expect(error).toEqual(expect.stringContaining("not an array"));
 });
 
-const negativeShippingPrice = JSON.parse(JSON.stringify(ok));
+const negativeShippingPrice = clone(ok);
 negativeShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice = {};
 
 negativeShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.domestic = -10;
@@ -210,7 +211,7 @@ test('negative domestic shipping price extended market listing', () => {
     expect(error).toEqual(expect.stringContaining("faulty domestic shipping price (< 0, fractional or overflow)"));
 });
 
-const negativeInternationalShippingPrice = JSON.parse(JSON.stringify(ok));
+const negativeInternationalShippingPrice = clone(ok);
 negativeInternationalShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice = {};
 negativeInternationalShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.domestic = 10;
 negativeInternationalShippingPrice.action.item.payment.cryptocurrency[0].shippingPrice.international = -10;
@@ -225,7 +226,7 @@ test('negative international shipping price extended market listing', () => {
 });
 
 
-const listing_with_images = JSON.parse(JSON.stringify(ok));
+const listing_with_images = clone(ok);
 listing_with_images.action.item.information.images = [];
 listing_with_images.action.item.information.images.push({
     hash: hash("image1"),
@@ -247,7 +248,7 @@ test('listing with images', () => {
     expect(fail).toBe(false);
 });
 
-const listing_with_local_images = JSON.parse(JSON.stringify(ok));
+const listing_with_local_images = clone(ok);
 listing_with_local_images.action.item.information.images = [];
 listing_with_local_images.action.item.information.images.push({
     hash: hash("image1"),
@@ -271,7 +272,7 @@ test('listing with local images', () => {
     expect(fail).toBe(false);
 });
 
-const listing_with_local_images_fail = JSON.parse(JSON.stringify(ok));
+const listing_with_local_images_fail = clone(ok);
 listing_with_local_images_fail.action.item.information.images = [];
 listing_with_local_images_fail.action.item.information.images.push({
     hash: hash("image1"),

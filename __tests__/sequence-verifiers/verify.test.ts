@@ -1,5 +1,6 @@
 import { hash } from "../../src/hasher/hash";
-import { Sequence } from "../../src/sequence-verifiers/verify";
+import { Sequence } from "../../src/sequence-verifier/verify";
+import { clone } from "../../src/util";
 
 const validate = Sequence.validate;
 const listing_ok = JSON.parse(
@@ -53,6 +54,7 @@ const bid_ok = JSON.parse(
                   "payment": {
                     "cryptocurrency": "PART",
                     "escrow": "MULTISIG",
+                    "fee": 2000,
                     "pubKey": "somepublickey",
                     "changeAddress": {
                         "type": "NORMAL",
@@ -88,6 +90,7 @@ const accept_ok = JSON.parse(
                 "seller": { 
                     "payment": {
                     "escrow": "MULTISIG",
+                    "fee": 2000,
                     "pubKey": "somepublickey",
                     "changeAddress": {
                         "type": "NORMAL",
@@ -147,7 +150,7 @@ test('seqver listing, bid & bid (fail)', () => {
     expect(error).toEqual(expect.stringContaining("third action in the sequence must be a MPA_ACCEPT, MPA_REJECT, MPA_CANCEL."));
 });
 
-const accept_fail = JSON.parse(JSON.stringify(accept_ok));
+const accept_fail = clone(accept_ok);
 accept_fail.action.bid = hash("UNKWONSDFS")
 
 test('seqver listing, bid & accept_fail', () => {
@@ -160,7 +163,7 @@ test('seqver listing, bid & accept_fail', () => {
     expect(error).toEqual(expect.stringContaining("did not match the hash of the bid."));
 });
 
-const wrong_escrow_bid = JSON.parse(JSON.stringify(bid_ok));
+const wrong_escrow_bid = clone(bid_ok);
 wrong_escrow_bid.action.buyer.payment.escrow = "MAD"
 
 test('seqver listing, bid with wrong escrow type & accept', () => {
@@ -174,7 +177,7 @@ test('seqver listing, bid with wrong escrow type & accept', () => {
     expect(error).toEqual(expect.stringContaining("unknown validation format, unknown value, got MAD"));
 });
 
-const wrong_escrow_accept = JSON.parse(JSON.stringify(accept_ok));
+const wrong_escrow_accept = clone(accept_ok);
 wrong_escrow_accept.action.seller.payment.escrow = "MAD"
 
 test('seqver listing, bid & accept with wrong escrow type', () => {
@@ -188,7 +191,7 @@ test('seqver listing, bid & accept with wrong escrow type', () => {
     expect(error).toEqual(expect.stringContaining("unknown validation format, unknown value, got MAD"));
 });
 
-const wrong_escrow_lock = JSON.parse(JSON.stringify(bid_ok));
+const wrong_escrow_lock = clone(bid_ok);
 wrong_escrow_lock.action.buyer.payment.escrow = "MAD"
 
 test('seqver listing, bid & accept with wrong escrow type', () => {
@@ -202,7 +205,7 @@ test('seqver listing, bid & accept with wrong escrow type', () => {
     expect(error).toEqual(expect.stringContaining("unknown validation format, unknown value, got MAD"));
 });
 
-const wrong_currency_bid = JSON.parse(JSON.stringify(bid_ok));
+const wrong_currency_bid = clone(bid_ok);
 wrong_currency_bid.action.buyer.payment.cryptocurrency = "BTC"
 
 test('seqver listing, bid with wrong currency type', () => {
