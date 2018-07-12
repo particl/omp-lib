@@ -35,7 +35,7 @@ PARTICL_TX = os.getenv("PARTICL_TX", "particl-tx")
 RESET_DATA = toBool(os.getenv("RESET_DATA", "True"))
 DEBUG_MODE = toBool(os.getenv("DEBUG_MODE", "True"))
 
-NUM_NODES = 2
+NUM_NODES = 3
 
 DATADIRS = './tmp/regnet'
 
@@ -261,13 +261,15 @@ def startNodes(fp, resetData):
             break
         
         callrpc(i, fp, 'walletsettings stakingoptions "{\\"stakecombinethreshold\\":\\"100\\",\\"stakesplitthreshold\\":200}"')
+        """
         callrpc(i, fp, 'reservebalance true 1000000')
-
+        """
 
     callrpc(0, fp, 'extkeygenesisimport "abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb"')
     callrpc(1, fp, 'extkeygenesisimport "pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic" "" true')
-    """
+
     callrpc(2, fp, 'extkeygenesisimport "てつづき　いくぶん　ちょさくけん　たんご　でんち　おじぎ　てくび　やっぱり　たんさん　むろん　いちりゅう　たりょう"')
+    """
     callrpc(3, fp, 'extkeygenesisimport "面 闷 摄 旁 鸭 障 晚 偷 奔 凉 仰 树 铝 必 企 莫 理 飞 精 乎 合 互 江 巧" "江巧"')
     callrpc(4, fp, 'extkeygenesisimport "matar misa bambú vinagre abierto faja válido lista saber jugo dulce perico"')
     """
@@ -306,6 +308,14 @@ def main():
         signal.signal(signal.SIGINT, exitNodes)
         logd(fp, os.path.basename(sys.argv[0]) + "\n\n")
         startNodes(fp, RESET_DATA)
+        while 1:
+            cmd = input("command> ")
+            rpcCmd = cmd.split(' ', maxsplit=1)
+            try:
+                output = callrpc(int(rpcCmd[0]), fp, str(rpcCmd[1]))
+                logc(fp, output)
+            except:
+                logc(fp, "Meh it broke :(")
         input("Press Ctrl+C to stop the nodes...")
 
     print('Done.')
