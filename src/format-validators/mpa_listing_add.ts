@@ -1,7 +1,7 @@
-import { MPA, MPA_EXT_LISTING_ADD } from "../interfaces/omp"
+import { MPA, MPA_EXT_LISTING_ADD, MPM } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry } from '../util'
-import { FV_MPA } from "./mpa";
+import { FV_MPM} from "./mpm";
 import { FV_CRYPTO } from "./crypto";
 import { CryptoType } from "../interfaces/crypto"
 import { FV_CONTENT } from "./content";
@@ -14,11 +14,11 @@ export class FV_MPA_LISTING {
   constructor() {
   }
 
-  static validate(msg: MPA_EXT_LISTING_ADD): boolean {
+  static validate(msg: MPM): boolean {
     // validate base class
-    FV_MPA.validate(msg);
+    FV_MPM.validate(msg);
 
-    const action = msg.action;
+    const action = <MPA_EXT_LISTING_ADD>msg.action;
     const item = action.item;
 
     if (!isString(action.type) || action.type !== MPAction.MPA_LISTING_ADD) {

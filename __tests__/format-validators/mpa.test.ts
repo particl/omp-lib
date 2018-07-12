@@ -1,6 +1,6 @@
-import { FV_MPA } from "../../src/format-validators/mpa";
+import { FV_MPM} from "../../src/format-validators/mpm";
 
-const validate = FV_MPA.validate;
+const validate = FV_MPM.validate;
 const success = JSON.parse(
     `{
         "version": "0.1.0.0",

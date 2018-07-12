@@ -1,9 +1,9 @@
-import { MPA_LOCK } from "../interfaces/omp"
+import { MPA_LOCK, MPM } from "../interfaces/omp"
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isObject, isArray, isString, isSHA256Hash } from "../util";
 
 import { FV_CRYPTO } from "./crypto";
-import { FV_MPA } from "./mpa";
+import { FV_MPM} from "./mpm";
 import { FV_MPA_LOCK_ESCROW_MULTISIG } from "./escrow/multisig";
 
 export class FV_MPA_LOCK {
@@ -11,11 +11,11 @@ export class FV_MPA_LOCK {
     constructor() {
     }
 
-    static validate(msg: MPA_LOCK): boolean {
+    static validate(msg: MPM): boolean {
         // validate base class
-        FV_MPA.validate(msg);
+        FV_MPM.validate(msg);
 
-        const action = msg.action;
+        const action = <MPA_LOCK>msg.action;
         const buyer = action.buyer;
 
         if (!isString(action.type)) {

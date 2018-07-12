@@ -1,6 +1,6 @@
 import { MPA } from "../interfaces/omp"
 import { MPAction } from "../interfaces/omp-enums";
-import { FV_MPA } from "./mpa";
+import { FV_MPM} from "./mpm";
 import { FV_MPA_LISTING } from "./mpa_listing_add";
 import { FV_MPA_BID } from "./mpa_bid";
 import { FV_MPA_LOCK } from "./mpa_lock";
@@ -17,7 +17,7 @@ export class Format {
 
     static validate(msg: any): boolean {
         // validate base class
-        FV_MPA.validate(msg);
+        FV_MPM.validate(msg);
 
         switch (msg.action.type) {
             case MPAction.MPA_LISTING_ADD:

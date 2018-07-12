@@ -1,4 +1,4 @@
-import { MPA, MPA_BID} from "../interfaces/omp"
+import { MPA, MPA_BID, MPM} from "../interfaces/omp"
 import { Sequence } from "../sequence-verifier/verify";
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { CryptoType } from "../interfaces/crypto";
@@ -10,7 +10,7 @@ export class Tx {
     constructor() {
     }
 
-    build(sequence: MPA[]): boolean {
+    build(sequence: MPM[]): boolean {
 
         // verify sequence & format
         Sequence.validate(sequence);

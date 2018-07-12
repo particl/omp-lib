@@ -1,8 +1,8 @@
-import { MPA, MPA_LISTING_ADD, MPA_BID } from "../interfaces/omp"
+import { MPA, MPA_LISTING_ADD, MPA_BID, MPM } from "../interfaces/omp"
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { FV_CRYPTO } from "./crypto";
 import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash, isCountry } from "../util";
-import { FV_MPA } from "./mpa";
+import { FV_MPM} from "./mpm";
 import { FV_OBJECTS } from "./objects";
 import { FV_MPA_BID_ESCROW_MULTISIG } from "./escrow/multisig";
 import { CryptoType } from "../interfaces/crypto";
@@ -12,11 +12,11 @@ export class FV_MPA_BID {
   constructor() {
   }
 
-  static validate(msg: MPA_BID): boolean {
+  static validate(msg: MPM): boolean {
     // validate base class
-    FV_MPA.validate(msg);
+    FV_MPM.validate(msg);
 
-    const action = msg.action;
+    const action = <MPA_BID>msg.action;
     const buyer = action.buyer;
 
     if (!isString(action.type)) {

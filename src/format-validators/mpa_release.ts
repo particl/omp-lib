@@ -1,9 +1,9 @@
-import { MPA_RELEASE } from "../interfaces/omp"
+import { MPA_RELEASE, MPM } from "../interfaces/omp"
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isObject, isArray, isString, isSHA256Hash } from "../util";
 
 import { FV_CRYPTO } from "./crypto";
-import { FV_MPA } from "./mpa";
+import { FV_MPM} from "./mpm";
 import { FV_MPA_RELEASE_ESCROW_MULTISIG } from "./escrow/multisig";
 
 export class FV_MPA_RELEASE {
@@ -11,11 +11,11 @@ export class FV_MPA_RELEASE {
     constructor() {
     }
 
-    static validate(msg: MPA_RELEASE): boolean {
+    static validate(msg: MPM): boolean {
         // validate base class
-        FV_MPA.validate(msg);
+        FV_MPM.validate(msg);
 
-        const action = msg.action;
+        const action = <MPA_RELEASE>msg.action;
         const seller = action.seller;
 
         if (!isString(action.type)) {

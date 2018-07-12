@@ -1,7 +1,7 @@
 import { MPA, MPA_EXT_LISTING_ADD } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage } from '../util'
-import { FV_MPA } from "./mpa";
+import { FV_MPM} from "./mpm";
 import { FV_CRYPTO } from "./crypto";
 import { CryptoType } from "../interfaces/crypto"
 import { FV_CONTENT } from "./content";

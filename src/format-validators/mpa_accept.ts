@@ -1,8 +1,8 @@
-import { MPA_ACCEPT } from "../interfaces/omp"
+import { MPA_ACCEPT, MPM } from "../interfaces/omp"
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { isNumber, isObject, isArray, isString, isSHA256Hash, isValidPrice, clone } from "../util";
 
-import { FV_MPA } from "./mpa";
+import { FV_MPM} from "./mpm";
 import { FV_CRYPTO } from "./crypto";
 import { FV_OBJECTS } from "./objects";
 import { FV_MPA_ACCEPT_ESCROW_MULTISIG } from "./escrow/multisig";
@@ -12,11 +12,11 @@ export class FV_MPA_ACCEPT {
     constructor() {
     }
 
-    static validate(msg: MPA_ACCEPT): boolean {
+    static validate(msg: MPM): boolean {
         // validate base class
-        FV_MPA.validate(msg);
+        FV_MPM.validate(msg);
 
-        const action = msg.action;
+        const action = <MPA_ACCEPT>msg.action;
         const seller = action.seller;
 
         if (!isString(action.type)) {
