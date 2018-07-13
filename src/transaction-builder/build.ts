@@ -2,8 +2,6 @@ import { MPA, MPA_BID, MPM} from "../interfaces/omp"
 import { Sequence } from "../sequence-verifier/verify";
 import { MPAction, EscrowType } from "../interfaces/omp-enums";
 import { CryptoType } from "../interfaces/crypto";
-import { ParticlTx } from "./particl/build";
-
 
 export class Tx {
 
@@ -27,9 +25,9 @@ export class Tx {
             throw new Error('Tx: does not have an MPA_ACCEPT');
         }
 
+        const cryptocurrency: CryptoType = (<MPA_BID>sequence[1].action).buyer.payment.cryptocurrency;
+
         
-
-
         return true;
     }
 

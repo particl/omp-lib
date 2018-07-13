@@ -9,9 +9,9 @@ import {MPA_ACCEPT, MPA_BID, MPA_LISTING_ADD, MPA_LOCK, MPA_RELEASE} from "../in
  *   * lock(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT): make this also create the release tx. returns MPA_LOCK.
  *   * release(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns MPA_RELEASE.
  */
-abstract class Escrow {
-    abstract bid(listing: MPA_LISTING_ADD): MPA_BID; 
-    abstract accept(listing: MPA_LISTING_ADD, bid: MPA_BID): MPA_ACCEPT; 
-    abstract lock(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): MPA_LOCK; 
-    abstract release(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): MPA_RELEASE; 
+export interface Escrow {
+    bid(listing: MPA_LISTING_ADD): MPA_BID; 
+    accept(listing: MPA_LISTING_ADD, bid: MPA_BID): MPA_ACCEPT; 
+    lock(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): MPA_LOCK; 
+    release(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): MPA_RELEASE; 
 }

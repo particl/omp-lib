@@ -143,7 +143,7 @@ export class FV_MPA_LISTING {
       // it must contain some payment information.
       // TODO: FREE
       // TODO: RENT?
-      if (["SALE", "RENT"].includes(payment.type)) {
+      if (["SALE", "RENT"].indexOf(payment.type) !== -1) {
 
         if (!isObject(payment.escrow)) {
           throw new Error('action.item.payment.escrow: missing');
@@ -169,7 +169,7 @@ export class FV_MPA_LISTING {
           throw new Error('action.item.payment.cryptocurrency: not an array');
         }
 
-        if (payment.cryptocurrency.length === 0) {
+        if (payment.cryptocurrency.length <= 0) {
           throw new Error('action.item.payment.cryptocurrency: length of array is 0, missing?');
         }
 
@@ -222,7 +222,7 @@ export class FV_MPA_LISTING {
       throw new Error('action.item.messaging: not an array');
     }
 
-    if (item.messaging.length === 0) {
+    if (item.messaging.length <= 0) {
       throw new Error('action.item.messaging: length of array is 0, missing?');
     }
 

@@ -1,15 +1,20 @@
+import { injectable, inject, named } from "inversify";
+import "reflect-metadata";
+import { TYPES } from "../types";
+
+import { Rpc } from "../abstract/rpc";
+
 import { Output, ToBeOutput } from "../interfaces/crypto";
 import { deepSortObject } from "../hasher/hash";
 
 
 
+@injectable()
 export class TransactionBuilder {
-
+    // TODO: dynamic currency support
+   // @inject(TYPES.Rpc) @named("PART") private rpc: Rpc;
     private inputs: Output[];
     private outputs: ToBeOutput[];
-
-    constructor() {
-    }
 
     /**
      * Add the inputs and sort them by txid (privacy).

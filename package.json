@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "prestart": "npm run build",
-    "start": "node ./dist/module.js",
+    "start": "node ./dist/src/module.js",
     "test": "jest",
     "lint": "tslint -c tslint.json \"./src/**/*.ts\""
   },
@@ -23,10 +23,12 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "inversify": "^4.13.0"
+    "inversify": "^4.13.0",
+    "reflect-metadata": "^0.1.12"
   },
   "devDependencies": {
     "@types/jest": "^23.1.4",
+    "@types/node": "^10.5.2",
     "jest": "^23.3.0",
     "js-sha256": "^0.9.0",
     "nodemon": "^1.11.0",
@@ -40,6 +42,7 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "roots": ["__tests__"],
     "moduleFileExtensions": [
       "ts",
       "tsx",

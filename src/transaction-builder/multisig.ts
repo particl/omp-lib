@@ -2,6 +2,7 @@ import { TransactionBuilder } from "./transaction";
 import { OpenMarketProtocol } from "../omp";
 import { MPM, MPA_BID } from "../interfaces/omp";
 
+import { container } from '../container';
 
 export class MultiSigBuilder extends TransactionBuilder {
 
@@ -22,8 +23,11 @@ export class MultiSigBuilder extends TransactionBuilder {
     async initiate(bid: MPM): Promise<MPM> {
         const cryptocurrency = (<MPA_BID>bid.action).buyer.payment.cryptocurrency;
 
-        const lib = OpenMarketProtocol.TxLibs[cryptocurrency];
-        lib.call('');
+        const t = container.getNamed<Rpc>(TYPES.Rpc, "PART");
+        console.log('running call');
+        return await t.call('getwalletinfo', []);
+        //const lib = OpenMarketProtocol.TxLibs[cryptocurrency];
+        // lib.call('');
 
         return bid;
     }

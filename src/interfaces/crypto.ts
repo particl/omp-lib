@@ -38,6 +38,6 @@ export interface CryptoAddress {
  * An address from a cryptocurrency.
  */
 export interface CryptoAmount {
-    type: Crypto,
+    type: CryptoType,
     basePrice: number
 }

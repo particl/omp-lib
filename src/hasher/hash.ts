@@ -1,6 +1,6 @@
 import { sha256 } from 'js-sha256';
 import { isString, isObject, isArray, isNumber } from '../format-validators/util';
-import { MPA_EXT_LISTING_ADD } from '../interfaces/omp'
+import { MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp'
 import { ContentReference, ProtocolDSN } from '../interfaces/dsn'
 
 export function hash(v: any): string {
@@ -27,13 +27,14 @@ function hashObject(unordered: object): string {
     return sha256(keyHashes.array().join());
 }
 
-export function hashListing(l: MPA_EXT_LISTING_ADD) {
+export function hashListing(l: MPM) {
 
     // remove the local image data from the hashing
     // the ContentReference hash already provides us
     // with authentication for the data
-    if(l.action.item.information.images) {
-        l.action.item.information.images.forEach((img: ContentReference) => {
+    const listing: MPA_EXT_LISTING_ADD = <MPA_EXT_LISTING_ADD>(l.action);
+    if(listing.item.information.images) {
+        listing.item.information.images.forEach((img: ContentReference) => {
             img.data.forEach((dsn) => {
                 if(dsn.protocol === ProtocolDSN.LOCAL) {
                     delete dsn.data;

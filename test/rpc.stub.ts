@@ -1,8 +1,14 @@
+import { injectable, inject } from "inversify";
+import "reflect-metadata";
+
+import { Rpc } from "../src/abstract/rpc";
+
 import * as WebRequest from 'web-request';
 
 let RPC_REQUEST_ID = 1;
 
-export class CoreRpcService {
+@injectable()
+class CoreRpcService implements Rpc {
 
     constructor(
         private host: string,
@@ -67,6 +73,8 @@ export class CoreRpcService {
     }
 }
 
-export const node0 = new CoreRpcService('localhost', 19792, 'rpcuser2', 'rpcpass2');
-export const node1 = new CoreRpcService('localhost', 19793, 'rpcuser2', 'rpcpass2');
+export const node0 = new CoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');
+export const node1 = new CoreRpcService('localhost', 19793, 'rpcuser1', 'rpcpass1');
 export const node2 = new CoreRpcService('localhost', 19794, 'rpcuser2', 'rpcpass2');
+
+export { CoreRpcService };

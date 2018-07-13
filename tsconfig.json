@@ -2,11 +2,10 @@
   "compileOnSave": false,
   "compilerOptions": {
     "outDir": "dist",
-    "baseUrl": "src",
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
-    "types": ["reflect-metadata"],
+    "types": ["reflect-metadata", "node"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es5",
@@ -14,5 +13,12 @@
     "typeRoots": [
       "node_modules/@types"
     ]
-  }
+  },
+  "include": [
+    "src/**/*"
+  ],
+    "exclude": [
+        "node_modules/**/*",
+        "**/*.test.ts"
+    ]
 }
