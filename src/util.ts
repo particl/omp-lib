@@ -58,3 +58,7 @@ export function isCountry(c: any) {
 export function clone(original: any) {
     return JSON.parse(JSON.stringify(original));
 }
+
+export function toSathoshis(n: number) {
+    return n  * Math.pow(10, 8);
+}

@@ -261,9 +261,8 @@ def startNodes(fp, resetData):
             break
         
         callrpc(i, fp, 'walletsettings stakingoptions "{\\"stakecombinethreshold\\":\\"100\\",\\"stakesplitthreshold\\":200}"')
-        """
-        callrpc(i, fp, 'reservebalance true 1000000')
-        """
+        callrpc(i, fp, 'reservebalance true 1000')
+        
 
     callrpc(0, fp, 'extkeygenesisimport "abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb"')
     callrpc(1, fp, 'extkeygenesisimport "pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic" "" true')
@@ -274,6 +273,11 @@ def startNodes(fp, resetData):
     callrpc(4, fp, 'extkeygenesisimport "matar misa bambú vinagre abierto faja válido lista saber jugo dulce perico"')
     """
 
+    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
+    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
+    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
+    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
+    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
 
 def exitNodes(sig, frame):
     loge(fpHandle, 'Stopping nodes.')

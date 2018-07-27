@@ -1,22 +1,57 @@
 import * as WebRequest from 'web-request';
+
 import "reflect-metadata";
-import { container, createContainer } from './container';
-import { Rpc } from './abstract/rpc';
+import { injectable, Container, interfaces } from 'inversify';
 import { TYPES } from './types';
+
+import { Rpc, ILibrary } from './abstract/rpc';
+import { MPM } from './interfaces/omp';
+
+import { BidConfiguration } from './interfaces/configs';
+import { IBid } from './abstract/actions'
+import { Bid } from './bid';
+
 import { CryptoType } from './interfaces/crypto';
-import { Container } from 'inversify/dts/container/container';
 
-import { injectable } from 'inversify';
+import { IMultiSigBuilder } from './abstract/transactions';
+import { MultiSigBuilder } from './transaction-builder/multisig';
 
-@injectable()
+
+//import { bid as createBid } from './bid';
+
+
+//@injectable()
 export class OpenMarketProtocol {
 
     // public TxLibs: Object = {};
+    private container: Container;
 
     constructor() {
-        createContainer();
+        this.container = new Container();
+
+        this.setup();
     }
 
+    /**
+     *  Setup the container.
+     */
+    private setup() {
+        // This is our library factory
+        // it returns the Rpc libraries that we injected below (cfr. inject() ).
+        // based on a cryptocurrency: CryptoType
+        this.container.bind<ILibrary>(TYPES.Library).toFactory<Rpc>(
+            (ctx: interfaces.Context) => {
+                return (cryptocurrency: CryptoType) => {
+                    const lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency)
+                    return lib;
+                };
+            });
+        
+        this.container.bind<IBid>(TYPES.Bid).to(Bid);
+        this.container.bind<IMultiSigBuilder>(TYPES.MultiSigBuilder).to(MultiSigBuilder);
+    }
+
+    
     /**
      * Bind an Rpc service for a given cryptocurrency.
      * @param cryptocurrency The currency for which this service works.
@@ -26,7 +61,20 @@ export class OpenMarketProtocol {
         // Bind an _instance_ (constant value)
         // to the container.
         // and give it the name of the cryptocurrency.
-        container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
+        this.container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
     }
 
+    public async bid(config: BidConfiguration, listing: MPM) {
+        const bid = this.container.get<IBid>(TYPES.Bid);
+        return bid.bid(config, listing);
+    }
+
+    public async accept(listing: MPM, bid: MPM) {
+        const action = this.container.get<IBid>(TYPES.Bid);
+        return action.accept(listing, bid);
+    }
+
+    public rpc(cryptocurrency: CryptoType) {
+        return this.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
+    }
 }

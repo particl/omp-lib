@@ -3,7 +3,8 @@
  */
 export interface Output {
     txid: string,
-    vout: Number,
+    vout: number,
+    _satoshis?: number,
     signature?: string
 }
 
@@ -12,7 +13,7 @@ export interface Output {
  */
 export interface ToBeOutput {
     script: string,
-    amount: Number
+    amount: number
 }
 
 export enum CryptoType {

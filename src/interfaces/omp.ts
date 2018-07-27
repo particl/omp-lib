@@ -31,7 +31,7 @@ export interface MPA {
 export interface MPA_LISTING_ADD extends MPA {
   type: MPAction.MPA_LISTING_ADD,
   item: {
-    // created: Number, // timestamp // add?
+    // created: number, // timestamp // add?
     // hash: string, //item hash // TODO: remove
     information: {
       title: string,
@@ -44,14 +44,14 @@ export interface MPA_LISTING_ADD extends MPA {
       escrow: {
         type: EscrowType,
         ratio: { // Missing from spec
-          buyer: Number,
-          seller: Number
+          buyer: number,
+          seller: number
         }
       },
       cryptocurrency: [
         {
           currency: CryptoType,
-          basePrice: Number,
+          basePrice: number,
         }
       ]
     },
@@ -74,7 +74,7 @@ export interface MPA_LISTING_ADD extends MPA {
 export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
   type: MPAction.MPA_LISTING_ADD,
   item: {
-    // created: Number, // timestamp // add?
+    // created: number, // timestamp // add?
     // hash: string, // remove!
     information: {
       title: string,
@@ -85,8 +85,8 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
         country: string,
         address: string,
         gps: {
-          lng: Number,
-          lat: Number,
+          lng: number,
+          lat: number,
           markerTitle: string,
           markerText: string
         }
@@ -99,17 +99,17 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
       escrow: {
         type: EscrowType,
         ratio: {
-          buyer: Number,
-          seller: Number
+          buyer: number,
+          seller: number
         }
       },
       cryptocurrency: [
         {
           currency: CryptoType,
-          basePrice: Number,
+          basePrice: number,
           shippingPrice: {
-            domestic: Number,
-            international: Number
+            domestic: number,
+            international: number
           },
           address: CryptoAddress
         }
@@ -131,7 +131,7 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
  */
 export interface MPA_BID extends MPA { // completely refactored, !implementation !protocol
   type: MPAction,
-  created: Number, // timestamp
+  created: number, // timestamp
   item: string, // item hash
   buyer: {
     payment: {

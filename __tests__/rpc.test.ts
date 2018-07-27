@@ -1,5 +1,3 @@
-
-import "reflect-metadata";
 import { CoreRpcService } from "../test/rpc.stub";
 import { node0, node1, node2 } from '../test/rpc.stub';
 import { OpenMarketProtocol } from "../src/omp";
@@ -12,17 +10,12 @@ omp0.inject(CryptoType.PART, node0);
 const omp1 = new OpenMarketProtocol();
 omp1.inject(CryptoType.PART, node1);
 
+const omp2 = new OpenMarketProtocol();
+omp2.inject(CryptoType.PART, node2);
 
-test('test rpc', async () => {
-    let out;
-    let bool = false;
-    try {
-        console.log('running test')
-        console.log(await omp0.test());
-        console.log(await omp1.test());
-        bool = true;
-    } catch (e) {
-        console.log(e)
-    }
-    expect(bool).toBe(true);
+
+test('test seperate rpcs', async () => {
+    expect(omp0.rpc(CryptoType.PART)).toBe(node0);
+    expect(omp1.rpc(CryptoType.PART)).toEqual(node1);
+    expect(omp2.rpc(CryptoType.PART)).toBe(node2);
 });

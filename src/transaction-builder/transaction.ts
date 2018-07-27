@@ -13,11 +13,12 @@ import { deepSortObject } from "../hasher/hash";
 export class TransactionBuilder {
     // TODO: dynamic currency support
    // @inject(TYPES.Rpc) @named("PART") private rpc: Rpc;
-    private inputs: Output[];
-    private outputs: ToBeOutput[];
+    private inputs: Output[] = [];
+    private outputs: ToBeOutput[] = [];
 
     /**
      * Add the inputs and sort them by txid (privacy).
+     * https://github.com/bitcoin/bips/blob/master/bip-0069.mediawiki
      * @param input input to use in the transaction.
      */
     addInput(input: Output) {
@@ -35,6 +36,8 @@ export class TransactionBuilder {
 
     /**
      * Add the 'to be outputs' and sort them by amount (privacy).
+     * https://github.com/bitcoin/bips/blob/master/bip-0069.mediawiki
+     * TODO: equal amounts, sort by lexo & pubkey
      * @param output output created by the transaction.
      */
     addOutput(output: ToBeOutput) {

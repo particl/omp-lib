@@ -6,8 +6,11 @@ import { CryptoType } from "../src/interfaces/crypto";
 import { BidConfiguration } from "../src/interfaces/configs";
 import { EscrowType } from "../src/interfaces/omp-enums";
 
-const omp0 = new OpenMarketProtocol();
-omp0.inject(CryptoType.PART, node0);
+const buyer = new OpenMarketProtocol();
+buyer.inject(CryptoType.PART, node0);
+
+const seller = new OpenMarketProtocol();
+seller.inject(CryptoType.PART, node1);
 
 const ok = JSON.parse(
     `{
@@ -35,7 +38,7 @@ const ok = JSON.parse(
                 "cryptocurrency": [
                   {
                     "currency": "PART",
-                    "basePrice": 100000000000
+                    "basePrice": 1000000000
                   }
                 ]
               },
@@ -67,7 +70,8 @@ test('perform multisig bid', async () => {
     let out;
     let bool = false;
     try {
-        const bid = await omp0.bid(config, ok);
+        const bid = await buyer.bid(config, ok);
+        const accept = await seller.accept(ok, bid);
         //console.log(JSON.stringify(bid, null, 4))
         bool = true;
     } catch (e) {
