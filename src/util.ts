@@ -59,6 +59,21 @@ export function clone(original: any) {
     return JSON.parse(JSON.stringify(original));
 }
 
-export function toSathoshis(n: number) {
-    return n  * Math.pow(10, 8);
+export function toSatoshis(n: number) {
+    return Math.trunc(n  * Math.pow(10, 8));
+}
+
+export function fromSatoshis(n: number) {
+    return Math.trunc(n) / Math.pow(10, 8);
+}
+
+export async function asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array)
+    }
+}
+
+export async function asyncMap(array, callback) {
+    await this.asyncForEach(array, callback);
+    return array;
 }

@@ -80,7 +80,7 @@ export class Bid {
   public async accept(listing: MPM, bid: MPM): Promise<MPM> {
     const mpa_listing = <MPA_EXT_LISTING_ADD>listing.action;
     const mpa_bid = <MPA_BID>bid.action;
-    
+
     const payment = mpa_bid.buyer.payment;
 
     const accept = {
@@ -90,14 +90,14 @@ export class Bid {
         bid: hash(bid), // item hash
         seller: {
           payment: {
-            cryptocurrency: payment.cryptocurrency,
             escrow: payment.escrow,
             pubKey: "",
             changeAddress: {
               type: CryptoAddressType.NORMAL,
               address: ""
             },
-            outputs: []
+            outputs: [],
+            signatures: []
           }
         },
         // objects: KVS[]
@@ -112,6 +112,45 @@ export class Bid {
     }
 
     return accept;
+  }
+
+  /**
+  * Lock a bid.
+  * Add signatures of buyer.
+  * 
+  * @param listing the listing message.
+  * @param bid the bid message.
+  * @param accept the accept message for which to produce an lock message.
+  */
+  public async lock(listing: MPM, bid: MPM, accept: MPM, doNotSign?: boolean): Promise<MPM> {
+    const mpa_listing = <MPA_EXT_LISTING_ADD>listing.action;
+    const mpa_bid = <MPA_BID>bid.action;
+
+    const payment = mpa_bid.buyer.payment;
+
+    const lock = {
+      version: "0.1.0.0",
+      action: {
+        type: MPAction.MPA_LOCK,
+        bid: hash(bid), // item hash
+        buyer: {
+          payment: {
+            escrow: payment.escrow,
+            signatures: []
+          }
+        },
+        // objects: KVS[]
+      }
+    }
+
+
+    switch (payment.escrow) {
+      case EscrowType.MULTISIG:
+        await this._msb.lock(listing, bid, accept, lock, doNotSign);
+        break;
+    }
+
+    return lock;
   }
 
 }

@@ -5,6 +5,7 @@ import { OpenMarketProtocol } from "../src/omp";
 import { CryptoType } from "../src/interfaces/crypto";
 import { BidConfiguration } from "../src/interfaces/configs";
 import { EscrowType } from "../src/interfaces/omp-enums";
+import { toSatoshis } from "../src/util";
 
 const buyer = new OpenMarketProtocol();
 buyer.inject(CryptoType.PART, node0);
@@ -38,7 +39,7 @@ const ok = JSON.parse(
                 "cryptocurrency": [
                   {
                     "currency": "PART",
-                    "basePrice": 1000000000
+                    "basePrice": ${toSatoshis(20)}
                   }
                 ]
               },
@@ -66,16 +67,22 @@ const config: BidConfiguration = {
     }
 };
 
-test('perform multisig bid', async () => {
-    let out;
+test('determinstic transaction generation', async () => {
     let bool = false;
+    let accept;
+    let lock;
     try {
         const bid = await buyer.bid(config, ok);
-        const accept = await seller.accept(ok, bid);
-        //console.log(JSON.stringify(bid, null, 4))
+        accept = await seller.accept(ok, bid);
+        lock = await buyer.lock(ok, bid, accept, true);
+        const lockSigned = await buyer.lock(ok, bid, accept);
+        console.log(await node0.sendRawTransaction(lockSigned['_rawtx']));
         bool = true;
     } catch (e) {
         console.log(e)
     }
     expect(bool).toBe(true);
+    expect(lock).toBeDefined();
+    expect(accept).toBeDefined();
+    expect(lock['_rawtx']).toEqual(accept['_rawtx']);
 });

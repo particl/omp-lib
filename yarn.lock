@@ -2724,9 +2724,9 @@ parse5@4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/parse5/-/parse5-4.0.0.tgz#6d78656e3da8d78b4ec0b906f7c08ef1dfe3f608"
 
-"particl-bitcore-lib@https://github.com/particl/particl-bitcore-lib.git":
+"particl-bitcore-lib@https://github.com/kewde/particl-bitcore-lib.git":
   version "0.14.1"
-  resolved "https://github.com/particl/particl-bitcore-lib.git#612c7b7b77385051168ef3831c4c2451eb807ffd"
+  resolved "https://github.com/kewde/particl-bitcore-lib.git#612c7b7b77385051168ef3831c4c2451eb807ffd"
   dependencies:
     bn.js "=2.0.4"
     bs58 "=2.0.0"

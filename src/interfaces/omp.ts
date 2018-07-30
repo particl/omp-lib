@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Output, CryptoAddress, CryptoType } from "./crypto";
+import { Output, CryptoAddress, CryptoType, ISignature } from "./crypto";
 import { DSN, ContentReference } from "./dsn";
 import { MPAction, PaymentType, EscrowType } from "./omp-enums"
 import { KVS } from './common'
@@ -176,7 +176,7 @@ export interface MPA_ACCEPT extends MPA {
       changeAddress: CryptoAddress,
       fee: number,
       outputs: Output[],
-      signatures: string[]
+      signatures: ISignature[]
     }
   }
 }
@@ -198,7 +198,7 @@ export interface MPA_LOCK extends MPA {
   buyer: {
     payment: {
       escrow: EscrowType,
-      signatures: string[]
+      signatures: ISignature[]
     }
   },
   info: {
@@ -218,7 +218,7 @@ export interface MPA_RELEASE extends MPA { // !implementation !protocol
   seller: {
     payment: {
       escrow: EscrowType,
-      signatures: string[]
+      signatures: ISignature[]
     }
   }
 
@@ -230,7 +230,7 @@ export interface MPA_REFUND extends MPA {
   buyer: {
     payment: {
       escrow: EscrowType,
-      signatures: string[]
+      signatures: ISignature[]
     }
   }
 }

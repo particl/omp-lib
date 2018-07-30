@@ -25,7 +25,10 @@ const ok = JSON.parse(
                     }
                 ],
                 "signatures": [
-                    "signature1"
+                    {
+                        "signature": "signature1",
+                        "pubKey": "pubkey1"
+                    }
                 ]
               }
             }

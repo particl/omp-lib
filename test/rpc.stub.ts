@@ -4,8 +4,9 @@ import "reflect-metadata";
 import { Rpc } from "../src/abstract/rpc";
 
 import * as WebRequest from 'web-request';
-import { Output } from "../src/interfaces/crypto";
-import { isNonNegativeNaturalNumber, isValidPrice, toSathoshis } from "../src/util";
+import { Output, ToBeOutput, CryptoAddress, ISignature } from "../src/interfaces/crypto";
+import { isNonNegativeNaturalNumber, isValidPrice, toSatoshis, fromSatoshis } from "../src/util";
+import { TransactionBuilder } from "./transaction";
 
 
 @injectable()
@@ -38,7 +39,7 @@ class CoreRpcService implements Rpc {
 
                 if (response.statusCode !== 200) {
                     const message = response.content ? JSON.parse(response.content) : response.statusMessage;
-                    throw new Error(response.statusCode + " " + message);
+                    throw new Error(response.content);
                 }
 
                 const jsonRpcResponse = JSON.parse(response.content);
@@ -46,10 +47,10 @@ class CoreRpcService implements Rpc {
                 return jsonRpcResponse.result;
             })
             .catch(error => {
-                /*console.error('--- error ----');
+                /*console.error('--- error ----');*/
                 console.error('method:', method);
-                console.error('params:', params);*/
-                console.error('ERROR: ' + JSON.stringify(error));
+                console.error('params:', params);
+                console.error(JSON.stringify(error, null, 4));
                 throw error;
 
             });
@@ -83,7 +84,7 @@ class CoreRpcService implements Rpc {
 
     public async getNewPubkey(): Promise<string> {
         const address = await this.getNewAddress();
-        return (await this.call('validateaddress', [address])).pubkey;
+        return (await this.call('getaddressinfo', [address])).pubkey;
     }
 
     public async getNormalOutputs(reqSatoshis: number): Promise<Output[]> {
@@ -94,11 +95,19 @@ class CoreRpcService implements Rpc {
 
         unspent.filter((output: any) => output.spendable && output.safe)
             .find((utxo: any) => {
-                chosenSatoshis += toSathoshis(utxo.amount);
+
+                if(utxo.scriptPubKey.substring(0,2) !== '76') {
+                    // only take normal outputs into account
+                    return false;
+                }
+
+                chosenSatoshis += toSatoshis(utxo.amount);
                 chosen.push({
                     txid: utxo.txid,
                     vout: utxo.vout,
-                    _satoshis: toSathoshis(utxo.amount)
+                    _satoshis: toSatoshis(utxo.amount),
+                    _scriptPubKey: utxo.scriptPubKey,
+                    _address: utxo.address
                 });
 
                 if (chosenSatoshis >= reqSatoshis) {
@@ -111,32 +120,58 @@ class CoreRpcService implements Rpc {
             throw new Error('Not enough available output to cover the required amount.')
         }
 
+        await this.call('lockunspent', [false, chosen, true]);
         return chosen;
     }
 
-    public async calculateChangeSatoshis(requiredSatoshis: number, chosenOutputs: Output[]): Promise<number> {
-        let input: number = 0;
-
-        for (let utxo of chosenOutputs) {
-            if (utxo._satoshis) {
-                // Use trusted field
-                input += utxo._satoshis;
-            } else {
-                // No trusted field available,
-                // do RPC call to get the amount.
-                input += await this.getSatoshisForUtxo(utxo);
-            }
-        }
-
-        const change = requiredSatoshis - input;
-        return change;
-    }
-
-    public async getSatoshisForUtxo(utxo: Output): Promise<number> {
+    public async getSatoshisForUtxo(utxo: Output): Promise<Output> {
         const vout = (await this.call('getrawtransaction', [utxo.txid, true]))
             .vout.find((vout: any) => vout.n === utxo.vout);
-        return toSathoshis(vout.value);
+        utxo._satoshis = vout.valueSat;
+        return utxo;
     }
+    
+    public async importRedeemScript(script: any): Promise<boolean> {
+       await this.call('importaddress', [script, '', false, true])
+       return true;
+    }
+
+    async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> {
+        let r: ISignature[] = [];
+
+        // needs to synchronize, because the order needs to match
+        // the inputs order.
+        for(let i = 0; i < inputs.length; i++){
+            const input = inputs[i];
+            const params = [
+                await tx.build(),
+                {
+                    txid: input.txid,
+                    vout: input.vout,
+                    scriptPubKey: input._scriptPubKey,
+                    amount: fromSatoshis(input._satoshis)
+                },
+                input._address
+            ];
+
+            const sig = {
+                signature: (await this.call('createsignaturewithwallet', params)),
+                pubKey: (await this.call('getaddressinfo', [input._address])).pubkey
+            };
+
+            input._signature = sig;
+            r.push(sig);
+            
+        };
+
+        return r;
+    }
+
+    public async sendRawTransaction(hex: string): Promise<any> {
+        return (await this.call('sendrawtransaction', [hex]));
+
+    }
+
 }
 
 export const node0 = new CoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');

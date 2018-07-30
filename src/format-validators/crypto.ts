@@ -1,4 +1,4 @@
-import { Output, CryptoAddress, CryptoAddressType } from "../interfaces/crypto";
+import { Output, CryptoAddress, CryptoAddressType, ISignature } from "../interfaces/crypto";
 import { isObject, isNumber, isString, isTxid, isArray } from "../util";
 
 
@@ -48,10 +48,18 @@ export class FV_CRYPTO {
         return true;
       }
 
-      static validateSignature(signature: any): boolean {
+      static validateSignature(signature: ISignature): boolean {
 
-        if(!isString(signature)) {
-            throw new Error('Signature: missing or not a string');
+        if(!isObject(signature)) {
+            throw new Error('Signature: missing or not an object');
+        }
+
+        if(!isString(signature.signature)) {
+          throw new Error('Signature.signature: missing or not a string');
+        }
+
+        if(!isString(signature.pubKey)) {
+          throw new Error('Signature.pubKey: missing or not a string');
         }
 
         return true;

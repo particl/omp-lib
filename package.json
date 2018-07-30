@@ -25,7 +25,7 @@
   "dependencies": {
     "inversify": "^4.13.0",
     "reflect-metadata": "^0.1.12",
-    "particl-bitcore-lib": "https://github.com/particl/particl-bitcore-lib.git"
+    "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git"
   },
   "devDependencies": {
     "@types/jest": "^23.1.4",

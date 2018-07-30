@@ -5,7 +5,9 @@ export interface Output {
     txid: string,
     vout: number,
     _satoshis?: number,
-    signature?: string
+    _scriptPubKey?: string,
+    _address?: string,
+    _signature?: ISignature
 }
 
 /**
@@ -13,7 +15,16 @@ export interface Output {
  */
 export interface ToBeOutput {
     script: string,
-    amount: number
+    satoshis: number,
+    _redeemScript?: string,
+}
+
+/**
+ * A signature for a prevout.
+ */
+export interface ISignature {
+    signature: string,
+    pubKey: string
 }
 
 export enum CryptoType {

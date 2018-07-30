@@ -103,7 +103,10 @@ const accept_ok = JSON.parse(
                         }
                     ],
                     "signatures": [
-                        "signature1"
+                        {
+                            "signature": "signature1",
+                            "pubKey": "pubkey1"
+                        }
                     ]
                 }
             }
@@ -120,7 +123,10 @@ const lock_ok = JSON.parse(
                   "payment": {
                     "escrow": "MULTISIG",
                     "signatures": [
-                        "signature1"
+                        {
+                            "signature": "signature1",
+                            "pubKey": "pubkey1"
+                        }
                     ]
                   }
                 }

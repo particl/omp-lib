@@ -131,7 +131,10 @@ const ok_accept = JSON.parse(
                     }
                 ],
                 "signatures": [
-                    "signature1"
+                    {
+                        "signature": "signature1",
+                        "pubKey": "pubkey1"
+                    }
                 ]
               }
             }

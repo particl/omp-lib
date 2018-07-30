@@ -76,7 +76,7 @@ def writeConfig(datadir, nodeId, rpcPort, port):
     with open(filePath, 'w+') as fp:
         fp.write("regtest=1\n")
 
-        """fp.write("[regtest]\n") # > 0.16 only"""
+        fp.write("[regtest]\n") # > 0.16 only
         fp.write('port='+str(port)+"\n")
         fp.write('rpcport='+str(rpcPort)+"\n")
         fp.write('rpcuser=rpcuser'+str(nodeId)+"\n")
@@ -273,11 +273,9 @@ def startNodes(fp, resetData):
     callrpc(4, fp, 'extkeygenesisimport "matar misa bambú vinagre abierto faja válido lista saber jugo dulce perico"')
     """
 
-    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
-    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
-    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
-    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
-    callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
+
+    for i in range(5):
+        callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
 
 def exitNodes(sig, frame):
     loge(fpHandle, 'Stopping nodes.')

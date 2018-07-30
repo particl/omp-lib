@@ -74,6 +74,11 @@ export class OpenMarketProtocol {
         return action.accept(listing, bid);
     }
 
+    public async lock(listing: MPM, bid: MPM, accept: MPM, doNotSign?: boolean) {
+        const action = this.container.get<IBid>(TYPES.Bid);
+        return action.lock(listing, bid, accept, doNotSign);
+    }
+
     public rpc(cryptocurrency: CryptoType) {
         return this.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
     }
