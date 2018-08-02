@@ -6,7 +6,7 @@ import { BidConfiguration } from "../interfaces/configs";
 import { Rpc, ILibrary } from "../abstract/rpc";
 import { IMultiSigBuilder } from "../abstract/transactions";
 
-import { TransactionBuilder, getTxidFrom } from "../../test/transaction";
+import { TransactionBuilder, getTxidFrom } from "./transaction";
 import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from "../interfaces/omp";
 import { asyncForEach, asyncMap, clone, isArray } from "../util";
 
