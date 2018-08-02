@@ -79,9 +79,9 @@ export class OpenMarketProtocol {
         return action.lock(listing, bid, accept);
     }
 
-    public async release(listing: MPM, bid: MPM, accept: MPM, lock: MPM, release?: MPM) {
+    public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM) {
         const action = this.container.get<IBid>(TYPES.Bid);
-        return action.release(listing, bid, accept, lock, release);
+        return action.release(listing, bid, accept, release);
     }
 
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM) {

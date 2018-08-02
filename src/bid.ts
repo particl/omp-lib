@@ -161,7 +161,7 @@ export class Bid {
   * @param bid the bid message.
   * @param accept the accept message.
   */
-  public async release(listing: MPM, bid: MPM, accept: MPM, lock: MPM, release?: MPM): Promise<MPM> {
+  public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM> {
     const mpa_listing = <MPA_EXT_LISTING_ADD>listing.action;
     const mpa_bid = <MPA_BID>bid.action;
 
@@ -186,7 +186,7 @@ export class Bid {
 
     switch (payment.escrow) {
       case EscrowType.MULTISIG:
-        await this._msb.release(listing, bid, accept, lock, release);
+        await this._msb.release(listing, bid, accept, release);
         break;
     }
 

@@ -68,7 +68,6 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      */
     async accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
-        // TODO(fee): substract fee from seller
         // TODO(security): safe numbers?
 
         const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
@@ -78,7 +77,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Get the right transaction library for the right currency.
         const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency);
 
-        if(!mpa_accept.seller.payment.pubKey || !mpa_accept.seller.payment.changeAddress) {
+        if (!mpa_accept.seller.payment.pubKey || !mpa_accept.seller.payment.changeAddress) {
             mpa_accept.seller.payment.pubKey = await lib.getNewPubkey();
             mpa_accept.seller.payment.changeAddress = {
                 type: CryptoAddressType.NORMAL,
@@ -87,18 +86,16 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         }
 
 
-        // TODO: escrow!
-        // calculate required amounts
         const buyer_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(mpa_listing, mpa_bid, false);
         const seller_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(mpa_listing, mpa_bid, true);
 
         // Hardcoded fee
         let seller_fee = 500;
-        if(!mpa_accept.seller.payment.fee){ // fee can never be 0 anyways
+        if (!mpa_accept.seller.payment.fee) { // fee can never be 0 anyways
             mpa_accept.seller.payment.fee = seller_fee;
         }
-        
-        if(!isArray(mpa_accept.seller.payment.outputs)) {
+
+        if (!isArray(mpa_accept.seller.payment.outputs)) {
             // add chosen outputs to cover amount (MPA_ACCEPT)
             mpa_accept.seller.payment.outputs = await lib.getNormalOutputs(seller_requiredSatoshis + seller_fee);
         }
@@ -130,22 +127,19 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // import the redeem script so the wallet is aware to watch on it
         // losing the pubkey makes the redeem script unrecoverable.
-        // always import the redeem script (doesn't matter)
+        // (always import the redeem script, doesn't matter)
         await lib.importRedeemScript(multisig_output._redeemScript);
 
-
-        // build transaction, estimate fee
-        //console.log(await tx.build());
-        // reduce change output with fee
-
-        if(!isArray(mpa_accept.seller.payment.signatures)) {
-            mpa_accept.seller.payment.signatures = await lib.signRawTransactionForInputs(tx, seller_inputs);
-        } else {
+        // If
+        if (isArray(mpa_accept.seller.payment.signatures)) {
             // add signatures to inputs
             const signature = mpa_accept.seller.payment.signatures;
             mpa_accept.seller.payment.outputs.forEach((out, i) => tx.addSignature(out, signature[i]));
+
+        } else {
+            mpa_accept.seller.payment.signatures = await lib.signRawTransactionForInputs(tx, seller_inputs);
         }
-        
+
         accept['_tx'] = tx;
         accept['_rawtx'] = tx.build();
 
@@ -165,7 +159,6 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      */
     async lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
-        // TODO(fee): substract fee from seller
         // TODO(security): safe numbers?
 
         const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
@@ -180,8 +173,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // rebuild from accept message
         const tx: TransactionBuilder = (await this.accept(listing, bid, clone(accept)))['_tx'];
 
-        if(isArray( mpa_lock.buyer.payment.signatures)) {
-            console.log('Adding signatures')
+        if (isArray(mpa_lock.buyer.payment.signatures)) {
             // add signatures to inputs
             const signature = mpa_lock.buyer.payment.signatures;
             mpa_bid.buyer.payment.outputs.forEach((out, i) => tx.addSignature(out, signature[i]));
@@ -234,22 +226,17 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      *  if seller.signatures is present, it will complete the transaction
      *  and return a fully signed under _rawtx
      */
-    async release(listing: MPM, bid: MPM, accept: MPM, lock: MPM, release: MPM): Promise<MPM> {
+    async release(listing: MPM, bid: MPM, accept: MPM, release: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
-        // TODO(fee): FIX AMOUNTS AND INSURANCE
         // TODO(security): safe numbers?
 
         const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
         const mpa_bid = (<MPA_BID>bid.action);
         const mpa_accept = (<MPA_ACCEPT>accept.action);
-        const mpa_lock = (<MPA_LOCK>lock.action);
         const mpa_release = (<MPA_RELEASE>release.action);
 
         // Get the right transaction library for the right currency.
         const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency);
-
-        // clone the lock message
-        // so we don't modify it.
 
         // regenerate the transaction (from the messages)
         const rebuilt = (await this.accept(listing, bid, clone(accept)));
@@ -260,13 +247,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // retrieve multisig output from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
-        console.log('txid', lockTx.txid);
+        console.log('(release) rebuilt accept txid', lockTx.txid);
 
         let publicKeyToSignFor: string;
-        if(isArray(mpa_release.seller.payment.signatures)) {
-                publicKeyToSignFor = mpa_bid.buyer.payment.pubKey
+        if (isArray(mpa_release.seller.payment.signatures)) {
+            publicKeyToSignFor = mpa_bid.buyer.payment.pubKey
         } else {
-                publicKeyToSignFor = mpa_accept.seller.payment.pubKey
+            publicKeyToSignFor = mpa_accept.seller.payment.pubKey
         }
         const multisigUtxo = lockTx.getMultisigUtxo(publicKeyToSignFor);
 
@@ -286,14 +273,17 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const seller_fee = mpa_accept.seller.payment.fee;
         releaseTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee)
 
-        if(isArray(mpa_release.seller.payment.signatures)) {
-            // single input
+        if (isArray(mpa_release.seller.payment.signatures)) {
+            // add signature of seller
             releaseTx.addSignature(multisigUtxo, mpa_release.seller.payment.signatures[0]);
-        } 
 
-        mpa_release.seller.payment.signatures = await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
-        // console.log(releaseTx.build())
-        releaseTx.print();
+            // sign for buyer
+            await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
+        } else {
+            // sign for seller
+            mpa_release.seller.payment.signatures = await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
+        }
+
         release['_rawtx'] = releaseTx.build();
         return release;
     }
@@ -303,8 +293,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const percentageRatio = seller ? mpa_listing.item.payment.escrow.ratio.seller : mpa_listing.item.payment.escrow.ratio.buyer;
         const ratio = percentageRatio / 100;
         let required = 0;
-        if(refund) { // only difference with the bid version of it.
-            required = (seller) ? 0 : basePrice ; 
+        if (refund) { // only difference with the bid version of it.
+            required = (seller) ? 0 : basePrice;
         } else {
             required = (seller) ? basePrice : 0;
         }
@@ -328,13 +318,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const acceptTx = rebuilt['_tx'];
         // retrieve multisig output from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
-        console.log('txid', lockTx.txid);
+        console.log('(refund) rebuilt accept txid', lockTx.txid);
 
         let publicKeyToSignFor: string;
-        if(isArray(mpa_refund.buyer.payment.signatures)) {
-                publicKeyToSignFor = mpa_accept.seller.payment.pubKey;
+        if (isArray(mpa_refund.buyer.payment.signatures)) {
+            publicKeyToSignFor = mpa_accept.seller.payment.pubKey;
         } else {
-                publicKeyToSignFor = mpa_bid.buyer.payment.pubKey;
+            publicKeyToSignFor = mpa_bid.buyer.payment.pubKey;
         }
         const multisigUtxo = lockTx.getMultisigUtxo(publicKeyToSignFor);
 
@@ -354,14 +344,17 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const seller_fee = mpa_accept.seller.payment.fee;
         refundTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee)
 
-        if(isArray(mpa_refund.buyer.payment.signatures)) {
-            // single input
+        if (isArray(mpa_refund.buyer.payment.signatures)) {
+            // add signature of buyer
             refundTx.addSignature(multisigUtxo, mpa_refund.buyer.payment.signatures[0]);
-        } 
 
-        mpa_refund.buyer.payment.signatures = await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
-        // console.log(releaseTx.build())
-        refundTx.print();
+            // sign for seller
+            await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
+        } else {
+            // sign for buyer
+            mpa_refund.buyer.payment.signatures = await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
+        }
+
         refund['_rawtx'] = refundTx.build();
 
         return refund;

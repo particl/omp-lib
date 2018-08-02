@@ -79,19 +79,25 @@ it('determinstic transaction generation', async () => {
     let release;
     let complete;
     try {
+        // Step1: Buyer does bid
         const bid = await buyer.bid(config, ok);
         FV_MPA_BID.validate(bid);
 
+        // Step 2: seller accepts AND signs release tx
+        // the seller always wants his money back
         accept = await seller.accept(ok, bid);
         FV_MPA_ACCEPT.validate(accept);
 
+        release = await seller.release(ok, bid, accept);
+        FV_MPA_RELEASE.validate(release);
+
+        // Step 3: buyer locks and submits
         lock = await buyer.lock(ok, bid, accept);
         FV_MPA_LOCK.validate(lock);
         console.log('lock tx', await node0.sendRawTransaction(lock['_rawtx']));
 
-        release = await seller.release(ok, bid, accept, lock);
-        FV_MPA_RELEASE.validate(release);
-        complete = await buyer.release(ok, bid, accept, lock, release);
+        // Step 4: buyer optionally releases
+        complete = await buyer.release(ok, bid, accept, release);
         console.log('release tx', await node0.sendRawTransaction(complete['_rawtx']));
 
         bool = true;
