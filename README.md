@@ -32,4 +32,4 @@ Inputs and outputs should be arranged in alphabetical order such that it doesn't
 
 ## Private fields
 Additional fields can be supplied by the database with an "_", these should be stripped out using strip().
-We should only use these if there's seriously a need for them.
+We only use these when building transactions.

@@ -143,6 +143,7 @@ class CoreRpcService implements Rpc {
         // the inputs order.
         for(let i = 0; i < inputs.length; i++){
             const input = inputs[i];
+            // console.log('signing for ', input)
             const params = [
                 await tx.build(),
                 {
@@ -158,9 +159,8 @@ class CoreRpcService implements Rpc {
                 signature: (await this.call('createsignaturewithwallet', params)),
                 pubKey: (await this.call('getaddressinfo', [input._address])).pubkey
             };
-
-            input._signature = sig;
             r.push(sig);
+            tx.addSignature(input, sig);
             
         };
 

@@ -6,6 +6,11 @@ import { CryptoType } from "../src/interfaces/crypto";
 import { BidConfiguration } from "../src/interfaces/configs";
 import { EscrowType } from "../src/interfaces/omp-enums";
 import { toSatoshis } from "../src/util";
+import { FV_MPA_BID } from "../src/format-validators/mpa_bid";
+import { FV_MPA_ACCEPT } from "../src/format-validators/mpa_accept";
+import { FV_MPA_LOCK } from "../src/format-validators/mpa_lock";
+import { FV_MPA_RELEASE } from "../src/format-validators/mpa_release";
+import { FV_MPA_REFUND } from "../src/format-validators/mpa_refund";
 
 const buyer = new OpenMarketProtocol();
 buyer.inject(CryptoType.PART, node0);
@@ -67,16 +72,28 @@ const config: BidConfiguration = {
     }
 };
 
-test('determinstic transaction generation', async () => {
+it('determinstic transaction generation', async () => {
     let bool = false;
     let accept;
     let lock;
+    let release;
+    let complete;
     try {
         const bid = await buyer.bid(config, ok);
+        FV_MPA_BID.validate(bid);
+
         accept = await seller.accept(ok, bid);
-        lock = await buyer.lock(ok, bid, accept, true);
-        const lockSigned = await buyer.lock(ok, bid, accept);
-        console.log(await node0.sendRawTransaction(lockSigned['_rawtx']));
+        FV_MPA_ACCEPT.validate(accept);
+
+        lock = await buyer.lock(ok, bid, accept);
+        FV_MPA_LOCK.validate(lock);
+        console.log('lock tx', await node0.sendRawTransaction(lock['_rawtx']));
+
+        release = await seller.release(ok, bid, accept, lock);
+        FV_MPA_RELEASE.validate(release);
+        complete = await buyer.release(ok, bid, accept, lock, release);
+        console.log('release tx', await node0.sendRawTransaction(complete['_rawtx']));
+
         bool = true;
     } catch (e) {
         console.log(e)
@@ -84,5 +101,37 @@ test('determinstic transaction generation', async () => {
     expect(bool).toBe(true);
     expect(lock).toBeDefined();
     expect(accept).toBeDefined();
-    expect(lock['_rawtx']).toEqual(accept['_rawtx']);
+
+    expect(accept['_rawtx']).toEqual(release['_rawtx_accept']);
+});
+
+it('determinstic transaction generation refund', async () => {
+  let bool = false;
+  let accept;
+  let lock;
+  let refund;
+  let complete;
+  try {
+      const bid = await buyer.bid(config, ok);
+      FV_MPA_BID.validate(bid);
+
+      accept = await seller.accept(ok, bid);
+      FV_MPA_ACCEPT.validate(accept);
+
+      lock = await buyer.lock(ok, bid, accept);
+      FV_MPA_LOCK.validate(lock);
+      console.log('lock tx', await node0.sendRawTransaction(lock['_rawtx']));
+
+      refund = await buyer.refund(ok, bid, accept, lock);
+      FV_MPA_REFUND.validate(refund);
+      complete = await seller.refund(ok, bid, accept, lock, refund);
+      console.log('refund tx', await node0.sendRawTransaction(complete['_rawtx']));
+
+      bool = true;
+  } catch (e) {
+      console.log(e)
+  }
+  expect(bool).toBe(true);
+  expect(lock).toBeDefined();
+  expect(accept).toBeDefined();
 });

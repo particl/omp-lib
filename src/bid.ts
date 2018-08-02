@@ -122,7 +122,7 @@ export class Bid {
   * @param bid the bid message.
   * @param accept the accept message for which to produce an lock message.
   */
-  public async lock(listing: MPM, bid: MPM, accept: MPM, doNotSign?: boolean): Promise<MPM> {
+  public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
     const mpa_listing = <MPA_EXT_LISTING_ADD>listing.action;
     const mpa_bid = <MPA_BID>bid.action;
 
@@ -146,11 +146,90 @@ export class Bid {
 
     switch (payment.escrow) {
       case EscrowType.MULTISIG:
-        await this._msb.lock(listing, bid, accept, lock, doNotSign);
+        await this._msb.lock(listing, bid, accept, lock);
         break;
     }
 
     return lock;
   }
 
+  /**
+  * Release funds
+  * Add signatures of seller.
+  * 
+  * @param listing the listing message.
+  * @param bid the bid message.
+  * @param accept the accept message.
+  */
+  public async release(listing: MPM, bid: MPM, accept: MPM, lock: MPM, release?: MPM): Promise<MPM> {
+    const mpa_listing = <MPA_EXT_LISTING_ADD>listing.action;
+    const mpa_bid = <MPA_BID>bid.action;
+
+    const payment = mpa_bid.buyer.payment;
+
+    if(!release) {
+      release = <MPM>{
+        version: "0.1.0.0",
+        action: {
+          type: MPAction.MPA_RELEASE,
+          bid: hash(bid), // item hash
+          seller: {
+            payment: {
+              escrow: payment.escrow,
+              signatures: []
+            }
+          },
+          // objects: KVS[]
+        }
+      }
+    }
+
+    switch (payment.escrow) {
+      case EscrowType.MULTISIG:
+        await this._msb.release(listing, bid, accept, lock, release);
+        break;
+    }
+
+    return release;
+  }
+
+  /**
+  * Release funds
+  * Add signatures of seller.
+  * 
+  * @param listing the listing message.
+  * @param bid the bid message.
+  * @param accept the accept message for which to produce an lock message.
+  */
+  public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM> {
+    const mpa_listing = <MPA_EXT_LISTING_ADD>listing.action;
+    const mpa_bid = <MPA_BID>bid.action;
+
+    const payment = mpa_bid.buyer.payment;
+
+    if(!refund) {
+      refund = <MPM>{
+        version: "0.1.0.0",
+        action: {
+          type: MPAction.MPA_REFUND,
+          bid: hash(bid), // item hash
+          buyer: {
+            payment: {
+              escrow: payment.escrow,
+              signatures: []
+            }
+          },
+          // objects: KVS[]
+        }
+      }
+    }
+
+    switch (payment.escrow) {
+      case EscrowType.MULTISIG:
+        await this._msb.refund(listing, bid, accept, lock, refund);
+        break;
+    }
+
+    return refund;
+  }
 }

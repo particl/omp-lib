@@ -5,94 +5,76 @@ import * as bitcore  from 'particl-bitcore-lib';
 
 import { Rpc, ILibrary } from "../src/abstract/rpc";
 
-import { Output, ToBeOutput } from "../src/interfaces/crypto";
+import { Output, ToBeOutput, ISignature } from "../src/interfaces/crypto";
 import { deepSortObject } from "../src/hasher/hash";
 import { CryptoAddress } from "../src/interfaces/crypto";
-
-
+import { clone, fromSatoshis } from "../src/util";
 
 
 export class TransactionBuilder {
     // TODO: dynamic currency support
     // @inject(TYPES.Rpc) @named("PART") private rpc: Rpc;
-    private inputs: Output[] = [];
-    private outputs: ToBeOutput[] = [];
+    
+    private tx;
 
+    constructor(rawtx?: string) {
+        this.tx = new bitcore.Transaction(rawtx)
+    }
     /**
      * Add the inputs and sort them by txid (privacy).
      * https://github.com/bitcoin/bips/blob/master/bip-0069.mediawiki
+     * (Taken care of by bitcore-lib in this implementation)
      * @param input input to use in the transaction.
      */
     addInput(input: Output) {
-        this.inputs.push(input);
-        this.inputs.sort(this.sortInputsByTxid);
-    }
-    private sortInputsByTxid(a: Output, b: Output) {
-        if (a.txid > b.txid) {
-            return 1
-        } else if (b.txid > a.txid) {
-            return -1
-        }
-        return 0;
+        let i = clone(input);
+        i.satoshis = input._satoshis;
+        i.scriptPubKey = input._scriptPubKey;
+
+        this.tx.from(i);
     }
 
     /**
      * Add the 'to be outputs' and sort them by amount (privacy).
      * https://github.com/bitcoin/bips/blob/master/bip-0069.mediawiki
-     * TODO: equal amounts, sort by lexo & pubkey
+     * (Taken care of by bitcore-lib in this implementation)
      * @param output output created by the transaction.
      */
     addOutput(output: ToBeOutput) {
-        this.outputs.push(output);
-        this.outputs.sort(this.sortOutputsByAmount);
-    }
-    private sortOutputsByAmount(a: ToBeOutput, b: ToBeOutput) {
-        if (a.satoshis > b.satoshis) {
-            return 1
-        } else if (b.satoshis > a.satoshis) {
-            return -1
-        }
-        return 0;
+        this.tx.addOutput(bitcore.Transaction.Output(output))
     }
 
-    async build(): Promise<string> {
-        const inputs = this.inputs.map((i: any) => {
-            i.satoshis = i._satoshis;
-            i.scriptPubKey = i._scriptPubKey;
-            return i;
-        });
-
-
-        // add inputs
-        const tx = new bitcore.Transaction()
-            .from(inputs)
-            //.fee(this.fee());
-
-        // add outputs
-        this.outputs.forEach(out => tx.addOutput(bitcore.Transaction.Output(out)));
-
-        // for each input
-        tx.inputs.forEach((publicKeyHashInput, i) => {
-            const txid = publicKeyHashInput.prevTxId.toString('hex');
-            const vout = publicKeyHashInput.outputIndex;
-
-            const input = this.inputs.find((i) => (i.txid === txid && i.vout === vout));
-
-            if(!input) {
-                // no input found, return
-                return;
-            } else if(input._signature) {
-                const signature = {
-                    signature:  bitcore.crypto.Signature.fromString(input._signature.signature),
-                    publicKey:  new bitcore.PublicKey(input._signature.pubKey),
-                    inputIndex: i,
-                    sigtype:    bitcore.crypto.Signature.SIGHASH_ALL
-                };
-                tx.applySignature(signature);
+    addSignature(utxo: Output, signature: ISignature) {
+        let index;
+        // find the relevant output and the index.
+        let input = this.tx.inputs.find((input, i) => {
+            const txid = input.prevTxId.toString('hex');
+            const vout = input.outputIndex;
+            if (utxo.txid === txid && utxo.vout === vout) {
+                index = i;
+                return true;
             }
+               
         });
 
-        return tx.toString();
+        if(input && signature) {
+            const sigBuffer = new Buffer(signature.signature, 'hex');
+            const s = {
+                signature:  bitcore.crypto.Signature.fromTxFormat(sigBuffer),
+                publicKey:  new bitcore.PublicKey(signature.pubKey),
+                inputIndex: index,
+                sigtype:    bitcore.crypto.Signature.SIGHASH_ALL
+            };
+
+            this.tx.applySignature(s);
+        } else {
+            console.error('Failed to add signature!');
+        }
+    }
+
+    build(): string {
+
+        return this.tx.toString();
     }
 
     /**
@@ -101,7 +83,31 @@ export class TransactionBuilder {
      * @param satoshis the amount of satoshis this output should consume.
      * @param publicKeys the participating public keys.
      */
-    public async newMultisigOutput(sathosis: number, publicKeys: string[]): Promise<ToBeOutput> {
+    public addMultisigInput(input: Output, publicKeys: string[]): Output {
+        const i = {
+            txid: input.txid,
+            vout: input.vout,
+            scriptPubKey: input._scriptPubKey,
+            satoshis: input._satoshis
+        };
+        
+        publicKeys = publicKeys.sort().map(pk => new bitcore.PublicKey(pk));
+        /*const multisigInput = new bitcore.Transaction.Input.MultiSigScriptHash(input,
+            publicKeys,
+            2);*/
+
+        this.tx.from(i, publicKeys, 2);
+
+        return input;
+    }
+
+    /**
+     * Creates a multisignature redeem script, combined with the amount it forms
+     * and output and it adds it to this.outputs array.
+     * @param satoshis the amount of satoshis this output should consume.
+     * @param publicKeys the participating public keys.
+     */
+    public newMultisigOutput(sathosis: number, publicKeys: string[]): ToBeOutput {
 
         publicKeys = publicKeys.sort().map(pk => new bitcore.PublicKey(pk));
  
@@ -130,7 +136,7 @@ export class TransactionBuilder {
         return multisigOutput;
     }
 
-    public async newChangeOutputFor(requiredSatoshis: number, changeAddress: CryptoAddress, inputsOfSingleParty: Output[]): Promise<ToBeOutput> {
+    public newChangeOutputFor(requiredSatoshis: number, changeAddress: CryptoAddress, inputsOfSingleParty: Output[]): ToBeOutput {
         let input: number = 0;
 
         for (let utxo of inputsOfSingleParty) {
@@ -149,12 +155,19 @@ export class TransactionBuilder {
             return undefined;
         }
 
+        const utxo = this.newNormalOutput(changeAddress, change);
+
+        return utxo;
+    }
+
+    newNormalOutput(addr: CryptoAddress, satoshis): ToBeOutput {
         // TODO: proper type checking (stealth addresses..)
-        const address = bitcore.Address.fromString(changeAddress.address);
+        const address = bitcore.Address.fromString(addr.address);
+        // TODO: use P2SH?
         const script = bitcore.Script.buildPublicKeyHashOut(address);
         const utxo = {
             script: script.toHex(),
-            satoshis: change
+            satoshis: satoshis
         } as ToBeOutput;
 
         this.addOutput(utxo);
@@ -162,27 +175,66 @@ export class TransactionBuilder {
         return utxo;
     }
 
-    fee(): number {
-        const sumInputs = this.inputs.reduce((accumulator, currentValue) => accumulator + currentValue._satoshis, 0);
-        const sumOutputs = this.outputs.reduce((accumulator, currentValue) => accumulator + currentValue.satoshis, 0);
-        const fee = sumInputs - sumOutputs;
+    /**
+     * Return the utxo for the multisig output
+     */
+    getMultisigUtxo(publicKeyToSignFor: string): Output {
+        let utxo: Output = {
+            txid: this.txid,
+            vout: undefined
+        }
+        const prevout = this.tx.outputs.find((out, i) =>{
+            // TODO: find using the exact p2sh script
+            if(out.script.isScriptHashOut()) {
+                utxo.vout = i,
+                utxo._satoshis = out.satoshis;
+                // required for signing
+                utxo._scriptPubKey = out.script.toHex();
+                utxo._address = publicKeyToAddress(publicKeyToSignFor)
+                return true;
+            }
+        });
 
-        // TODO(security): throw an error if the fee is negative.
-        return fee;
+        if(!prevout){
+            throw new Error('TransactionBuilder, multisignature vout not found')
+        }
+
+        return utxo;
+    }
+
+    get txid() {
+        return this.tx._getHash().toString('hex').match(/../g).reverse().join("");
     }
 
     print() {
         let log = '------- Transaction -------\n'
                 + '+++++++++++++++++++++++++++\n'
 
-        this.inputs.forEach(input => log += (input.txid + ' ' + input.vout + '      ' + input._satoshis + '\n'));
+        this.tx.inputs.forEach(input => log += (input.prevTxId.toString('hex').match(/../g).reverse().join("") + ' ' + input.outputIndex + '\n'));
         log += '++++++++++++++++++++++++++++\n'
-        this.outputs.forEach(output => log += (output.script.substring(0, 64) +  '...      ' + output.satoshis + '\n'));
+        this.tx.outputs.forEach(output => log += (output.inspect() + '\n'));
         log += ('++++++++++++++++++++++++++++\n')
-        log += ('fee = ' + this.fee()  + '\n');
 
         console.log(log);
         
     }
 
+}
+
+export function getTxidFrom(hex: string) {
+    /**
+     * The buffer returned by _getHash() is encoded in little endian
+     * We want a big endian result, so we swap the order of the bytes per 2.
+     * wrong: cc11fecbaa8f55a570572ef8f9d0fc62bc2f71eda2a073ecd9e1a1d7f920*0d*_a3_ <- inversion
+     * correct: _a3_*0d*20f9d7a1e1d9ec73a0a2ed712fbc62fcd0f9f82e5770a5558faacbfe11cc
+     * without the _ and *
+     */
+    const txid = new bitcore.Transaction(hex)._getHash().toString('hex').match(/../g).reverse().join("");
+    return txid;
+}
+
+// TODO: testnet flag to mainnet
+export function publicKeyToAddress(publicKey: string) {
+    const pk = bitcore.PublicKey.fromString(publicKey);
+    return bitcore.Address(pk, 'testnet').toString();
 }

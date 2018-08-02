@@ -21,7 +21,7 @@ export interface Rpc {
     signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> 
 
     // Networking
-    sendRawTransaction(tx: string);
+    sendRawTransaction(rawtx: string);
 }
 
 export type ILibrary = (parent: CryptoType) => Rpc;
