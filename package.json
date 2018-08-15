@@ -1,6 +1,6 @@
 {
   "name": "omp-lib",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Particl OMP-library",
   "main": "src/module.ts",
   "scripts": {
@@ -24,8 +24,8 @@
   "license": "MIT",
   "dependencies": {
     "inversify": "^4.13.0",
-    "reflect-metadata": "^0.1.12",
-    "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git"
+    "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
+    "reflect-metadata": "^0.1.12"
   },
   "devDependencies": {
     "@types/jest": "^23.1.4",
@@ -43,7 +43,9 @@
       "^.+\\.tsx?$": "ts-jest"
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "roots": ["__tests__"],
+    "roots": [
+      "__tests__"
+    ],
     "moduleFileExtensions": [
       "ts",
       "tsx",
