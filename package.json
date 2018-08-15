@@ -1,7 +1,7 @@
 {
-  "name": "node-typescript-seed",
+  "name": "omp-lib",
   "version": "0.0.1",
-  "description": "A simple Node/TypeScript seed with watch support.",
+  "description": "Particl OMP-library",
   "main": "src/module.ts",
   "scripts": {
     "build": "tsc",
