@@ -1,0 +1,29 @@
+sudo: required
+dist: trusty
+language: node_js
+node_js:
+  - '6.11'
+
+addons:
+apt:
+  packages:
+    - python3
+
+cache:
+  directories:
+  - node_modules
+  - bins
+
+before_script:
+  - yarn install
+
+script: 
+  # download binaries
+  - python3 particl-test-env.py
+  - yarn run build
+  - yarn run test
+
+  
+# Disable coveralls for now
+after_script:
+  - npm run coveralls
