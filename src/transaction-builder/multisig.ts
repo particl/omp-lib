@@ -102,8 +102,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // prefetch amounts for inputs
         // makes sure the values are trusted.
-        //const buyer_inputs = await asyncMap(mpa_bid.buyer.payment.outputs, async i => await lib.getSatoshisForUtxo(i));
-        //const seller_inputs = await asyncMap(mpa_accept.seller.payment.outputs, async i => await lib.getSatoshisForUtxo(i));
+        const buyer_inputs = await asyncMap(mpa_bid.buyer.payment.outputs, async i => await lib.getSatoshisForUtxo(i));
+        const seller_inputs = await asyncMap(mpa_accept.seller.payment.outputs, async i => await lib.getSatoshisForUtxo(i));
 
         // add all inputs (TransactionBuilder)
         const tx: TransactionBuilder = new TransactionBuilder();
@@ -111,8 +111,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         mpa_accept.seller.payment.outputs.forEach((input) => tx.addInput(input));
 
         // calculate changes (TransactionBuilder)
-        //const buyer_change = tx.newChangeOutputFor(buyer_requiredSatoshis, mpa_bid.buyer.payment.changeAddress, mpa_bid.buyer.payment.outputs);
-        //const seller_change = tx.newChangeOutputFor(seller_requiredSatoshis + seller_fee, mpa_accept.seller.payment.changeAddress, mpa_accept.seller.payment.outputs);
+        const buyer_change = tx.newChangeOutputFor(buyer_requiredSatoshis, mpa_bid.buyer.payment.changeAddress, mpa_bid.buyer.payment.outputs);
+        const seller_change = tx.newChangeOutputFor(seller_requiredSatoshis + seller_fee, mpa_accept.seller.payment.changeAddress, mpa_accept.seller.payment.outputs);
 
         // build the multisig output
         const multisig_requiredSatoshis = buyer_requiredSatoshis + seller_requiredSatoshis;
@@ -137,7 +137,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             mpa_accept.seller.payment.outputs.forEach((out, i) => tx.addSignature(out, signature[i]));
 
         } else {
-            mpa_accept.seller.payment.signatures = await lib.signRawTransactionForInputs(tx, mpa_accept.seller.payment.outputs);
+            mpa_accept.seller.payment.signatures = await lib.signRawTransactionForInputs(tx, seller_inputs);
         }
 
         accept['_tx'] = tx;
