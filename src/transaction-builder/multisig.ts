@@ -161,9 +161,9 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
+        // const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
         const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
+        // const mpa_accept = (<MPA_ACCEPT>accept.action);
         const mpa_lock = (<MPA_LOCK>lock.action);
 
 
