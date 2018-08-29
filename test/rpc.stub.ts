@@ -1,12 +1,12 @@
-import { injectable, inject } from "inversify";
+import { injectable } from "inversify";
 import "reflect-metadata";
 
 import { Rpc } from "../src/abstract/rpc";
 
 import * as WebRequest from 'web-request';
-import { Output, ToBeOutput, CryptoAddress, ISignature } from "../src/interfaces/crypto";
-import { isNonNegativeNaturalNumber, isValidPrice, toSatoshis, fromSatoshis } from "../src/util";
-import { TransactionBuilder } from "./transaction";
+import { Output, ISignature } from "../src/interfaces/crypto";
+import { toSatoshis, fromSatoshis } from "../src/util";
+import { TransactionBuilder } from '../src/transaction-builder/transaction';
 
 
 @injectable()
@@ -89,36 +89,106 @@ class CoreRpcService implements Rpc {
 
     public async getNormalOutputs(reqSatoshis: number): Promise<Output[]> {
         const chosen: Array<Output> = [];
+        let utxoLessThanReq: Array<number> = [];
+        let exactMatchIdx: number = -1;
+        let maxOutputIdx: number = -1;
         let chosenSatoshis: number = 0;
+        const defaultIdxs: Array<number> = [];
 
         const unspent: Array<Output> = await this.call('listunspent', [0]);
 
-        unspent.filter((output: any) => output.spendable && output.safe)
-            .find((utxo: any) => {
+        unspent.filter(
+            (output: any, outIdx: number) => {
+                if (output.spendable && output.safe && (output.scriptPubKey.substring(0, 2) === '76') ) {
+                    if ( (exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
+                        // Found a utxo with amount that is an exact match for the requested value.
+                        exactMatchIdx = outIdx;
+                    } else if (toSatoshis(output.amount) < reqSatoshis) {
+                        // utxo is less than the amount requested, so may be summable with others to get to the exact value (or within a close threshold).
+                        utxoLessThanReq.push(outIdx);
+                    }
 
-                if(utxo.scriptPubKey.substring(0,2) !== '76') {
-                    // only take normal outputs into account
-                    return false;
-                }
+                    // Get the max utxo amount in case an output needs to be split
+                    if (maxOutputIdx === -1) {
+                        maxOutputIdx = outIdx;
+                    } else if (unspent[maxOutputIdx].amount < output.amount){
+                        maxOutputIdx = outIdx;
+                    }
 
-                chosenSatoshis += toSatoshis(utxo.amount);
-                chosen.push({
-                    txid: utxo.txid,
-                    vout: utxo.vout,
-                    _satoshis: toSatoshis(utxo.amount),
-                    _scriptPubKey: utxo.scriptPubKey,
-                    _address: utxo.address
-                });
+                    // Sum up output amounts for the default case
+                    if (chosenSatoshis < reqSatoshis) {
+                        chosenSatoshis += toSatoshis(output.amount);
+                        defaultIdxs.push(outIdx);
+                    }
 
-                if (chosenSatoshis >= reqSatoshis) {
                     return true;
                 }
                 return false;
-            });
+            }
+        );
 
-        if (chosenSatoshis < reqSatoshis) {
-            throw new Error('Not enough available output to cover the required amount.')
+        let utxoIdxs: Array<number> = [];
+        // Step 1: Check whether an exact match was found.
+        if (exactMatchIdx === -1) {
+            // No exact match found, so...
+            //  ... Step 2: Sum utxos to find a summed group that matches exactly or is greater than the requried amount by no more than 1%.
+            for (let ii: number = 0; ii < Math.pow(2, utxoLessThanReq.length); ii++) {
+                const selectedIdxs: Array<number> = utxoLessThanReq.filter((_: number, index: number) => { return ii & (1 << index); });
+                const summed: number = toSatoshis(selectedIdxs.reduce((acc: number, idx: number) => acc + unspent[idx].amount, 0));
+
+                if ((summed >= reqSatoshis) && ((summed - reqSatoshis) < (reqSatoshis / 100)) ) {
+                    // Sum of utxos is within a 1 percent upper margin of the requested amount.
+                    if (summed === reqSatoshis) {
+                        // Found the exact required amount.
+                        utxoIdxs = selectedIdxs;
+                        break;
+                    } else if (!utxoIdxs.length) {
+                        utxoIdxs.length = 0;
+                        utxoIdxs = selectedIdxs;
+                    }
+                }
+            }
+
+            // ... Step 3: If no summed values found, attempt to split a large enough output.
+            if (utxoIdxs.length === 0 && maxOutputIdx !== -1 && toSatoshis(unspent[maxOutputIdx].amount) > reqSatoshis) {
+                const newAddr = await this.call('getnewaddress', []);
+                const txid: string = await this.call('sendtoaddress', [newAddr, fromSatoshis(reqSatoshis), 'Split output']);
+                const txData: any = await this.call('getrawtransaction', [txid, true]);
+                const outData: any = txData.vout.find( outObj => outObj.valueSat === reqSatoshis );
+                if (outData) {
+                    chosen.push({
+                        txid: txData.txid,
+                        vout: outData.n,
+                        _satoshis: outData.valueSat,
+                        _scriptPubKey: outData.scriptPubKey.hex,
+                        _address: newAddr
+                    });
+                }
+            }
+        } else {
+            // Push the exact match.
+            utxoIdxs.push(exactMatchIdx);
         }
+
+        // Step 4: Default to the summed utxos if no other method was successful
+        if (!chosen.length && !utxoIdxs.length) {
+            if (chosenSatoshis >= reqSatoshis) {
+                utxoIdxs = defaultIdxs;
+            } else {
+                throw new Error('Not enough available output to cover the required amount.');
+            }
+        }
+
+        utxoIdxs.forEach( utxoIdx => {
+            const utxo: any = unspent[utxoIdx];
+            chosen.push({
+                txid: utxo.txid,
+                vout: utxo.vout,
+                _satoshis: toSatoshis(utxo.amount),
+                _scriptPubKey: utxo.scriptPubKey,
+                _address: utxo.address
+            });
+        });
 
         await this.call('lockunspent', [false, chosen, true]);
         return chosen;
@@ -130,7 +200,7 @@ class CoreRpcService implements Rpc {
         utxo._satoshis = vout.valueSat;
         return utxo;
     }
-    
+
     public async importRedeemScript(script: any): Promise<boolean> {
        await this.call('importaddress', [script, '', false, true])
        return true;
@@ -161,7 +231,7 @@ class CoreRpcService implements Rpc {
             };
             r.push(sig);
             tx.addSignature(input, sig);
-            
+
         };
 
         return r;
