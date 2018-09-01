@@ -83,7 +83,7 @@ it('determinstic transaction generation', async () => {
     let release;
     let complete;
     try {
-        jest.setTimeout(12000);
+        jest.setTimeout(30000);
         // Step1: Buyer does bid
         const bid = await buyer.bid(config, ok);
         FV_MPA_BID.validate(bid);
@@ -98,7 +98,7 @@ it('determinstic transaction generation', async () => {
         FV_MPA_RELEASE.validate(release);
 
         // Step 3: buyer locks and submits
-        await delay(3000);
+        await delay(5000);
         lock = await buyer.lock(ok, bid, accept);
         FV_MPA_LOCK.validate(lock);
         console.log('lock tx', await node0.sendRawTransaction(lock['_rawtx']));
@@ -125,7 +125,7 @@ it('determinstic transaction generation refund', async () => {
     let refund;
     let complete;
     try {
-        jest.setTimeout(20000);
+        jest.setTimeout(30000);
         const bid = await buyer.bid(config, ok);
         FV_MPA_BID.validate(bid);
 
