@@ -274,8 +274,16 @@ def startNodes(fp, resetData):
     """
 
 
-    for i in range(5):
+    for i in range(2):
         callrpc(0, fp, 'sendtoaddress "pdYHpMumE3JfEyhLhxi9qmua1aDEJXzWv5" 100')
+    
+    callrpc(0, fp, 'getnewstealthaddress') # TetXU1bNXEn4obs3iaDt5uup4gXz1XCwgButPoDZFcxkv7nD6S6o6vkqDNDQMmGz2MC9BMy4r3QrRKSb4RgzKQi2HSG1rYuBXSYc8A
+    callrpc(1, fp, 'getnewstealthaddress') # TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt
+
+    # Mixin inputs
+    callrpc(0, fp, 'sendtypeto part anon "[{\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":0.005}, {\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":0.005}, {\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":0.005}, {\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":0.005},{\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":0.005},{\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":0.005}]"')
+    
+    callrpc(0, fp, 'sendtypeto part anon "[{\\"address\\":\\"TetXU1bNXEn4obs3iaDt5uup4gXz1XCwgButPoDZFcxkv7nD6S6o6vkqDNDQMmGz2MC9BMy4r3QrRKSb4RgzKQi2HSG1rYuBXSYc8A\\",\\"amount\\":20},{\\"address\\":\\"TetXU1bNXEn4obs3iaDt5uup4gXz1XCwgButPoDZFcxkv7nD6S6o6vkqDNDQMmGz2MC9BMy4r3QrRKSb4RgzKQi2HSG1rYuBXSYc8A\\",\\"amount\\":20},{\\"address\\":\\"TetXU1bNXEn4obs3iaDt5uup4gXz1XCwgButPoDZFcxkv7nD6S6o6vkqDNDQMmGz2MC9BMy4r3QrRKSb4RgzKQi2HSG1rYuBXSYc8A\\",\\"amount\\":20}, {\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":20}, {\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":20}, {\\"address\\":\\"TetbX4FkzdAFp1jSgo8jBr7DbRbA8fevy2Xhobhzr8iH171UPjYjmxBKdztpTPspccEKiAyK4u5vXcAtSFWbYb98RTGUxTVjF5qAZt\\",\\"amount\\":20}]"')
 
 def exitNodes(sig, frame):
     loge(fpHandle, 'Stopping nodes.')

@@ -10,6 +10,11 @@ export interface Output {
     _signature?: ISignature
 }
 
+export interface BlindOutput extends Output {  // TODO: FV
+    blindFactor?: string,
+    _commitment: string
+}
+
 /**
  * A "new" Output, that does not exist yet.
  */
@@ -17,6 +22,20 @@ export interface ToBeOutput {
     script: string,
     satoshis: number,
     _redeemScript?: string,
+}
+
+/**
+ * A "new" Blind Output, that does not exist yet.
+ */
+export interface ToBeBlindOutput {  // TODO: FV
+    // Stealth address
+    address: CryptoAddress,
+    // CT
+    blindFactor: string,
+    commitment: string,
+    // Private details
+    _satoshis: number,
+    _redeemScript?: string
 }
 
 /**
@@ -43,7 +62,8 @@ export enum CryptoAddressType {
  */
 export interface CryptoAddress {
     type: CryptoAddressType,
-    address: string
+    address: string,
+    ephem?: string // if stealth, might provide ephem.
 }
 
 /**

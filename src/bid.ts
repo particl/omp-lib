@@ -6,7 +6,7 @@ import { MultiSigBuilder } from "./transaction-builder/multisig";
 import { BidConfiguration } from './interfaces/configs';
 
 import { injectable, inject } from "inversify";
-import { IMultiSigBuilder } from "./abstract/transactions";
+import { IMultiSigBuilder, IMadCTBuilder } from "./abstract/transactions";
 import { TYPES } from "./types";
 
 /**
@@ -17,11 +17,14 @@ import { TYPES } from "./types";
 export class Bid {
 
   private _msb: IMultiSigBuilder;
+  private _madct: IMadCTBuilder;
 
   constructor(
-    @inject(TYPES.MultiSigBuilder) msb: IMultiSigBuilder
+    @inject(TYPES.MultiSigBuilder) msb: IMultiSigBuilder,
+    @inject(TYPES.MadCTBuilder) madct: IMadCTBuilder
   ) {
     this._msb = msb;
+    this._madct = madct;
   }
 
   /**
@@ -64,6 +67,9 @@ export class Bid {
     switch (config.escrow) {
       case EscrowType.MULTISIG:
         await this._msb.bid(listing, bid);
+        break;
+      case EscrowType.MAD_CT:
+        await this._madct.bid(listing, bid);
         break;
     }
 
@@ -108,6 +114,9 @@ export class Bid {
     switch (payment.escrow) {
       case EscrowType.MULTISIG:
         await this._msb.accept(listing, bid, accept);
+        break;
+      case EscrowType.MAD_CT:
+        await this._madct.accept(listing, bid, accept);
         break;
     }
 

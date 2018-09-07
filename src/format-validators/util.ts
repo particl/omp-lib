@@ -47,6 +47,11 @@ export function isTxid(txid: any) {
     return isSHA256Hash(txid);
 }
 
+// TODO: better checking (is it on the curve?)
+export function isPublicKey(pk: string) {
+    return isString(pk);
+}
+
 export function isTimestamp(t: any) {
     return isNonNegativeNaturalNumber(t)
 }

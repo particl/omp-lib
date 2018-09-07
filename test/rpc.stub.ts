@@ -4,8 +4,8 @@ import "reflect-metadata";
 import { Rpc } from "../src/abstract/rpc";
 
 import * as WebRequest from 'web-request';
-import { Output, ISignature } from "../src/interfaces/crypto";
-import { toSatoshis, fromSatoshis } from "../src/util";
+import { Output, ISignature, BlindOutput, CryptoAddressType, CryptoAddress, ToBeBlindOutput } from "../src/interfaces/crypto";
+import { toSatoshis, fromSatoshis, asyncMap, asyncForEach } from "../src/util";
 import { TransactionBuilder } from '../src/transaction-builder/transaction';
 
 
@@ -85,6 +85,20 @@ class CoreRpcService implements Rpc {
     public async getNewPubkey(): Promise<string> {
         const address = await this.getNewAddress();
         return (await this.call('getaddressinfo', [address])).pubkey;
+    }
+
+    public async getNewStealthAddress(): Promise<CryptoAddress> {
+        const sx = await this.call('getnewstealthaddress');
+        return {
+            type: CryptoAddressType.STEALTH,
+            address: sx
+         } as CryptoAddress
+    }
+
+    public async getNewStealthAddressWithEphem(): Promise<CryptoAddress> {
+        const sx = await this.getNewStealthAddress();
+        sx.ephem = (await this.call('derivefromstealthaddress', [sx.address])).ephemeral_pubkey;
+        return sx;
     }
 
     public async getNormalOutputs(reqSatoshis: number): Promise<Output[]> {
@@ -194,6 +208,40 @@ class CoreRpcService implements Rpc {
         return chosen;
     }
 
+    // TODO: interface
+    public async createBlindOutputFromAnon(satoshis: number): Promise<BlindOutput> {
+        let output: BlindOutput;
+        const sx = await this.getNewStealthAddress();
+        const amount = fromSatoshis(satoshis);
+
+        const txid = await this.call('sendtypeto', ['anon', 'blind', [{ address: sx.address, amount: amount}]]);
+        const unspent: any = await this.call('listunspentblind', [0]);
+        const found = unspent.find(vout => (vout.txid === txid && vout.amount === fromSatoshis(satoshis)));
+
+        if(!found) {
+            throw new Error('Not enough blind inputs!');
+        }
+
+        // Retrieve the commitment from the transaction
+        // TODO: use bitcorelib for this
+        const commitment = (await this.call('getrawtransaction', [txid, true])).vout.find(i => i.n === found.vout).valueCommitment;
+
+        output = {
+                txid: found.txid,
+                vout: found.vout,
+                _commitment: commitment,
+                _satoshis: toSatoshis(found.amount),
+                _scriptPubKey: found.scriptPubKey,
+                _address: found.address
+        }
+
+        return output;
+    };
+
+    public async getBlindOutputs(satoshis): Promise <BlindOutput[]> {
+        return [ await this.createBlindOutputFromAnon(satoshis) ];
+    }
+
     public async getSatoshisForUtxo(utxo: Output): Promise<Output> {
         const vout = (await this.call('getrawtransaction', [utxo.txid, true]))
             .vout.find((vout: any) => vout.n === utxo.vout);
@@ -201,12 +249,42 @@ class CoreRpcService implements Rpc {
         return utxo;
     }
 
+    public async getCommitmentForBlindUtxo(utxo: BlindOutput): Promise<BlindOutput> {
+        const tx = (await this.call('getrawtransaction', [utxo.txid, true]));
+        const commitment = tx.vout.find(i => i.n === utxo.vout).valueCommitment;
+        utxo._commitment = commitment;
+        return utxo;
+    }
+
+    public async generateCommitment(blind: string, satohis: number): Promise<string> {
+        const amount = fromSatoshis(satohis);
+        return (await this.call('generatecommitment', [blind, amount])).commitment;
+    }
+
+    public async generateMadBidRawTx(inputs: BlindOutput[], outputs: ToBeBlindOutput[]): Promise<string> {
+        const prevouts = inputs.map(utxo => {
+            return {
+                txid: utxo.txid,
+                vout: utxo.vout,
+                blindingfactor: utxo.blindFactor
+            }
+        });
+        const newouts = outputs.map(out => {
+            return {
+                address: out.address.address,
+                amount: fromSatoshis(out._satoshis),
+                blindingfactor: out.blindFactor
+            };
+        });
+        return (await this.call('createrawparttransaction', [prevouts, newouts])).transaction;
+    }
+
     public async importRedeemScript(script: any): Promise<boolean> {
        await this.call('importaddress', [script, '', false, true])
        return true;
     }
 
-    async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> {
+    async signRawTransactionForInputs(tx: TransactionBuilder, inputs: BlindOutput[]): Promise<ISignature[]> {
         let r: ISignature[] = [];
 
         // needs to synchronize, because the order needs to match

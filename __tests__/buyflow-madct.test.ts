@@ -1,12 +1,21 @@
-
-import { node0, node1, node2 } from '../test/rpc.stub';
+import { node0, node1 } from '../test/rpc.stub';
 import { OpenMarketProtocol } from "../src/omp";
 import { CryptoType } from "../src/interfaces/crypto";
 import { BidConfiguration } from "../src/interfaces/configs";
 import { EscrowType } from "../src/interfaces/omp-enums";
+import { toSatoshis } from "../src/util";
 
-const omp0 = new OpenMarketProtocol();
-omp0.inject(CryptoType.PART, node0);
+const delay = ms => {
+    return new Promise(resolve => {
+        return setTimeout(resolve, ms)
+    });
+};
+
+const buyer = new OpenMarketProtocol();
+buyer.inject(CryptoType.PART, node0);
+
+const seller = new OpenMarketProtocol();
+seller.inject(CryptoType.PART, node1);
 
 const ok = JSON.parse(
     `{
@@ -25,7 +34,7 @@ const ok = JSON.parse(
               "payment": {
                 "type": "SALE",
                 "escrow": {
-                  "type": "MULTISIG",
+                  "type": "MAD_CT",
                   "ratio": {
                     "buyer": 100,
                     "seller": 100
@@ -34,7 +43,7 @@ const ok = JSON.parse(
                 "cryptocurrency": [
                   {
                     "currency": "PART",
-                    "basePrice": 100000000000
+                    "basePrice": ${toSatoshis(1)}
                   }
                 ]
               },
@@ -48,29 +57,35 @@ const ok = JSON.parse(
         }
     }`);
 
-const config: BidConfiguration = {
-    cryptocurrency: CryptoType.PART,
-    escrow: EscrowType.MULTISIG,
-    shippingAddress: {
-        firstName: "string",
-        lastName: "string",
-        addressLine1: "string",
-        city: "string",
-        state: "string",
-        zipCode: "string",
-        country: "string",
-    }
-};
+    const config: BidConfiguration = {
+        cryptocurrency: CryptoType.PART,
+        escrow: EscrowType.MAD_CT,
+        shippingAddress: {
+            firstName: "string",
+            lastName: "string",
+            addressLine1: "string",
+            city: "string",
+            state: "string",
+            zipCode: "string",
+            country: "string",
+        }
+    };
 
-test('perform multisig bid', () => {
-    let out;
+it('create blind output from anon', async () => {
     let bool = false;
-    try {
 
-        //console.log(JSON.stringify(bid, null, 4))
-       
+    try {
+        jest.setTimeout(30000);
+
+        // Step1: Buyer does bid
+        const bid = await buyer.bid(config, ok);
+
+        await delay(5000);
+        // Step 2: seller accepts
+        const accept = await seller.accept(ok, bid);
+        console.log(JSON.stringify(accept, null, 4))
+
     } catch (e) {
         console.log(e)
     }
-    
 });

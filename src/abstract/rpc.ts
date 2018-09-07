@@ -1,4 +1,4 @@
-import { Output, CryptoType, ToBeOutput, CryptoAddress, ISignature } from "../interfaces/crypto";
+import { Output, CryptoType, ToBeOutput, CryptoAddress, ISignature, BlindOutput, ToBeBlindOutput } from "../interfaces/crypto";
 import { TransactionBuilder } from "../transaction-builder/transaction";
 
 /**
@@ -12,13 +12,21 @@ export interface Rpc {
     */
     getNewPubkey(): Promise<string>;
     getNewAddress(): Promise<string>;
+    getNewStealthAddressWithEphem(): Promise<CryptoAddress>;
+
     // Retrieving information of outputs
     getNormalOutputs(satoshis: number): Promise<Output[]>;
+    getBlindOutputs(satoshis: number): Promise<BlindOutput[]>;
+
     getSatoshisForUtxo(utxo: Output): Promise<Output>;
+    getCommitmentForBlindUtxo(utxo: BlindOutput): Promise<BlindOutput>;
+    generateCommitment(blind: string, satoshis: number): Promise<string>;
+
+    buildBidTxScript(publicKeys: string[], hashedSecret: string, secondsToLock: number): any;
 
     // Importing and signing
     importRedeemScript(script: any): Promise<boolean>;
-    signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> 
+    signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]>
 
     // Networking
     sendRawTransaction(rawtx: string);

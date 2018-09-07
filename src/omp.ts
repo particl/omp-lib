@@ -13,9 +13,9 @@ import { Bid } from './bid';
 
 import { CryptoType } from './interfaces/crypto';
 
-import { IMultiSigBuilder } from './abstract/transactions';
+import { IMultiSigBuilder, IMadCTBuilder } from './abstract/transactions';
 import { MultiSigBuilder } from './transaction-builder/multisig';
-
+import { MadCTBuilder } from './transaction-builder/madct';
 
 //import { bid as createBid } from './bid';
 
@@ -49,6 +49,7 @@ export class OpenMarketProtocol {
         
         this.container.bind<IBid>(TYPES.Bid).to(Bid);
         this.container.bind<IMultiSigBuilder>(TYPES.MultiSigBuilder).to(MultiSigBuilder);
+        this.container.bind<IMadCTBuilder>(TYPES.MadCTBuilder).to(MadCTBuilder);
     }
 
     

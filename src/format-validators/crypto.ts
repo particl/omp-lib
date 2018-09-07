@@ -1,5 +1,6 @@
 import { Output, CryptoAddress, CryptoAddressType, ISignature } from "../interfaces/crypto";
 import { isObject, isNumber, isString, isTxid, isArray } from "../util";
+import { isPublicKey } from "./util";
 
 
 export class FV_CRYPTO {
@@ -45,6 +46,9 @@ export class FV_CRYPTO {
             throw new Error('CryptoAddress.address: address is missing or wrong type, expecting string');
         }
 
+        if(address.type === CryptoAddressType.STEALTH && address.ephem && !isPublicKey(address.ephem)) {
+          throw new Error('CryptoAddress.ephem: ephem is missing or wrong type, expecting public key');
+        }
         return true;
       }
 

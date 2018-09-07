@@ -138,6 +138,7 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
       cryptocurrency: CryptoType,
       escrow: EscrowType,
       pubKey: string,
+      hashedSecret?: string, // TODO: FV!
       changeAddress: CryptoAddress,
       outputs: Output[]
     },

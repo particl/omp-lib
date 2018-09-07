@@ -5,7 +5,7 @@ import * as bitcore  from 'particl-bitcore-lib';
 
 import { Rpc, ILibrary } from "../abstract/rpc";
 
-import { Output, ToBeOutput, ISignature } from "../interfaces/crypto";
+import { Output, ToBeOutput, ISignature, ToBeBlindOutput } from "../interfaces/crypto";
 import { deepSortObject } from "../hasher/hash";
 import { CryptoAddress } from "../interfaces/crypto";
 import { clone, fromSatoshis } from "../util";
@@ -15,7 +15,7 @@ export class TransactionBuilder {
     // TODO: dynamic currency support
     // @inject(TYPES.Rpc) @named("PART") private rpc: Rpc;
     
-    private tx;
+    public tx;
 
     constructor(rawtx?: string) {
         this.tx = new bitcore.Transaction(rawtx)
@@ -40,7 +40,7 @@ export class TransactionBuilder {
      * (Taken care of by bitcore-lib in this implementation)
      * @param output output created by the transaction.
      */
-    addOutput(output: ToBeOutput) {
+    addOutput(output: any) { // ToBeOutput | ToBeBlindOutput
         this.tx.addOutput(bitcore.Transaction.Output(output))
     }
 
@@ -54,7 +54,6 @@ export class TransactionBuilder {
                 index = i;
                 return true;
             }
-               
         });
 
         if(input && signature) {

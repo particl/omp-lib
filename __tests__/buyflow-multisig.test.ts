@@ -88,7 +88,7 @@ it('determinstic transaction generation', async () => {
         const bid = await buyer.bid(config, ok);
         FV_MPA_BID.validate(bid);
 
-        await delay(5000);
+        await delay(10000);
         // Step 2: seller accepts AND signs release tx
         // the seller always wants his money back
         accept = await seller.accept(ok, bid);
