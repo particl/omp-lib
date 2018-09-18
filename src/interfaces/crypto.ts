@@ -1,41 +1,53 @@
 /**
- * An Output from a cryptocurrency.
+ * An Prevout from a cryptocurrency.
  */
-export interface Output {
+export interface Prevout {
     txid: string,
     vout: number,
     _satoshis?: number,
-    _scriptPubKey?: string,
     _address?: string,
-    _signature?: ISignature
+    _signature?: ISignature,
+    _redeemScript?: string,
+    _scriptPubKey?: string,
+    _sequence?: number
 }
 
-export interface BlindOutput extends Output {  // TODO: FV
+export interface BlindPrevout extends Prevout {  // TODO: FV
     blindFactor?: string,
     _commitment: string
 }
 
+// Base class
+export interface ToBeOutput {}
 /**
- * A "new" Output, that does not exist yet.
+ * A "new" Prevout, that does not exist yet.
  */
-export interface ToBeOutput {
+export interface ToBeNormalOutput extends ToBeOutput {
     script: string,
     satoshis: number,
     _redeemScript?: string,
 }
 
 /**
- * A "new" Blind Output, that does not exist yet.
+ * A "new" Blind Prevout, that does not exist yet.
  */
-export interface ToBeBlindOutput {  // TODO: FV
+export interface ToBeBlindOutput extends ToBeOutput {  // TODO: FV
     // Stealth address
     address: CryptoAddress,
     // CT
+    _type: string,
     blindFactor: string,
     commitment: string,
+    // Escrow
+    _secret: string,
+    hashedSecret: string,
+    // Destroy txn
+    _nonce: string,
+    _data: string,
     // Private details
     _satoshis: number,
-    _redeemScript?: string
+    _redeemScript?: string,
+    _address?: string // _redeemScript to address
 }
 
 /**
@@ -63,11 +75,20 @@ export enum CryptoAddressType {
 export interface CryptoAddress {
     type: CryptoAddressType,
     address: string,
-    ephem?: string // if stealth, might provide ephem.
+    pubKey?: string,
+    ephem?: EphemeralKey // if stealth, might provide ephem.
 }
 
 /**
- * An address from a cryptocurrency.
+ * An ephemeral key.
+ */
+export interface EphemeralKey {
+    private?: string,
+    public: string
+}
+
+/**
+ * An amount of cryptocurrency.
  */
 export interface CryptoAmount {
     type: CryptoType,

@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Output, CryptoAddress, CryptoType, ISignature } from "./crypto";
+import { Prevout, CryptoAddress, CryptoType, ISignature, ToBeNormalOutput, ToBeOutput, EphemeralKey } from "./crypto";
 import { DSN, ContentReference } from "./dsn";
 import { MPAction, PaymentType, EscrowType } from "./omp-enums"
 import { KVS } from './common'
@@ -98,6 +98,7 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
       type: PaymentType,
       escrow: {
         type: EscrowType,
+        secondsToLock?: number,
         ratio: {
           buyer: number,
           seller: number
@@ -138,9 +139,10 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
       cryptocurrency: CryptoType,
       escrow: EscrowType,
       pubKey: string,
-      hashedSecret?: string, // TODO: FV!
+      address?: CryptoAddress, // CT
       changeAddress: CryptoAddress,
-      outputs: Output[]
+      prevouts: Prevout[],
+      outputs?: ToBeOutput[] // CT
     },
     shippingAddress: {
       firstName: string,
@@ -176,8 +178,18 @@ export interface MPA_ACCEPT extends MPA {
       pubKey: string,
       changeAddress: CryptoAddress,
       fee: number,
-      outputs: Output[],
-      signatures: ISignature[]
+      prevouts: Prevout[],
+      outputs?: ToBeOutput[],
+      signatures: ISignature[],
+      release?: {
+        isFirst: boolean,
+        blindFactor: string,
+        ephem: EphemeralKey,
+        signatures: ISignature[]
+      },
+      destroy?: {
+        signatures: ISignature[]
+      }
     }
   }
 }
@@ -199,7 +211,14 @@ export interface MPA_LOCK extends MPA {
   buyer: {
     payment: {
       escrow: EscrowType,
-      signatures: ISignature[]
+      signatures: ISignature[],
+      release?: {
+        blindFactor: string,
+        ephem: EphemeralKey,
+      },
+      destroy?: {
+        signatures?: ISignature[]
+      }
     }
   },
   info: {

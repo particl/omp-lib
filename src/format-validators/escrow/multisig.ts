@@ -1,4 +1,4 @@
-import { Output, CryptoAddress, CryptoAddressType } from "../../interfaces/crypto";
+import { Prevout, CryptoAddress, CryptoAddressType } from "../../interfaces/crypto";
 import { isObject, isNumber, isString, isTxid, isArray } from "../../util";
 import { FV_CRYPTO } from "../crypto";
 import { EscrowType } from "../../interfaces/omp-enums";
@@ -23,12 +23,12 @@ export class FV_MPA_BID_ESCROW_MULTISIG {
             throw new Error('action.buyer.payment.pubKey: missing or not a string');
         }
 
-        if (!isArray(payment.outputs)) {
-            throw new Error('action.buyer.payment.outputs: not an array');
+        if (!isArray(payment.prevouts)) {
+            throw new Error('action.buyer.payment.prevouts: not an array');
         }
 
-        payment.outputs.forEach((elem, i) => {
-            FV_CRYPTO.validateOutput(elem);
+        payment.prevouts.forEach((elem, i) => {
+            FV_CRYPTO.validatePrevout(elem);
         });
 
         FV_CRYPTO.validateCryptoAddress(payment.changeAddress);
@@ -54,8 +54,8 @@ export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
             FV_CRYPTO.validateSignature(elem);
         });
 
-        if (payment.signatures.length !== payment.outputs.length) {
-            throw new Error('action.seller.payment.signatures: amount of signatures does not match amount of outputs');
+        if (payment.signatures.length !== payment.prevouts.length) {
+            throw new Error('action.seller.payment.signatures: amount of signatures does not match amount of prevouts');
         }
 
         return true;

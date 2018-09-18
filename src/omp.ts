@@ -4,7 +4,7 @@ import "reflect-metadata";
 import { injectable, Container, interfaces } from 'inversify';
 import { TYPES } from './types';
 
-import { Rpc, ILibrary } from './abstract/rpc';
+import { Rpc, ILibrary, CtRpc } from './abstract/rpc';
 import { MPM } from './interfaces/omp';
 
 import { BidConfiguration } from './interfaces/configs';
@@ -14,8 +14,8 @@ import { Bid } from './bid';
 import { CryptoType } from './interfaces/crypto';
 
 import { IMultiSigBuilder, IMadCTBuilder } from './abstract/transactions';
-import { MultiSigBuilder } from './transaction-builder/multisig';
-import { MadCTBuilder } from './transaction-builder/madct';
+import { MultiSigBuilder } from './buyflow/multisig';
+import { MadCTBuilder } from './buyflow/madct';
 
 //import { bid as createBid } from './bid';
 
@@ -39,14 +39,19 @@ export class OpenMarketProtocol {
         // This is our library factory
         // it returns the Rpc libraries that we injected below (cfr. inject() ).
         // based on a cryptocurrency: CryptoType
-        this.container.bind<ILibrary>(TYPES.Library).toFactory<Rpc>(
+        this.container.bind<ILibrary>(TYPES.Library).toFactory<CtRpc | Rpc>(
             (ctx: interfaces.Context) => {
-                return (cryptocurrency: CryptoType) => {
-                    const lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency)
+                return (cryptocurrency: CryptoType, isCt?: boolean) => {
+                    let lib;
+                    if(!isCt) {
+                        lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency)
+                    } else {
+                        lib = ctx.container.getNamed<CtRpc>(TYPES.CtRpc, cryptocurrency)
+                    }
                     return lib;
                 };
             });
-        
+
         this.container.bind<IBid>(TYPES.Bid).to(Bid);
         this.container.bind<IMultiSigBuilder>(TYPES.MultiSigBuilder).to(MultiSigBuilder);
         this.container.bind<IMadCTBuilder>(TYPES.MadCTBuilder).to(MadCTBuilder);
@@ -58,11 +63,16 @@ export class OpenMarketProtocol {
      * @param cryptocurrency The currency for which this service works.
      * @param service Rpc service
      */
-    public inject(cryptocurrency: CryptoType, service: any) {
+    public inject(cryptocurrency: CryptoType, service: any, isCt?: boolean) {
         // Bind an _instance_ (constant value)
         // to the container.
         // and give it the name of the cryptocurrency.
-        this.container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
+        if(!isCt) {
+            this.container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
+        } else {
+            this.container.bind<CtRpc>(TYPES.CtRpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
+        }
+
     }
 
     public async bid(config: BidConfiguration, listing: MPM) {
@@ -78,6 +88,11 @@ export class OpenMarketProtocol {
     public async lock(listing: MPM, bid: MPM, accept: MPM) {
         const action = this.container.get<IBid>(TYPES.Bid);
         return action.lock(listing, bid, accept);
+    }
+
+    public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM) {
+        const action = this.container.get<IBid>(TYPES.Bid);
+        return action.complete(listing, bid, accept, lock);
     }
 
     public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM) {

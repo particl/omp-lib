@@ -5,7 +5,7 @@ import * as bitcore  from 'particl-bitcore-lib';
 
 import { Rpc, ILibrary } from "../abstract/rpc";
 
-import { Output, ToBeOutput, ISignature, ToBeBlindOutput } from "../interfaces/crypto";
+import { Prevout, ToBeNormalOutput, ISignature } from "../interfaces/crypto";
 import { deepSortObject } from "../hasher/hash";
 import { CryptoAddress } from "../interfaces/crypto";
 import { clone, fromSatoshis } from "../util";
@@ -26,7 +26,7 @@ export class TransactionBuilder {
      * (Taken care of by bitcore-lib in this implementation)
      * @param input input to use in the transaction.
      */
-    addInput(input: Output) {
+    addInput(input: Prevout) {
         let i = clone(input);
         i.satoshis = input._satoshis;
         i.scriptPubKey = input._scriptPubKey;
@@ -35,18 +35,18 @@ export class TransactionBuilder {
     }
 
     /**
-     * Add the 'to be outputs' and sort them by amount (privacy).
+     * Add the 'to be prevouts' and sort them by amount (privacy).
      * https://github.com/bitcoin/bips/blob/master/bip-0069.mediawiki
      * (Taken care of by bitcore-lib in this implementation)
-     * @param output output created by the transaction.
+     * @param prevout prevout created by the transaction.
      */
-    addOutput(output: any) { // ToBeOutput | ToBeBlindOutput
-        this.tx.addOutput(bitcore.Transaction.Output(output))
+    addOutput(prevout: any) { // ToBeOutput | ToBeBlindPrevout
+        this.tx.addOutput(bitcore.Transaction.Output(prevout))
     }
 
-    addSignature(utxo: Output, signature: ISignature) {
+    addSignature(utxo: Prevout, signature: ISignature) {
         let index;
-        // find the relevant output and the index.
+        // find the relevant prevout and the index.
         let input = this.tx.inputs.find((input, i) => {
             const txid = input.prevTxId.toString('hex');
             const vout = input.outputIndex;
@@ -78,11 +78,11 @@ export class TransactionBuilder {
 
     /**
      * Creates a multisignature redeem script, combined with the amount it forms
-     * and output and it adds it to this.outputs array.
-     * @param satoshis the amount of satoshis this output should consume.
+     * and prevout and it adds it to this.prevouts array.
+     * @param satoshis the amount of satoshis this prevout should consume.
      * @param publicKeys the participating public keys.
      */
-    public addMultisigInput(input: Output, publicKeys: string[]): Output {
+    public addMultisigInput(input: Prevout, publicKeys: string[]): Prevout {
         const i = {
             txid: input.txid,
             vout: input.vout,
@@ -102,11 +102,11 @@ export class TransactionBuilder {
 
     /**
      * Creates a multisignature redeem script, combined with the amount it forms
-     * and output and it adds it to this.outputs array.
-     * @param satoshis the amount of satoshis this output should consume.
+     * and prevout and it adds it to this.prevouts array.
+     * @param satoshis the amount of satoshis this prevout should consume.
      * @param publicKeys the participating public keys.
      */
-    public newMultisigOutput(sathosis: number, publicKeys: string[]): ToBeOutput {
+    public newMultisigPrevout(sathosis: number, publicKeys: string[]): ToBeNormalOutput {
 
         publicKeys = publicKeys.sort().map(pk => new bitcore.PublicKey(pk));
  
@@ -116,11 +116,9 @@ export class TransactionBuilder {
         const p2shScript = redeemScript.toScriptHashOut();
 
         /*
-        console.log('--- mpa_accept redeemscript ----');
+        console.log('newMultisigPrevout()');
         console.log(redeemScript.toString());
         console.log(redeemScript.toHex());
-
-        console.log('--- mpa_accept p2sh of redeemscript ----');
         console.log(script.toString());
         */
 
@@ -135,7 +133,7 @@ export class TransactionBuilder {
         return multisigOutput;
     }
 
-    public newChangeOutputFor(requiredSatoshis: number, changeAddress: CryptoAddress, inputsOfSingleParty: Output[]): ToBeOutput {
+    public newChangePrevoutFor(requiredSatoshis: number, changeAddress: CryptoAddress, inputsOfSingleParty: Prevout[]): ToBeNormalOutput {
         let input: number = 0;
 
         for (let utxo of inputsOfSingleParty) {
@@ -154,12 +152,12 @@ export class TransactionBuilder {
             return undefined;
         }
 
-        const utxo = this.newNormalOutput(changeAddress, change);
+        const utxo = this.newNormalPrevout(changeAddress, change);
 
         return utxo;
     }
 
-    newNormalOutput(addr: CryptoAddress, satoshis): ToBeOutput {
+    newNormalPrevout(addr: CryptoAddress, satoshis): ToBeNormalOutput {
         // TODO: proper type checking (stealth addresses..)
         const address = bitcore.Address.fromString(addr.address);
         // TODO: use P2SH?
@@ -167,7 +165,7 @@ export class TransactionBuilder {
         const utxo = {
             script: script.toHex(),
             satoshis: satoshis
-        } as ToBeOutput;
+        } as ToBeNormalOutput;
 
         this.addOutput(utxo);
 
@@ -175,10 +173,10 @@ export class TransactionBuilder {
     }
 
     /**
-     * Return the utxo for the multisig output
+     * Return the utxo for the multisig prevout
      */
-    getMultisigUtxo(publicKeyToSignFor: string): Output {
-        let utxo: Output = {
+    getMultisigUtxo(publicKeyToSignFor: string): Prevout {
+        let utxo: Prevout = {
             txid: this.txid,
             vout: undefined
         }
@@ -209,7 +207,7 @@ export class TransactionBuilder {
         let log = '------- Transaction -------\n'
                 + '+++++++++++++++++++++++++++\n'
 
-        this.tx.inputs.forEach(input => log += (input.prevTxId.toString('hex').match(/../g).reverse().join("") + ' ' + input.outputIndex + '\n'));
+        this.tx.inputs.forEach(input => log += (input.prevTxId.toString('hex').match(/../g).reverse().join("") + ' ' + input.prevoutIndex + '\n'));
         log += '++++++++++++++++++++++++++++\n'
         this.tx.outputs.forEach(output => log += (output.inspect() + '\n'));
         log += ('++++++++++++++++++++++++++++\n')
@@ -236,4 +234,14 @@ export function getTxidFrom(hex: string) {
 export function publicKeyToAddress(publicKey: string) {
     const pk = bitcore.PublicKey.fromString(publicKey);
     return bitcore.Address(pk, 'testnet').toString();
+}
+
+export function getSerializedInteger(n: number): any {
+    let hex = n.toString(16).match(/../g).reverse().join("");
+    let length = (hex.length / 2).toString(16);
+    if (length.length === 1) {
+        length = '0'+length;
+    } // length + '' + 
+    let b = new Buffer(hex, 'hex');
+    return b;
 }

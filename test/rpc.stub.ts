@@ -4,15 +4,15 @@ import "reflect-metadata";
 import { Rpc } from "../src/abstract/rpc";
 
 import * as WebRequest from 'web-request';
-import { Output, ISignature, BlindOutput, CryptoAddressType, CryptoAddress, ToBeBlindOutput } from "../src/interfaces/crypto";
-import { toSatoshis, fromSatoshis, asyncMap, asyncForEach } from "../src/util";
+import { Prevout, ISignature } from "../src/interfaces/crypto";
+import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone } from "../src/util";
 import { TransactionBuilder } from '../src/transaction-builder/transaction';
-
 
 @injectable()
 class CoreRpcService implements Rpc {
 
     private RPC_REQUEST_ID = 1;
+    private DEBUG = true;
 
     constructor(
         private _host: string,
@@ -37,22 +37,18 @@ class CoreRpcService implements Rpc {
         return await WebRequest.post(url, options, postData)
             .then(response => {
 
+                const jsonRpcResponse = JSON.parse(response.content);
                 if (response.statusCode !== 200) {
                     const message = response.content ? JSON.parse(response.content) : response.statusMessage;
-                    throw new Error(response.content);
+                    if (this.DEBUG) {
+                        console.error('method:', method);
+                        console.error('params:', params);
+                        console.error(message);
+                    }
+                    throw message['error'];
                 }
 
-                const jsonRpcResponse = JSON.parse(response.content);
-
                 return jsonRpcResponse.result;
-            })
-            .catch(error => {
-                /*console.error('--- error ----');*/
-                console.error('method:', method);
-                console.error('params:', params);
-                console.error(JSON.stringify(error, null, 4));
-                throw error;
-
             });
 
     }
@@ -87,51 +83,37 @@ class CoreRpcService implements Rpc {
         return (await this.call('getaddressinfo', [address])).pubkey;
     }
 
-    public async getNewStealthAddress(): Promise<CryptoAddress> {
-        const sx = await this.call('getnewstealthaddress');
-        return {
-            type: CryptoAddressType.STEALTH,
-            address: sx
-         } as CryptoAddress
-    }
-
-    public async getNewStealthAddressWithEphem(): Promise<CryptoAddress> {
-        const sx = await this.getNewStealthAddress();
-        sx.ephem = (await this.call('derivefromstealthaddress', [sx.address])).ephemeral_pubkey;
-        return sx;
-    }
-
-    public async getNormalOutputs(reqSatoshis: number): Promise<Output[]> {
-        const chosen: Array<Output> = [];
+    public async getNormalPrevouts(reqSatoshis: number): Promise<Prevout[]> {
+        const chosen: Array<Prevout> = [];
         let utxoLessThanReq: Array<number> = [];
         let exactMatchIdx: number = -1;
-        let maxOutputIdx: number = -1;
+        let maxPrevoutIdx: number = -1;
         let chosenSatoshis: number = 0;
         const defaultIdxs: Array<number> = [];
 
-        const unspent: Array<Output> = await this.call('listunspent', [0]);
+        const unspent: Array<Prevout> = await this.call('listunspent', [0]);
 
         unspent.filter(
-            (output: any, outIdx: number) => {
-                if (output.spendable && output.safe && (output.scriptPubKey.substring(0, 2) === '76') ) {
-                    if ( (exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
+            (prevout: any, outIdx: number) => {
+                if (prevout.spendable && prevout.safe && (prevout.scriptPubKey.substring(0, 2) === '76') ) {
+                    if ( (exactMatchIdx === -1) && ((toSatoshis(prevout.amount) - reqSatoshis) === 0)) {
                         // Found a utxo with amount that is an exact match for the requested value.
                         exactMatchIdx = outIdx;
-                    } else if (toSatoshis(output.amount) < reqSatoshis) {
+                    } else if (toSatoshis(prevout.amount) < reqSatoshis) {
                         // utxo is less than the amount requested, so may be summable with others to get to the exact value (or within a close threshold).
                         utxoLessThanReq.push(outIdx);
                     }
 
-                    // Get the max utxo amount in case an output needs to be split
-                    if (maxOutputIdx === -1) {
-                        maxOutputIdx = outIdx;
-                    } else if (unspent[maxOutputIdx].amount < output.amount){
-                        maxOutputIdx = outIdx;
+                    // Get the max utxo amount in case an prevout needs to be split
+                    if (maxPrevoutIdx === -1) {
+                        maxPrevoutIdx = outIdx;
+                    } else if (unspent[maxPrevoutIdx].amount < prevout.amount){
+                        maxPrevoutIdx = outIdx;
                     }
 
-                    // Sum up output amounts for the default case
+                    // Sum up prevout amounts for the default case
                     if (chosenSatoshis < reqSatoshis) {
-                        chosenSatoshis += toSatoshis(output.amount);
+                        chosenSatoshis += toSatoshis(prevout.amount);
                         defaultIdxs.push(outIdx);
                     }
 
@@ -163,10 +145,10 @@ class CoreRpcService implements Rpc {
                 }
             }
 
-            // ... Step 3: If no summed values found, attempt to split a large enough output.
-            if (utxoIdxs.length === 0 && maxOutputIdx !== -1 && toSatoshis(unspent[maxOutputIdx].amount) > reqSatoshis) {
+            // ... Step 3: If no summed values found, attempt to split a large enough prevout.
+            if (utxoIdxs.length === 0 && maxPrevoutIdx !== -1 && toSatoshis(unspent[maxPrevoutIdx].amount) > reqSatoshis) {
                 const newAddr = await this.call('getnewaddress', []);
-                const txid: string = await this.call('sendtoaddress', [newAddr, fromSatoshis(reqSatoshis), 'Split output']);
+                const txid: string = await this.call('sendtoaddress', [newAddr, fromSatoshis(reqSatoshis), 'Split prevout']);
                 const txData: any = await this.call('getrawtransaction', [txid, true]);
                 const outData: any = txData.vout.find( outObj => outObj.valueSat === reqSatoshis );
                 if (outData) {
@@ -189,7 +171,7 @@ class CoreRpcService implements Rpc {
             if (chosenSatoshis >= reqSatoshis) {
                 utxoIdxs = defaultIdxs;
             } else {
-                throw new Error('Not enough available output to cover the required amount.');
+                throw new Error('Not enough available prevout to cover the required amount.');
             }
         }
 
@@ -208,75 +190,11 @@ class CoreRpcService implements Rpc {
         return chosen;
     }
 
-    // TODO: interface
-    public async createBlindOutputFromAnon(satoshis: number): Promise<BlindOutput> {
-        let output: BlindOutput;
-        const sx = await this.getNewStealthAddress();
-        const amount = fromSatoshis(satoshis);
-
-        const txid = await this.call('sendtypeto', ['anon', 'blind', [{ address: sx.address, amount: amount}]]);
-        const unspent: any = await this.call('listunspentblind', [0]);
-        const found = unspent.find(vout => (vout.txid === txid && vout.amount === fromSatoshis(satoshis)));
-
-        if(!found) {
-            throw new Error('Not enough blind inputs!');
-        }
-
-        // Retrieve the commitment from the transaction
-        // TODO: use bitcorelib for this
-        const commitment = (await this.call('getrawtransaction', [txid, true])).vout.find(i => i.n === found.vout).valueCommitment;
-
-        output = {
-                txid: found.txid,
-                vout: found.vout,
-                _commitment: commitment,
-                _satoshis: toSatoshis(found.amount),
-                _scriptPubKey: found.scriptPubKey,
-                _address: found.address
-        }
-
-        return output;
-    };
-
-    public async getBlindOutputs(satoshis): Promise <BlindOutput[]> {
-        return [ await this.createBlindOutputFromAnon(satoshis) ];
-    }
-
-    public async getSatoshisForUtxo(utxo: Output): Promise<Output> {
+    public async getSatoshisForUtxo(utxo: Prevout): Promise<Prevout> {
         const vout = (await this.call('getrawtransaction', [utxo.txid, true]))
             .vout.find((vout: any) => vout.n === utxo.vout);
         utxo._satoshis = vout.valueSat;
         return utxo;
-    }
-
-    public async getCommitmentForBlindUtxo(utxo: BlindOutput): Promise<BlindOutput> {
-        const tx = (await this.call('getrawtransaction', [utxo.txid, true]));
-        const commitment = tx.vout.find(i => i.n === utxo.vout).valueCommitment;
-        utxo._commitment = commitment;
-        return utxo;
-    }
-
-    public async generateCommitment(blind: string, satohis: number): Promise<string> {
-        const amount = fromSatoshis(satohis);
-        return (await this.call('generatecommitment', [blind, amount])).commitment;
-    }
-
-    public async generateMadBidRawTx(inputs: BlindOutput[], outputs: ToBeBlindOutput[]): Promise<string> {
-        const prevouts = inputs.map(utxo => {
-            return {
-                txid: utxo.txid,
-                vout: utxo.vout,
-                blindingfactor: utxo.blindFactor
-            }
-        });
-        const newouts = outputs.map(out => {
-            return {
-                address: out.address.address,
-                amount: fromSatoshis(out._satoshis),
-                blindingfactor: out.blindFactor
-            };
-        });
-        return (await this.call('createrawparttransaction', [prevouts, newouts])).transaction;
     }
 
     public async importRedeemScript(script: any): Promise<boolean> {
@@ -284,7 +202,12 @@ class CoreRpcService implements Rpc {
        return true;
     }
 
-    async signRawTransactionForInputs(tx: TransactionBuilder, inputs: BlindOutput[]): Promise<ISignature[]> {
+    /**
+     * Sign a transaction and returns the signatures for an array of normal inputs.
+     * @param tx the transaction to build and sign for.
+     * @param inputs the _normal_ inputs to sign for.
+     */
+    async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Prevout[]): Promise<ISignature[]> {
         let r: ISignature[] = [];
 
         // needs to synchronize, because the order needs to match
@@ -315,7 +238,19 @@ class CoreRpcService implements Rpc {
         return r;
     }
 
-    public async sendRawTransaction(hex: string): Promise<any> {
+    /**
+     * Permanently locks outputs until unlocked or spent.
+     * @param prevout an array of outputs to lock
+     */
+    public async lockUnspent(prevout: Prevout[]): Promise<boolean> {
+        return this.call('lockunspent', [false, prevout, true]);
+    }
+
+    /**
+    * Send a raw transaction to the network, returns txid.
+    * @param hex the raw transaction in hex format. 
+    */
+    public async sendRawTransaction(hex: string): Promise<string> {
         return (await this.call('sendrawtransaction', [hex]));
 
     }

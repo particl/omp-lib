@@ -20,7 +20,7 @@ const ok = JSON.parse(
                     "type": "NORMAL",
                     "address": "someaddress"
                 },
-                "outputs": [
+                "prevouts": [
                     {
                         "txid": "${hash('txid')}",
                         "vout": 0

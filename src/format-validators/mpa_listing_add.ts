@@ -1,6 +1,6 @@
 import { MPA, MPA_EXT_LISTING_ADD, MPM } from "../interfaces/omp"
 import { PaymentType, MPAction, EscrowType } from "../interfaces/omp-enums";
-import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry } from '../util'
+import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry, isNonNegativeNaturalNumber } from '../util'
 import { FV_MPM} from "./mpm";
 import { FV_CRYPTO } from "./crypto";
 import { CryptoType } from "../interfaces/crypto"
@@ -155,6 +155,10 @@ export class FV_MPA_LISTING {
 
         if (!(payment.escrow.type in EscrowType)) {
           throw new Error('action.item.payment.escrow.type: unknown value');
+        }
+
+        if (payment.escrow.secondsToLock && !isNonNegativeNaturalNumber(payment.escrow.secondsToLock)) {
+          throw new Error('action.item.payment.secondsToLock: missing or not an non-negative natural number');
         }
 
         if (!isObject(payment.escrow.ratio)) {

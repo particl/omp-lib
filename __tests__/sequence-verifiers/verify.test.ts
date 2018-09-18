@@ -60,7 +60,7 @@ const bid_ok = JSON.parse(
                         "type": "NORMAL",
                         "address": "someaddress"
                     },
-                    "outputs": [
+                    "prevouts": [
                         {
                             "txid": "${hash('txid')}",
                             "vout": 0
@@ -96,7 +96,7 @@ const accept_ok = JSON.parse(
                         "type": "NORMAL",
                         "address": "someaddress"
                     },
-                    "outputs": [
+                    "prevouts": [
                         {
                             "txid": "${hash('txid')}",
                             "vout": 0

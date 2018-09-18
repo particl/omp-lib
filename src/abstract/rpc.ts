@@ -1,4 +1,4 @@
-import { Output, CryptoType, ToBeOutput, CryptoAddress, ISignature, BlindOutput, ToBeBlindOutput } from "../interfaces/crypto";
+import { Prevout, CryptoType, ToBeNormalOutput, CryptoAddress, ISignature, BlindPrevout, ToBeBlindOutput } from "../interfaces/crypto";
 import { TransactionBuilder } from "../transaction-builder/transaction";
 
 /**
@@ -12,24 +12,42 @@ export interface Rpc {
     */
     getNewPubkey(): Promise<string>;
     getNewAddress(): Promise<string>;
-    getNewStealthAddressWithEphem(): Promise<CryptoAddress>;
+    lockUnspent(prevout: Prevout[]): Promise<boolean>;
 
-    // Retrieving information of outputs
-    getNormalOutputs(satoshis: number): Promise<Output[]>;
-    getBlindOutputs(satoshis: number): Promise<BlindOutput[]>;
+    // Retrieving information of prevouts
+    getNormalPrevouts(satoshis: number): Promise<Prevout[]>;
 
-    getSatoshisForUtxo(utxo: Output): Promise<Output>;
-    getCommitmentForBlindUtxo(utxo: BlindOutput): Promise<BlindOutput>;
-    generateCommitment(blind: string, satoshis: number): Promise<string>;
-
-    buildBidTxScript(publicKeys: string[], hashedSecret: string, secondsToLock: number): any;
+    getSatoshisForUtxo(utxo: Prevout): Promise<Prevout>;
 
     // Importing and signing
     importRedeemScript(script: any): Promise<boolean>;
-    signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]>
+    signRawTransactionForInputs(tx: TransactionBuilder, inputs: Prevout[]): Promise<ISignature[]>
 
     // Networking
     sendRawTransaction(rawtx: string);
 }
 
-export type ILibrary = (parent: CryptoType) => Rpc;
+/**
+ * The abstract class for the Confidential Transactions Rpc.
+ */
+export interface CtRpc extends Rpc {
+    call(method: string, params: any[]): Promise<any>;
+
+    /*
+        WALLET - generating keys, addresses.
+    */
+    getNewStealthAddressWithEphem(): Promise<CryptoAddress>;
+
+    // Retrieving information of prevouts
+    getBlindPrevouts(satoshis: number, blind?: string): Promise<BlindPrevout[]>;
+
+    loadTrustedFieldsForBlindUtxo(utxo: BlindPrevout): Promise<BlindPrevout>;
+    getLastMatchingBlindFactor(prevouts: Prevout[] | ToBeBlindOutput[], outputs: ToBeBlindOutput[]): Promise<string>;
+
+    generateRawConfidentialTx(prevouts: any[], outputs: any[], feeSatoshis: number): Promise<string>;
+
+    // Importing and signing
+    signRawTransactionForBlindInputs(tx: TransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]>
+}
+
+export type ILibrary = (parent: CryptoType, isCt?: boolean) => (Rpc | CtRpc);

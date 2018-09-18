@@ -322,8 +322,8 @@ def main():
             cmd = input("command> ")
             rpcCmd = cmd.split(' ', maxsplit=1)
             try:
-                output = callrpc(int(rpcCmd[0]), fp, str(rpcCmd[1]))
-                logc(fp, output)
+                prevout = callrpc(int(rpcCmd[0]), fp, str(rpcCmd[1]))
+                logc(fp, prevout)
             except:
                 logc(fp, "Meh it broke :(")
         input("Press Ctrl+C to stop the nodes...")
