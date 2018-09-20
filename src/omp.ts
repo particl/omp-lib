@@ -16,6 +16,7 @@ import { CryptoType } from './interfaces/crypto';
 import { IMultiSigBuilder } from './abstract/transactions';
 import { MultiSigBuilder } from './transaction-builder/multisig';
 
+import { strip } from './util';
 
 //import { bid as createBid } from './bid';
 
@@ -87,6 +88,10 @@ export class OpenMarketProtocol {
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM) {
         const action = this.container.get<IBid>(TYPES.Bid);
         return action.refund(listing, bid, accept, lock, refund);
+    }
+
+    public strip(msg: MPM) {
+        return strip(msg);
     }
 
     public rpc(cryptocurrency: CryptoType) {

@@ -77,3 +77,32 @@ export async function asyncMap(array, callback) {
     await this.asyncForEach(array, callback);
     return array;
 }
+
+function _strip(obj: any): any {
+    if(isArray(obj)) {
+        obj.forEach((e, i) => {
+            if(isString(e) && e.startsWith('_')) {
+                obj.splice(i, 1);
+            }
+            _strip(e)
+        });
+    }else {
+        for (var property in obj) {
+            if (obj.hasOwnProperty(property)) {
+                if (typeof obj[property] == "object") {
+                    _strip(obj[property]);
+                }
+                if (property.startsWith('_')) {
+                    delete obj[property];
+                }
+            }
+        }
+    }
+    
+    return obj;
+}
+
+export function strip(obj: any) {
+    let o = clone(obj);
+    return _strip(o);
+}
