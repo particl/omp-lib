@@ -29,14 +29,24 @@ class CtRpcService extends CoreRpcService implements CtRpc {
         } as CryptoAddress
     }
 
-    public async getNewStealthAddressWithEphem(): Promise<CryptoAddress> {
-        const sx = await this.getNewStealthAddress();
+    public async getNewStealthAddressWithEphem(sx?: CryptoAddress): Promise<CryptoAddress> {
+        if(!sx)
+            sx = await this.getNewStealthAddress();
+        else 
+            sx = clone(sx)
+
         const info = (await this.call('derivefromstealthaddress', [sx.address]))
         sx.pubKey = info.pubkey;
         sx.ephem = {
             public: info.ephemeral_pubkey,
             private: info.ephemeral_privatekey
         }
+        return sx;
+    }
+
+    public async getPubkeyForStealthWithEphem(sx: CryptoAddress): Promise<CryptoAddress> {
+        const info = (await this.call('derivefromstealthaddress', [sx.address, sx.ephem.private]))
+        sx.pubKey = info.pubkey;
         return sx;
     }
 
@@ -265,7 +275,7 @@ class CtRpcService extends CoreRpcService implements CtRpc {
             }
 
             r.push(sig);
-            //console.log('signRawTransactionForBlindInputs(): txid= ', tx.txid)
+            console.log('signRawTransactionForBlindInputs(): txid= ', tx.txid)
             //console.log('signRawTransactionForBlindInputs(): signing for ', input)
             //console.log('signRawTransactionForBlindInputs(): sig ', sig)
 

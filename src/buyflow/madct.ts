@@ -60,6 +60,15 @@ export class MadCTBuilder implements IMadCTBuilder {
         buyer_output.hashedSecret = hash(new Buffer(buyer_output._secret, "hex"));
         buyer_output.blindFactor = "7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490";
         buyer_output.address = await lib.getNewStealthAddressWithEphem();
+
+        mpa_bid.buyer.payment.release = <any>{};
+        // TODO(security): randomize
+        if(false) {
+            // The buyer specifies the blind factor
+            mpa_bid.buyer.payment.release.blindFactor = "7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490"; // TODO(security): random
+        }
+        mpa_bid.buyer.payment.release.ephem = (await lib.getNewStealthAddressWithEphem(buyer_output.address)).ephem;
+
         return bid;
     }
 
@@ -150,12 +159,12 @@ export class MadCTBuilder implements IMadCTBuilder {
         const s = buildBidTxScript(buyer_output.address, seller_output.address, buyer_output.hashedSecret, 2880);
         seller_output._redeemScript = s.redeemScript;
         seller_output._address = s.address;
-        seller_output._satoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true, true);
+        seller_output._satoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true);
 
         const b = buildBidTxScript(seller_output.address, buyer_output.address, buyer_output.hashedSecret, 2880);
         buyer_output._redeemScript = b.redeemScript; 
         buyer_output._address = b.address;
-        buyer_output._satoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false, true);
+        buyer_output._satoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false);
 
         const all_inputs = clone(<BlindPrevout[]>mpa_bid.buyer.payment.prevouts).concat(mpa_accept.seller.payment.prevouts);
         const all_outputs = [seller_output, buyer_output];
@@ -194,24 +203,89 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         /**
          * Release transaction from bid transaction.
-         * Note: only used in rebuild phase, not included in accept message at all.
-         * Not: only useful for the buyer.
          */
-        if (buyer_output._secret) {
-            // Buyer prevout generated _by_ bidtxn.
-            const release_inputs = this.getTxPrevoutsFromBidTx(bidtx, seller_output, buyer_output, 2880).slice(1,2);
-            delete release_inputs[0]['_sequence'];
 
-            const buyer_fee = 5000;
-            // Re-use sx address and output amount from the input
-            const release_outputs = this.getReleaseOutput(buyer_output.address, buyer_output._satoshis - buyer_fee);
-
-            const rawreleasetx = await lib.generateRawConfidentialTx(release_inputs, release_outputs, buyer_fee);
-            const releasetx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawreleasetx);
-            const buyer_signatures = await lib.signRawTransactionForBlindInputs(releasetx, release_inputs, buyer_output.address);
-            releasetx.puzzleReleaseWitness(release_inputs[0], buyer_signatures[0], buyer_output._secret);
-            accept['_rawreleasetx'] = releasetx.build();
+        if(!mpa_accept.seller.payment.release){
+            mpa_accept.seller.payment.release = <any>{};
         }
+        // If not rebuilding, generate new ephem key and insert in msg
+        if(!mpa_accept.seller.payment.release.ephem) {
+            let sx = await lib.getNewStealthAddressWithEphem(seller_output.address);
+            mpa_accept.seller.payment.release.ephem = sx.ephem;
+        }
+
+        const release_inputs = this.getTxPrevoutsFromBidTx(bidtx, seller_output, buyer_output, 2880);
+        delete release_inputs[0]['_sequence'];
+        delete release_inputs[1]['_sequence'];
+
+        // Decide where the sellers output is going to be located.
+        let isFirst: boolean;
+        let lastBlindFactor: string;
+        if(!mpa_bid.buyer.payment.release.blindFactor) {
+            // The buyer did not specify  blind key, so we will
+            // the buyers release output will be the last output
+            // and it will have its blind factor generated for it.
+            mpa_accept.seller.payment.release.blindFactor = "7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490"; // TODO(security): random
+            lastBlindFactor = await lib.getLastMatchingBlindFactor(release_inputs, [<ToBeBlindOutput>{blindFactor:  mpa_accept.seller.payment.release.blindFactor}])
+            isFirst = true;
+        } else {
+            lastBlindFactor = await lib.getLastMatchingBlindFactor(release_inputs, [<ToBeBlindOutput>{blindFactor:  mpa_bid.buyer.payment.release.blindFactor}]) 
+        }
+
+        // Re-use sx address with new ephemeral keys
+        let buyer_release_address: CryptoAddress = clone(buyer_output.address);
+        delete buyer_release_address['pubKey'];
+        buyer_release_address.ephem = mpa_bid.buyer.payment.release.ephem;
+        await lib.getPubkeyForStealthWithEphem(buyer_release_address);
+
+        const seller_release_address: CryptoAddress = clone(seller_output.address);
+        delete seller_release_address['pubKey'];
+        seller_release_address.ephem = mpa_accept.seller.payment.release.ephem;
+        await lib.getPubkeyForStealthWithEphem(seller_release_address);
+
+        // If seller is first output, then buyer didnt provide a blind factor
+        const buyer_blindFactor_release = isFirst ? lastBlindFactor : mpa_bid.buyer.payment.release.blindFactor;
+        const buyer_release_output = this.getReleaseOutput(buyer_release_address, buyer_output._satoshis, buyer_blindFactor_release);
+
+        const seller_blindFactor_release = isFirst ? mpa_accept.seller.payment.release.blindFactor : lastBlindFactor;
+        const seller_release_output = this.getReleaseOutput(seller_release_address, seller_output._satoshis - seller_fee, seller_blindFactor_release);
+
+        let release_outputs: ToBeBlindOutput[];
+        if(isFirst) {
+            release_outputs = [
+                seller_release_output,
+                buyer_release_output
+            ]
+        } else {
+            release_outputs = [
+                buyer_release_output,
+                seller_release_output
+            ]
+        }
+
+        const rawreleasetx = await lib.generateRawConfidentialTx(release_inputs, release_outputs, seller_fee);
+        accept['_rawreleasetxunsigned'] = rawreleasetx;
+        const releasetx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawreleasetx);
+
+        if(!mpa_accept.seller.payment.release.signatures) {
+            const seller_release_input = release_inputs[0];
+            mpa_accept.seller.payment.release.signatures = await lib.signRawTransactionForBlindInputs(releasetx, [seller_release_input], seller_output.address);
+        }
+
+        // Buyer secret available in the passed message
+        // so this is the buyer rebuilding the txs.
+        // complete the release tx but don't reveal to seller.
+        if (buyer_output._secret) {
+            const buyer_release_input = release_inputs[1];
+            const buyer_signatures = await lib.signRawTransactionForBlindInputs(releasetx, [buyer_release_input], buyer_output.address);
+            releasetx.puzzleReleaseWitness(buyer_release_input, buyer_signatures[0], buyer_output._secret);
+
+            const seller_release_input = release_inputs[0];
+            const seller_signatures =  mpa_accept.seller.payment.release.signatures;
+            releasetx.puzzleReleaseWitness(seller_release_input, seller_signatures[0], buyer_output._secret);
+        }
+
+        accept['_rawreleasetx'] = releasetx.build();
 
         return accept;
     }
@@ -257,14 +331,14 @@ export class MadCTBuilder implements IMadCTBuilder {
         ]
     }
 
-    getReleaseOutput(address: CryptoAddress, satoshis: number) {
-        return [
-            {
-                address: address,
-                _type: 'anon',
-                _satoshis: satoshis,
-            }
-        ]
+    getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
+        return {
+            address: address,
+            _type: 'anon',
+            _satoshis: satoshis,
+            blindFactor: blind
+        }
+        
     }
 
     /**
@@ -332,6 +406,10 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         if(rebuilt['_rawreleasetx']) {
             lock['_rawreleasetx'] = rebuilt['_rawreleasetx'];
+        }
+
+        if(rebuilt['_rawreleasetxunsigned']) {
+            lock['_rawreleasetxunsigned'] = rebuilt['_rawreleasetxunsigned'];
         }
 
         return lock;

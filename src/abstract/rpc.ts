@@ -36,7 +36,8 @@ export interface CtRpc extends Rpc {
     /*
         WALLET - generating keys, addresses.
     */
-    getNewStealthAddressWithEphem(): Promise<CryptoAddress>;
+    getNewStealthAddressWithEphem(sx?: CryptoAddress): Promise<CryptoAddress>;
+    getPubkeyForStealthWithEphem(sx: CryptoAddress): Promise<CryptoAddress>;
 
     // Retrieving information of prevouts
     getBlindPrevouts(satoshis: number, blind?: string): Promise<BlindPrevout[]>;

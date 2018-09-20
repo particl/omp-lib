@@ -20,18 +20,37 @@ const seller = new OpenMarketProtocol();
 seller.inject(CryptoType.PART, node1, true);
 
 expect.extend({
-    async toBeCompletedTransaction(received) {
-      const completed = (await node0.call('verifyrawtransaction', [received]))['complete'];
+    async toBeCompletedTransaction(rawtx) {
+      const completed = (await node0.call('verifyrawtransaction', [rawtx]))['complete'];
       if (completed) {
         return {
           message: () =>
-            `expected ${received} to be completed.`,
+            `expected ${rawtx} to be completed.`,
           pass: true,
         };
       } else {
         return {
           message: () =>
-            `expected ${received} but got ${completed} instead`,
+            `expected ${rawtx} to be completed but got ${completed} instead`,
+          pass: false,
+        };
+      }
+    },
+  });
+
+  expect.extend({
+    async toBeUtxoWithAmount(txid, node, amount) {
+      const found = (await node.call('listunspentanon', [0])).find(utxo => (utxo.txid === txid && utxo.amount === amount));
+      if (found) {
+        return {
+          message: () =>
+            `expected ${txid} to be found on the node with amount ${amount}.`,
+          pass: true,
+        };
+      } else {
+        return {
+          message: () =>
+            `expected ${txid} to be found on the node but didn't find it.`,
           pass: false,
         };
       }
@@ -160,7 +179,7 @@ it('buyflow', async () => {
     expect(end).toEqual(true);
 });
 
-it('buyflow release', async () => {
+it.only('buyflow release', async () => {
     jest.setTimeout(400000);
     let end = false;
 
@@ -185,15 +204,27 @@ it('buyflow release', async () => {
 
         expect(lock['_rawdesttx']).not.toBeCompletedTransaction();
 
+        expect(lock['_rawreleasetxunsigned']).toEqual(accept['_rawreleasetxunsigned']);
+
         // Step 4: seller signs bid txn (full) and submits
         const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
         expect(complete).toBeCompletedTransaction();
         
         const completeTxid = await node0.sendRawTransaction(complete);
+        await node1.sendRawTransaction(complete)
         expect(completeTxid).toBeDefined();
 
         const release = await buyer.release(ok, bid, accept);
         expect(release).toBeCompletedTransaction();
+
+        const releaseTxid = await node0.sendRawTransaction(release);
+        await node1.sendRawTransaction(release)
+        expect(releaseTxid).toBeDefined();
+
+        await delay(10000)
+        expect(releaseTxid).toBeUtxoWithAmount(node0, 2);
+        expect(releaseTxid).toBeUtxoWithAmount(node1, 3.99995000);
+
 
         end = true;
     } catch (e) {
@@ -202,7 +233,7 @@ it('buyflow release', async () => {
     expect(end).toEqual(true);
 });
 
-it.only('destroy prevent early mining', async () => {
+it('destroy prevent early mining', async () => {
     jest.setTimeout(400000);
     let end = false;
 

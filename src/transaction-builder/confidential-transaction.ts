@@ -164,3 +164,15 @@ export function buildDestroyTxScript(): any {
         redeemScript: redeemScript.toHex()
     }
 }
+
+export function buildReleaseTxScript(addr: CryptoAddress): any {
+    // create a multisig redeemScript
+    let redeemScript = bitcore.Script.buildPublicKeyHashOut(bitcore.PublicKey.fromString(addr.pubKey).toAddress());
+
+    // transform into p2sh script
+    return {
+        address: bitcore.Address.payingTo(redeemScript, 'testnet').toString(),
+        p2sh: redeemScript.toScriptHashOut().toHex(),
+        redeemScript: redeemScript.toHex()
+    }
+}

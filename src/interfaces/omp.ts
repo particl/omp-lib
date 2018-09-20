@@ -142,7 +142,11 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
       address?: CryptoAddress, // CT
       changeAddress: CryptoAddress,
       prevouts: Prevout[],
-      outputs?: ToBeOutput[] // CT
+      outputs?: ToBeOutput[], // CT
+      release?: { // CT
+        blindFactor: string,
+        ephem: EphemeralKey,
+      },
     },
     shippingAddress: {
       firstName: string,
@@ -182,7 +186,6 @@ export interface MPA_ACCEPT extends MPA {
       outputs?: ToBeOutput[],
       signatures: ISignature[],
       release?: {
-        isFirst: boolean,
         blindFactor: string,
         ephem: EphemeralKey,
         signatures: ISignature[]
@@ -212,10 +215,6 @@ export interface MPA_LOCK extends MPA {
     payment: {
       escrow: EscrowType,
       signatures: ISignature[],
-      release?: {
-        blindFactor: string,
-        ephem: EphemeralKey,
-      },
       destroy?: {
         signatures?: ISignature[]
       }
