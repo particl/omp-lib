@@ -1,4 +1,9 @@
- ## MPA FUNCTIONS
+# OPEN MARKET PROTOCOL
+
+The reference implementation for the [Open Market Protocol](https://kewde.gitbooks.io/protocol/)
+Note: the documentation is very outdated for the private message format.
+
+## MPA FUNCTIONS
     * build(..MPA_*):  rebuilds the transaction for a given and spits outs the rawtx.
     * validate(MPA_*): validate that a marketplace action conforms to the protocol.
     * verify(..MPA_*): verifies a _chain_ of MarketPlaceActions.
