@@ -151,6 +151,7 @@ class CoreRpcService implements Rpc {
 
             // ... Step 3: If no summed values found, attempt to split a large enough output.
             if (utxoIdxs.length === 0 && maxOutputIdx !== -1 && toSatoshis(unspent[maxOutputIdx].amount) > reqSatoshis) {
+                console.log('Splitting outputs')
                 const newAddr = await this.call('getnewaddress', []);
                 const txid: string = await this.call('sendtoaddress', [newAddr, fromSatoshis(reqSatoshis), 'Split output']);
                 const txData: any = await this.call('getrawtransaction', [txid, true]);
@@ -190,6 +191,7 @@ class CoreRpcService implements Rpc {
             });
         });
 
+        console.log('utxos=', chosen);
         await this.call('lockunspent', [false, chosen, true]);
         return chosen;
     }
@@ -229,6 +231,8 @@ class CoreRpcService implements Rpc {
                 signature: (await this.call('createsignaturewithwallet', params)),
                 pubKey: (await this.call('getaddressinfo', [input._address])).pubkey
             };
+            console.log('signRawTransactionForInputs() for =', input._address);
+            console.log('signRawTransactionForInputs() sig =', sig);
             r.push(sig);
             tx.addSignature(input, sig);
 

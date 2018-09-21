@@ -76,7 +76,7 @@ const config: BidConfiguration = {
     }
 };
 
-it('determinstic transaction generation', async () => {
+it.only('determinstic transaction generation', async () => {
     let bool = false;
     let accept;
     let lock;

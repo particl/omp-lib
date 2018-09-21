@@ -134,9 +134,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         if (isArray(mpa_accept.seller.payment.signatures)) {
             // add signatures to inputs
             const signature = mpa_accept.seller.payment.signatures;
+            console.log('adding sigs for tx=', tx.build())
+            console.log(signature)
             mpa_accept.seller.payment.outputs.forEach((out, i) => tx.addSignature(out, signature[i]));
 
         } else {
+            console.log('adding sigs for tx=', tx.build())
             mpa_accept.seller.payment.signatures = await lib.signRawTransactionForInputs(tx, seller_inputs);
         }
 
@@ -160,7 +163,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
     async lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
-
+        console.log('--------------- LOCK ---------------------')
         // const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
         const mpa_bid = (<MPA_BID>bid.action);
         // const mpa_accept = (<MPA_ACCEPT>accept.action);

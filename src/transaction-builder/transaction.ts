@@ -51,14 +51,18 @@ export class TransactionBuilder {
             const txid = input.prevTxId.toString('hex');
             const vout = input.outputIndex;
             if (utxo.txid === txid && utxo.vout === vout) {
+                console.log('sighash redeemscript =', input.redeemScript)
                 index = i;
                 return true;
             }
                
         });
 
+        console.log(input);
+        console.log(signature);
+        
         if(input && signature) {
-            const sigBuffer = new Buffer(signature.signature, 'hex');
+            let sigBuffer = new Buffer(signature.signature, 'hex');
             const s = {
                 signature:  bitcore.crypto.Signature.fromTxFormat(sigBuffer),
                 publicKey:  new bitcore.PublicKey(signature.pubKey),
@@ -115,15 +119,18 @@ export class TransactionBuilder {
         const redeemScript = bitcore.Script.buildMultisigOut(publicKeys, publicKeys.length);
         // transform into p2sh script
         const p2shScript = redeemScript.toScriptHashOut();
+        const double = redeemScript.toScriptHashOut();
 
-        /*
+        
         console.log('--- mpa_accept redeemscript ----');
         console.log(redeemScript.toString());
         console.log(redeemScript.toHex());
 
         console.log('--- mpa_accept p2sh of redeemscript ----');
-        console.log(script.toString());
-        */
+        console.log(p2shScript.toString());
+
+        console.log('--- mpa_accept double p2sh of redeemscript ----');
+        console.log(double.toString());
 
         const multisigOutput = {
             script: p2shScript.toHex(),
@@ -194,6 +201,9 @@ export class TransactionBuilder {
                 return true;
             }
         });
+
+        console.log('publicKeyToAddress=')
+        console.log(utxo._address)
 
         if(!prevout){
             throw new Error('TransactionBuilder, multisignature vout not found')
