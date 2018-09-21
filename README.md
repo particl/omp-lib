@@ -1,6 +1,7 @@
 # OPEN MARKET PROTOCOL
 
 The reference implementation for the [Open Market Protocol](https://kewde.gitbooks.io/protocol/)
+
 Note: the documentation is very outdated for the private message format.
 
 ## MPA FUNCTIONS
