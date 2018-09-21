@@ -5,9 +5,10 @@
     * strip(MPA_*):  strip any fields that do not belong in the protocol (simple: delete all that start with "_").
 
     * create(MPA_LISTING_ADD): returns MPA_BID.
-    * accept(MPA_LISTING_ADD, MPA_BID): returns MPA_ACCEPT.
-    * lock(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT): make this also create the release tx. returns MPA_LOCK.
-    * release(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns MPA_RELEASE.
+    * accept(MPA_LISTING_ADD, MPA_BID): returns MPA_ACCEPT (partially signed destruction tx, partially signed release tx).
+    * lock(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT): make this also create the release tx. returns MPA_LOCK. (signed destruction tx, partially signed bix txn)
+    * complete(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns a fully signed bid rawtx for the seller.
+    * release(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns a fully signed release rawtx for the buyer.
 
 ## Format validators
 The format validators can be found in the `src/format-validators` directory.
