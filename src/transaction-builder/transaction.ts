@@ -63,6 +63,7 @@ export class TransactionBuilder {
         
         if(input && signature) {
             let sigBuffer = new Buffer(signature.signature, 'hex');
+            console.log("isTxDer=", bitcore.crypto.Signature.isTxDER(sigBuffer))
             const s = {
                 signature:  bitcore.crypto.Signature.fromTxFormat(sigBuffer),
                 publicKey:  new bitcore.PublicKey(signature.pubKey),
