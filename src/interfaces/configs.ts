@@ -1,5 +1,6 @@
 import { CryptoType } from './crypto';
 import { EscrowType } from './omp-enums';
+import { KVS } from './common';
 
 export interface BidConfiguration {
     cryptocurrency: CryptoType,
@@ -13,5 +14,6 @@ export interface BidConfiguration {
         state: string,
         zipCode: string,
         country: string,
-      }
+    },
+    objects?: KVS[]
 }

@@ -3,6 +3,7 @@
   "version": "0.0.6",
   "description": "Particl OMP-library",
   "main": "dist/module.ts",
+  "types" : "dist/module.d.ts",
   "scripts": {
     "build": "tsc",
     "prestart": "npm run build",

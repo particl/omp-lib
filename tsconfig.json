@@ -4,7 +4,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "sourceMap": true,
-    "declaration": false,
+    "declaration": true,
     "moduleResolution": "node",
     "types": ["reflect-metadata", "node"],
     "emitDecoratorMetadata": true,

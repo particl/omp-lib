@@ -55,7 +55,8 @@ export class Bid {
           },
           shippingAddress: config.shippingAddress
         },
-        // objects: KVS[]
+          objects: config.objects
+          // objects: KVS[]
       }
     }
 
