@@ -28,3 +28,5 @@ dist/
 
 # Yarn Integrity file
 .yarn-integrity
+
+.idea
