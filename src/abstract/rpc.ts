@@ -12,16 +12,17 @@ export interface Rpc {
     */
     getNewPubkey(): Promise<string>;
     getNewAddress(): Promise<string>;
+
     // Retrieving information of outputs
     getNormalOutputs(satoshis: number): Promise<Output[]>;
     getSatoshisForUtxo(utxo: Output): Promise<Output>;
 
     // Importing and signing
     importRedeemScript(script: any): Promise<boolean>;
-    signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> 
+    signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]>;
 
     // Networking
-    sendRawTransaction(rawtx: string);
+    sendRawTransaction(rawtx: string): Promise<any>; // todo: fix response, any was just a quick fix
 }
 
 export type ILibrary = (parent: CryptoType) => Rpc;
