@@ -1,5 +1,5 @@
-import { Output, CryptoType, ToBeOutput, CryptoAddress, ISignature } from "../interfaces/crypto";
-import { TransactionBuilder } from "../transaction-builder/transaction";
+import { Output, CryptoType, ToBeOutput, CryptoAddress, ISignature } from '../interfaces/crypto';
+import { TransactionBuilder } from '../transaction-builder/transaction';
 
 /**
  * The abstract class for the Rpc class.

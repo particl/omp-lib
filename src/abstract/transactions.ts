@@ -1,5 +1,4 @@
-import { BidConfiguration } from "../interfaces/configs";
-import { MPM } from "../interfaces/omp";
+import { MPM } from '../interfaces/omp';
 
 export interface IMultiSigBuilder {
     bid(listing: MPM, bid: MPM): Promise<MPM>

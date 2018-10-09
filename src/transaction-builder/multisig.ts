@@ -2,7 +2,6 @@ import { inject, injectable } from 'inversify';
 import { TYPES } from '../types';
 
 import { CryptoAddressType } from '../interfaces/crypto';
-import { BidConfiguration } from '../interfaces/configs';
 import { Rpc, ILibrary } from '../abstract/rpc';
 import { IMultiSigBuilder } from '../abstract/transactions';
 
@@ -70,9 +69,9 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
+        const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid = (<MPA_BID> bid.action);
+        const mpa_accept = (<MPA_ACCEPT> accept.action);
 
         // Get the right transaction library for the right currency.
         const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency);
@@ -90,7 +89,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const seller_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(mpa_listing, mpa_bid, true);
 
         // Hardcoded fee
-        let seller_fee = 500;
+        const seller_fee = 500;
         if (!mpa_accept.seller.payment.fee) { // fee can never be 0 anyways
             mpa_accept.seller.payment.fee = seller_fee;
         }
@@ -112,7 +111,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // calculate changes (TransactionBuilder)
         const buyer_change = tx.newChangeOutputFor(buyer_requiredSatoshis, mpa_bid.buyer.payment.changeAddress, mpa_bid.buyer.payment.outputs);
-        const seller_change = tx.newChangeOutputFor(seller_requiredSatoshis + seller_fee, mpa_accept.seller.payment.changeAddress, mpa_accept.seller.payment.outputs);
+        const seller_change = tx.newChangeOutputFor(seller_requiredSatoshis + seller_fee, mpa_accept.seller.payment.changeAddress,
+            mpa_accept.seller.payment.outputs);
 
         // build the multisig output
         const multisig_requiredSatoshis = buyer_requiredSatoshis + seller_requiredSatoshis;
@@ -162,9 +162,9 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // TODO(security): safe numbers?
 
         // const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
+        const mpa_bid = (<MPA_BID> bid.action);
         // const mpa_accept = (<MPA_ACCEPT>accept.action);
-        const mpa_lock = (<MPA_LOCK>lock.action);
+        const mpa_lock = (<MPA_LOCK> lock.action);
 
 
         // Get the right transaction library for the right currency.
@@ -201,9 +201,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * @param mpa_bid
      */
     public bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
-        let satoshis: number = 0;
         const payment = mpa_listing.item.payment.cryptocurrency.find((crypto) => crypto.currency === mpa_bid.buyer.payment.cryptocurrency);
-        satoshis = payment.basePrice;
+        let satoshis = payment.basePrice;
 
         if (mpa_listing.item.information.location && payment.shippingPrice) {
             if (mpa_bid.buyer.shippingAddress.country === mpa_listing.item.information.location.country) {
@@ -230,10 +229,10 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
-        const mpa_release = (<MPA_RELEASE>release.action);
+        const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid = (<MPA_BID> bid.action);
+        const mpa_accept = (<MPA_ACCEPT> accept.action);
+        const mpa_release = (<MPA_RELEASE> release.action);
 
         // Get the right transaction library for the right currency.
         const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency);
@@ -304,11 +303,11 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM> {
 
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
-        const mpa_lock = (<MPA_LOCK>lock.action);
-        const mpa_refund = (<MPA_REFUND>refund.action);
+        const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid = (<MPA_BID> bid.action);
+        const mpa_accept = (<MPA_ACCEPT> accept.action);
+        const mpa_lock = (<MPA_LOCK> lock.action);
+        const mpa_refund = (<MPA_REFUND> refund.action);
 
         // Get the right transaction library for the right currency.
         const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency);
