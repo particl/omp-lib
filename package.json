@@ -1,8 +1,8 @@
 {
   "name": "omp-lib",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "description": "Particl OMP-library",
-  "main": "src/module.ts",
+  "main": "dist/module.ts",
   "scripts": {
     "build": "tsc",
     "prestart": "npm run build",
