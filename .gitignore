@@ -1,3 +1,6 @@
+# IDE
+.idea
+
 # Testing
 tmp/*
 !tmp/particl/README.md

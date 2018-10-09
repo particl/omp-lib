@@ -8,7 +8,7 @@
     "prestart": "npm run build",
     "start": "node ./dist/src/module.js",
     "test": "jest",
-    "lint": "tslint -c tslint.json \"./src/**/*.ts\""
+    "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
   },
   "contributors": [
     {
@@ -30,12 +30,18 @@
   "devDependencies": {
     "@types/jest": "^23.1.4",
     "@types/node": "^10.5.2",
-    "jest": "^23.3.0",
+    "jest": "^20.0.4",
+    "jest-cli": "^20.0.4",
+    "jest-sonar-reporter": "^2.0.0",
     "js-sha256": "^0.9.0",
     "nodemon": "^1.11.0",
-    "ts-jest": "^23.0.0",
-    "tslint": "^3.15.1",
-    "typescript": "^2.0.3",
+    "sonarqube-scanner": "^2.1.2",
+    "ts-jest": "^20.0.7",
+    "ts-node": "^3.2.0",
+    "tslint": "5.11.0",
+    "tslint-clean-code": "^0.2.7",
+    "tslint-sonarts": "^1.8.0",
+    "typescript": "^2.4.1",
     "web-request": "^1.0.7"
   },
   "jest": {
