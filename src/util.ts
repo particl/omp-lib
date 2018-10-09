@@ -55,7 +55,7 @@ export function isCountry(c: any): boolean {
     return isString(c); // TODO: check the list of country code
 }
 
-export function clone(original: any): boolean {
+export function clone(original: any): any {
     return JSON.parse(JSON.stringify(original));
 }
 
