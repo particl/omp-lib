@@ -57,6 +57,8 @@
             "singleline": "never"
         }],
         "no-angle-bracket-type-assertion": false,
+        /*TODO: remove check-format and the rest*/
+        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-snake-case"],
 
         /*"try-catch-first": true,*/
         /*"newspaper-order": true,*/

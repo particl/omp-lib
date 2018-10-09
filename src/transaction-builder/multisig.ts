@@ -33,9 +33,9 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
-    async bid(listing: MPM, bid: MPM): Promise<MPM> {
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
+    public async bid(listing: MPM, bid: MPM): Promise<MPM> {
+        const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid = (<MPA_BID> bid.action);
 
         // Get the right transaction library for the right currency.
         const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency);
@@ -66,7 +66,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
-    async accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
+    public async accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
@@ -157,7 +157,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
-    async lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM> {
+    public async lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
@@ -186,7 +186,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         return lock;
     }
 
-    bid_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean): number {
+    public bid_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean): number {
         const basePrice = this.bid_valueToTransferSatoshis(mpa_listing, mpa_bid);
         const percentageRatio = seller ? mpa_listing.item.payment.escrow.ratio.seller : mpa_listing.item.payment.escrow.ratio.buyer;
         const ratio = percentageRatio / 100;
@@ -200,7 +200,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * @param mpa_listing
      * @param mpa_bid
      */
-    bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
+    public bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
         let satoshis: number = 0;
         const payment = mpa_listing.item.payment.cryptocurrency.find((crypto) => crypto.currency === mpa_bid.buyer.payment.cryptocurrency);
         satoshis = payment.basePrice;
@@ -226,7 +226,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      *  if seller.signatures is present, it will complete the transaction
      *  and return a fully signed under _rawtx
      */
-    async release(listing: MPM, bid: MPM, accept: MPM, release: MPM): Promise<MPM> {
+    public async release(listing: MPM, bid: MPM, accept: MPM, release: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
@@ -288,7 +288,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         return release;
     }
 
-    release_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean, refund: boolean = false): number {
+    public release_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean, refund: boolean = false): number {
         const basePrice = this.bid_valueToTransferSatoshis(mpa_listing, mpa_bid);
         const percentageRatio = seller ? mpa_listing.item.payment.escrow.ratio.seller : mpa_listing.item.payment.escrow.ratio.buyer;
         const ratio = percentageRatio / 100;
@@ -302,7 +302,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         return required;
     }
 
-    async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM> {
+    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM> {
 
         const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
         const mpa_bid = (<MPA_BID>bid.action);
