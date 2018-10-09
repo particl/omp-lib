@@ -1,14 +1,14 @@
-import { inject, injectable } from "inversify";
-import { TYPES } from "../types";
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../types';
 
-import { CryptoAddressType } from "../interfaces/crypto";
-import { BidConfiguration } from "../interfaces/configs";
-import { Rpc, ILibrary } from "../abstract/rpc";
-import { IMultiSigBuilder } from "../abstract/transactions";
+import { CryptoAddressType } from '../interfaces/crypto';
+import { BidConfiguration } from '../interfaces/configs';
+import { Rpc, ILibrary } from '../abstract/rpc';
+import { IMultiSigBuilder } from '../abstract/transactions';
 
-import { TransactionBuilder, getTxidFrom } from "./transaction";
-import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from "../interfaces/omp";
-import { asyncForEach, asyncMap, clone, isArray } from "../util";
+import { TransactionBuilder, getTxidFrom } from './transaction';
+import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from '../interfaces/omp';
+import { asyncForEach, asyncMap, clone, isArray } from '../util';
 
 @injectable()
 export class MultiSigBuilder implements IMultiSigBuilder {
@@ -25,10 +25,10 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * Add the payment information for the MPA_BID.
      * The cryptocurrency to be used is extracted from the bid.
      * The right library for that currency is then retrieved and used.
-     * 
+     *
      * Adds:
      *  pubKey, changeAddress & inputs.
-     * 
+     *
      * @param config a configuration, storing the shipping details, cryptocurrency to be used etc.
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
@@ -59,10 +59,10 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * Add the payment information for the MPA_ACCEPT.
      * The cryptocurrency to be used is extracted from the bid.
      * The right library for that currency is then retrieved and used.
-     * 
+     *
      * Adds:
      *  pubKey, changeAddress & inputs.
-     * 
+     *
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
@@ -150,10 +150,10 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * Add the payment information for the MPA_ACCEPT.
      * The cryptocurrency to be used is extracted from the bid.
      * The right library for that currency is then retrieved and used.
-     * 
+     *
      * Adds:
      *  pubKey, changeAddress & inputs.
-     * 
+     *
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
@@ -197,8 +197,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
     /**
      * The value to transfer from the buyer to the seller (basePrice + shippingPrice + additional prices)
-     * @param mpa_listing 
-     * @param mpa_bid 
+     * @param mpa_listing
+     * @param mpa_bid
      */
     bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
         let satoshis: number = 0;
@@ -219,10 +219,10 @@ export class MultiSigBuilder implements IMultiSigBuilder {
     /**
      * Add the payment information for the MPA_RELEASE.
      * Performs two steps: both for buyer and seller.
-     * 
+     *
      * Adds:
      *  signature of seller.
-     *  
+     *
      *  if seller.signatures is present, it will complete the transaction
      *  and return a fully signed under _rawtx
      */
@@ -251,9 +251,9 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         let publicKeyToSignFor: string;
         if (isArray(mpa_release.seller.payment.signatures)) {
-            publicKeyToSignFor = mpa_bid.buyer.payment.pubKey
+            publicKeyToSignFor = mpa_bid.buyer.payment.pubKey;
         } else {
-            publicKeyToSignFor = mpa_accept.seller.payment.pubKey
+            publicKeyToSignFor = mpa_accept.seller.payment.pubKey;
         }
         const multisigUtxo = lockTx.getMultisigUtxo(publicKeyToSignFor);
 
@@ -266,12 +266,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Add the output for the buyer
         const buyer_address = mpa_bid.buyer.payment.changeAddress;
         const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false);
-        releaseTx.newNormalOutput(buyer_address, buyer_releaseSatoshis)
+        releaseTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
         const seller_address = mpa_accept.seller.payment.changeAddress;
         const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true);
         const seller_fee = mpa_accept.seller.payment.fee;
-        releaseTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee)
+        releaseTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
 
         if (isArray(mpa_release.seller.payment.signatures)) {
             // add signature of seller
@@ -337,12 +337,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Add the output for the buyer
         const buyer_address = mpa_bid.buyer.payment.changeAddress;
         const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false, true);
-        refundTx.newNormalOutput(buyer_address, buyer_releaseSatoshis)
+        refundTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
         const seller_address = mpa_accept.seller.payment.changeAddress;
         const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true, true);
         const seller_fee = mpa_accept.seller.payment.fee;
-        refundTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee)
+        refundTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
 
         if (isArray(mpa_refund.buyer.payment.signatures)) {
             // add signature of buyer

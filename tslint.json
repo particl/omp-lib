@@ -56,6 +56,7 @@
             "multiline": "never",
             "singleline": "never"
         }],
+        "no-angle-bracket-type-assertion": false,
 
         /*"try-catch-first": true,*/
         /*"newspaper-order": true,*/
@@ -89,6 +90,6 @@
         "no-dead-store": false,
         "parameters-max-number": [true, 10],
         "no-redundant-boolean": false,
-        "no-use-of-empty-return-value": false /*turn on, there are bugs related to this*/
+        "no-use-of-empty-return-value": false
     }
 }

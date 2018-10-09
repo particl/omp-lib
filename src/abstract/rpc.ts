@@ -22,7 +22,7 @@ export interface Rpc {
     signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]>;
 
     // Networking
-    sendRawTransaction(rawtx: string): Promise<any>; // todo: fix response, any was just a quick fix
+    sendRawTransaction(rawtx: string): Promise<any>;
 }
 
 export type ILibrary = (parent: CryptoType) => Rpc;
