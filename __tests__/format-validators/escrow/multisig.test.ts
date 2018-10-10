@@ -1,11 +1,11 @@
 import * from 'jest';
-import { FV_MPA_BID } from "../../../src/format-validators/mpa_bid";
-import { hash } from "../../../src/hasher/hash";
-import { FV_MPA_ACCEPT } from "../../../src/format-validators/mpa_accept";
-import { FV_MPA_RELEASE } from "../../../src/format-validators/mpa_release";
-import { FV_MPA_LOCK } from "../../../src/format-validators/mpa_lock";
-import { FV_MPA_REFUND } from "../../../src/format-validators/mpa_refund";
-import { clone } from "../../../src/util";
+import { FV_MPA_BID } from '../../../src/format-validators/mpa_bid';
+import { hash } from '../../../src/hasher/hash';
+import { FV_MPA_ACCEPT } from '../../../src/format-validators/mpa_accept';
+import { FV_MPA_RELEASE } from '../../../src/format-validators/mpa_release';
+import { FV_MPA_LOCK } from '../../../src/format-validators/mpa_lock';
+import { FV_MPA_REFUND } from '../../../src/format-validators/mpa_refund';
+import { clone } from '../../../src/util';
 
 const validate = FV_MPA_BID.validate;
 const ok_bid = JSON.parse(
@@ -13,9 +13,9 @@ const ok_bid = JSON.parse(
         "version": "0.1.0.0",
         "action": {
             "type": "MPA_BID",
-            "created": ${+ new Date()},
+            "created": ${+new Date()},
             "item": "${hash('listing')}",
-            "buyer": { 
+            "buyer": {
               "payment": {
                 "cryptocurrency": "PART",
                 "escrow": "MULTISIG",
@@ -46,67 +46,65 @@ const ok_bid = JSON.parse(
     }`);
 
 
-
 const bid_unknown_escrow = clone(ok_bid);
-bid_unknown_escrow.action.buyer.payment.escrow = "UNKWONSDFS"
+bid_unknown_escrow.action.buyer.payment.escrow = 'UNKWONSDFS';
 test('validate unknown escrow type MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(bid_unknown_escrow)
+        validate(bid_unknown_escrow);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("expecting escrow type, unknown value"));
+    expect(error).toEqual(expect.stringContaining('expecting escrow type, unknown value'));
 });
 
 const bid_missing_escrow = clone(ok_bid);
 delete bid_missing_escrow.action.buyer.payment.escrow;
 test('validate missing escrow type MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(bid_missing_escrow)
+        validate(bid_missing_escrow);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("expecting escrow type, unknown value"));
+    expect(error).toEqual(expect.stringContaining('expecting escrow type, unknown value'));
 });
 
 const bid_missing_pubkey = clone(ok_bid);
 delete bid_missing_pubkey.action.buyer.payment.pubKey;
 test('validate missing escrow type MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(bid_missing_pubkey)
+        validate(bid_missing_pubkey);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("pubKey: missing or not a string"));
+    expect(error).toEqual(expect.stringContaining('pubKey: missing or not a string'));
 });
 
 const bid_missing_changeAddress = clone(ok_bid);
 delete bid_missing_changeAddress.action.buyer.payment.changeAddress;
 test('validate missing escrow type MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(bid_missing_changeAddress)
+        validate(bid_missing_changeAddress);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("CryptoAddress: missing or not an object"));
+    expect(error).toEqual(expect.stringContaining('CryptoAddress: missing or not an object'));
 });
 
 const bid_missing_outputs = clone(ok_bid);
 delete bid_missing_outputs.action.buyer.payment.outputs;
 test('validate missing escrow type MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(bid_missing_outputs)
+        validate(bid_missing_outputs);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("payment.outputs: not an array"));
+    expect(error).toEqual(expect.stringContaining('payment.outputs: not an array'));
 });
-
 
 
 const validateAccept = FV_MPA_ACCEPT.validate;
@@ -116,7 +114,7 @@ const ok_accept = JSON.parse(
         "action": {
             "type": "MPA_ACCEPT",
             "bid": "${hash('bid')}",
-            "seller": { 
+            "seller": {
               "payment": {
                 "escrow": "MULTISIG",
                 "pubKey": "somepublickey",
@@ -142,75 +140,75 @@ const ok_accept = JSON.parse(
     }`);
 
 const accept_unknown_escrow = clone(ok_accept);
-accept_unknown_escrow.action.seller.payment.escrow = "UNKWONSDFS"
+accept_unknown_escrow.action.seller.payment.escrow = 'UNKWONSDFS';
 test('validate unknown escrow type MPA_ACCEPT', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateAccept(accept_unknown_escrow)
+        validateAccept(accept_unknown_escrow);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("expecting escrow type, unknown value"));
+    expect(error).toEqual(expect.stringContaining('expecting escrow type, unknown value'));
 });
 
 const accept_missing_escrow = clone(ok_accept);
 delete accept_missing_escrow.action.seller.payment.escrow;
 test('validate missing escrow type MPA_ACCEPT', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateAccept(accept_missing_escrow)
+        validateAccept(accept_missing_escrow);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("expecting escrow type, unknown value"));
+    expect(error).toEqual(expect.stringContaining('expecting escrow type, unknown value'));
 });
 
 const accept_missing_pubkey = clone(ok_accept);
 delete accept_missing_pubkey.action.seller.payment.pubKey;
 test('validate missing pubKey MPA_ACCEPT', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateAccept(accept_missing_pubkey)
+        validateAccept(accept_missing_pubkey);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("pubKey: missing or not a string"));
+    expect(error).toEqual(expect.stringContaining('pubKey: missing or not a string'));
 });
 
 const accept_missing_changeAddress = clone(ok_accept);
 delete accept_missing_changeAddress.action.seller.payment.changeAddress;
 test('validate missing changeAddress MPA_ACCEPT', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateAccept(accept_missing_changeAddress)
+        validateAccept(accept_missing_changeAddress);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("CryptoAddress: missing or not an object"));
+    expect(error).toEqual(expect.stringContaining('CryptoAddress: mi™ssing or not an object'));
 });
 
 const accept_missing_outputs = clone(ok_accept);
 delete accept_missing_outputs.action.seller.payment.outputs;
 test('validate missing outputs MPA_ACCEPT', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateAccept(accept_missing_outputs)
+        validateAccept(accept_missing_outputs);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("payment.outputs: not an array"));
+    expect(error).toEqual(expect.stringContaining('payment.outputs: not an array'));
 });
 
 const accept_missing_signatures = clone(ok_accept);
 delete accept_missing_signatures.action.seller.payment.signatures;
 test('validate missing signatures MPA_ACCEPT', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateAccept(accept_missing_signatures)
+        validateAccept(accept_missing_signatures);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("signatures: missing or not an array"));
+    expect(error).toEqual(expect.stringContaining('signatures: missing or not an array'));
 });
 
 const accept_not_enough_signatures = clone(ok_accept);
@@ -219,17 +217,14 @@ accept_not_enough_signatures.action.seller.payment.outputs.push({
     vout: 1
 });
 test('validate missing signatures MPA_ACCEPT', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateAccept(accept_not_enough_signatures)
+        validateAccept(accept_not_enough_signatures);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("signatures: amount of signatures does not match amount of outputs"));
+    expect(error).toEqual(expect.stringContaining('signatures: amount of signatures does not match amount of outputs'));
 });
-
-
-
 
 
 const validateLock = FV_MPA_LOCK.validate;
@@ -239,7 +234,7 @@ const ok_lock = JSON.parse(
         "action": {
             "type": "MPA_LOCK",
             "bid": "${hash('bid')}",
-            "buyer": { 
+            "buyer": {
               "payment": {
                 "escrow": "MULTISIG",
                 "signatures": [
@@ -253,19 +248,14 @@ const ok_lock = JSON.parse(
 const lock_missing_signatures = clone(ok_lock);
 delete lock_missing_signatures.action.buyer.payment.signatures;
 test('validate missing signatures MPA_LOCK', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateLock(lock_missing_signatures)
+        validateLock(lock_missing_signatures);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("signatures: missing or not an array"));
+    expect(error).toEqual(expect.stringContaining('signatures: missing or not an array'));
 });
-
-
-
-
-
 
 
 const validateRelease = FV_MPA_RELEASE.validate;
@@ -275,7 +265,7 @@ const ok_release = JSON.parse(
         "action": {
             "type": "MPA_RELEASE",
             "bid": "${hash('bid')}",
-            "seller": { 
+            "seller": {
               "payment": {
                 "escrow": "MULTISIG",
                 "signatures": [
@@ -289,19 +279,14 @@ const ok_release = JSON.parse(
 const release_missing_signatures = clone(ok_release);
 delete release_missing_signatures.action.seller.payment.signatures;
 test('validate missing signatures MPA_RELEASE', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateRelease(release_missing_signatures)
+        validateRelease(release_missing_signatures);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("signatures: missing or not an array"));
+    expect(error).toEqual(expect.stringContaining('signatures: missing or not an array'));
 });
-
-
-
-
-
 
 
 const validateRefund = FV_MPA_REFUND.validate;
@@ -311,7 +296,7 @@ const ok_refund = JSON.parse(
         "action": {
             "type": "MPA_REFUND",
             "bid": "${hash('bid')}",
-            "buyer": { 
+            "buyer": {
               "payment": {
                 "escrow": "MULTISIG",
                 "signatures": [
@@ -325,11 +310,11 @@ const ok_refund = JSON.parse(
 const refund_missing_signatures = clone(ok_refund);
 delete refund_missing_signatures.action.buyer.payment.signatures;
 test('validate missing signatures MPA_REFUND', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validateRefund(refund_missing_signatures)
+        validateRefund(refund_missing_signatures);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("signatures: missing or not an array"));
+    expect(error).toEqual(expect.stringContaining('signatures: missing or not an array'));
 });

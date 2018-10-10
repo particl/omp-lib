@@ -1,5 +1,5 @@
 import * from 'jest';
-import { FV_MPM} from "../../src/format-validators/mpm";
+import { FV_MPM } from '../../src/format-validators/mpm';
 
 const validate = FV_MPM.validate;
 const success = JSON.parse(
@@ -14,7 +14,7 @@ const success = JSON.parse(
 test('validate a complete action', () => {
     let fail: boolean;
     try {
-        fail = !validate(success)
+        fail = !validate(success);
     } catch (e) {
         fail = true;
     }
@@ -22,25 +22,22 @@ test('validate a complete action', () => {
 });
 
 
-
 const missing_type = JSON.parse(
     `{
         "version": "0.1.0.0",
         "action": {
-            
         }
     }`);
 
 test('validate missing type', () => {
     let fail: boolean;
     try {
-        fail = !validate(missing_type)
+        fail = !validate(missing_type);
     } catch (e) {
         fail = true;
     }
     expect(fail).toBe(true);
 });
-
 
 
 const empty_version = JSON.parse(
@@ -54,7 +51,7 @@ const empty_version = JSON.parse(
 test('validate empty version', () => {
     let fail: boolean;
     try {
-        fail = !validate(empty_version)
+        fail = !validate(empty_version);
     } catch (e) {
         fail = true;
     }
@@ -71,13 +68,12 @@ const missing_version = JSON.parse(
 test('validate missing version', () => {
     let fail: boolean;
     try {
-        fail = !validate(missing_version)
+        fail = !validate(missing_version);
     } catch (e) {
         fail = true;
     }
     expect(fail).toBe(true);
 });
-
 
 
 const unknown_action = JSON.parse(
@@ -91,7 +87,7 @@ const unknown_action = JSON.parse(
 test('validate unknown action', () => {
     let fail: boolean;
     try {
-        fail = !validate(unknown_action)
+        fail = !validate(unknown_action);
     } catch (e) {
         fail = true;
     }
