@@ -44,7 +44,7 @@ const ok = JSON.parse(
 test('validate ok MPA_BID', () => {
     let fail: boolean;
     try {
-        fail = !validate(ok)
+        fail = !validate(ok);
     } catch (e) {
         fail = true;
     }
@@ -52,49 +52,49 @@ test('validate ok MPA_BID', () => {
 });
 
 const missing_buyer = clone(ok);
-missing_buyer.action.buyer = "UNKWONSDFS"
+missing_buyer.action.buyer = 'UNKWONSDFS';
 test('validate missing buyer MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(missing_buyer)
+        validate(missing_buyer);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("buyer: missing or not an object"));
+    expect(error).toEqual(expect.stringContaining('buyer: missing or not an object'));
 });
 
 const missing_payment = clone(ok);
-missing_payment.action.buyer.payment = "UNKWONSDFS"
+missing_payment.action.buyer.payment = 'UNKWONSDFS';
 test('validate unknown escrow type MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(missing_payment)
+        validate(missing_payment);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("payment: not an object"));
+    expect(error).toEqual(expect.stringContaining('payment: not an object'));
 });
 
 const missing_payment_cryptocurrency = clone(ok);
 delete missing_payment_cryptocurrency.action.buyer.payment.cryptocurrency;
 test('validate unknown escrow type MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(missing_payment_cryptocurrency)
+        validate(missing_payment_cryptocurrency);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("payment.cryptocurrency: expecting cryptocurrency type, unknown value"));
+    expect(error).toEqual(expect.stringContaining('payment.cryptocurrency: expecting cryptocurrency type, unknown value'));
 });
 
 const missing_shippingAddress = clone(ok);
-missing_shippingAddress.action.buyer.shippingAddress = "UNKWONSDFS"
+missing_shippingAddress.action.buyer.shippingAddress = 'UNKWONSDFS';
 test('validate unknown escrow type MPA_BID', () => {
-    let error: string = "";
+    let error = '';
     try {
-        validate(missing_shippingAddress)
+        validate(missing_shippingAddress);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining("shippingAddress: missing or not an object"));
+    expect(error).toEqual(expect.stringContaining('shippingAddress: missing or not an object'));
 });
