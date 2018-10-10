@@ -1,17 +1,17 @@
-export function isObject(v: any) {
-    return v && typeof v === 'object'
+export function isObject(v: any): boolean {
+    return v && typeof v === 'object';
 }
 
-export function isString(v: any) {
-    return v && typeof v === 'string'
+export function isString(v: any): boolean {
+    return v && typeof v === 'string';
 }
 
-export function isArray(v: any) {
+export function isArray(v: any): boolean {
     return v && Array.isArray(v) && v.length > 0;
 }
 
-export function isNumber(v: any) {
-    return typeof v === 'number' && (v <= Number.MAX_SAFE_INTEGER)
+export function isNumber(v: any): boolean {
+    return typeof v === 'number' && (v <= Number.MAX_SAFE_INTEGER);
 }
 
 /**
@@ -27,30 +27,30 @@ export function isNaturalNumber(v: any): boolean {
  * 0, 1, 2, ...
  * @param t value to test
  */
-export function isNonNegativeNaturalNumber(t: any) {
-    return isNaturalNumber(t) && t >= 0
+export function isNonNegativeNaturalNumber(t: any): boolean {
+    return isNaturalNumber(t) && t >= 0;
 }
 
-export function isValidPrice(v: any) {
-    return isNaturalNumber(v) && v > 0 // perhaps more checks.
+export function isValidPrice(v: any): boolean {
+    return isNaturalNumber(v) && v > 0; // perhaps more checks.
 }
 
-export function isValidPercentage(v: any) {
-    return isNaturalNumber(v) && (v >= 0 && v <= 100)
+export function isValidPercentage(v: any): boolean {
+    return isNaturalNumber(v) && (v >= 0 && v <= 100);
 }
 
 export function isSHA256Hash(h: any): boolean {
     return typeof h === 'string' && (h.length === 64);
 }
 
-export function isTxid(txid: any) {
+export function isTxid(txid: any): boolean {
     return isSHA256Hash(txid);
 }
 
-export function isTimestamp(t: any) {
-    return isNonNegativeNaturalNumber(t)
+export function isTimestamp(t: any): boolean {
+    return isNonNegativeNaturalNumber(t);
 }
 
-export function isCountry(c: any) {
+export function isCountry(c: any): boolean {
     return isString(c); // TODO: check the list of country code
 }
