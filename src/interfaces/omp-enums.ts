@@ -15,9 +15,9 @@ export enum MPAction {
 }
 
 export enum PaymentType {
-    FREE = "FREE",
-    SALE = "SALE",
-    RENT = "RENT"
+    FREE = 'FREE',
+    SALE = 'SALE',
+    RENT = 'RENT'
 }
 
 export enum EscrowType {
