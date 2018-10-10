@@ -17,7 +17,7 @@ export abstract class Rpc {
     public abstract async listUnspent(minconf?: number, maxconf?: number, addresses?: string[], includeUnsafe?: boolean,
                                       queryOptions?: any): Promise<any>;
     public abstract async lockUnspent(unlock: boolean, outputs: Output[], permanent?: boolean): Promise<any>;
-
+    public abstract async importAddress(address: string, label?: string, rescan?: boolean, p2sh?: boolean): Promise<boolean>;
 
 
     public async getNewPubkey(): Promise<string> {
@@ -71,8 +71,7 @@ export abstract class Rpc {
     }
 
     public async importRedeemScript(script: any): Promise<boolean> {
-
-        await this.call('importaddress', [script, '', false, true]);
+        return await this.importAddress(script, '', false, true);
     }
 
     public async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> {
