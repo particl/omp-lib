@@ -184,7 +184,7 @@ test('validate missing changeAddress MPA_ACCEPT', () => {
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining('CryptoAddress: mi™ssing or not an object'));
+    expect(error).toEqual(expect.stringContaining('CryptoAddress: missing or not an object'));
 });
 
 const accept_missing_outputs = clone(ok_accept);
