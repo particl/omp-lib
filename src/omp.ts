@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { injectable, Container, interfaces } from 'inversify';
 import { TYPES } from './types';
-import { Rpc, ILibrary, Rpc } from './abstract/rpc';
+import { Rpc, ILibrary } from './abstract/rpc';
 import { MPM } from './interfaces/omp';
 import { BidConfiguration } from './interfaces/configs';
 import { IBid } from './abstract/actions';

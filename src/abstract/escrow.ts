@@ -1,4 +1,4 @@
-import { MPA_ACCEPT, MPA_BID, MPA_LISTING_ADD, MPA_LOCK, MPA_RELEASE } from '../interfacesﬁ/omp';
+import { MPA_ACCEPT, MPA_BID, MPA_LISTING_ADD, MPA_LOCK, MPA_RELEASE } from '../interfaces/omp';
 
 /**
  * The abstract class for the Escrow.
