@@ -8,6 +8,7 @@ import { FV_MPA_BID_ESCROW_MULTISIG } from './escrow/multisig';
 import { CryptoType } from '../interfaces/crypto';
 
 // TODO: cognitive-complexity 22, should be less than 20
+// tslint:disable:cognitive-complexity
 
 export class FV_MPA_BID {
 
