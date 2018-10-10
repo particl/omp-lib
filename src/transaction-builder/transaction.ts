@@ -147,12 +147,13 @@ export class TransactionBuilder {
     }
 
     /**
+     * TODO: should this be renamed to addNewChangeOutputFor and return this?
      *
      * @param requiredSatoshis
      * @param changeAddress
      * @param inputsOfSingleParty
      */
-    public newChangeOutputFor(requiredSatoshis: number, changeAddress: CryptoAddress, inputsOfSingleParty: Output[]): ToBeOutput {
+    public newChangeOutputFor(requiredSatoshis: number, changeAddress: CryptoAddress, inputsOfSingleParty: Output[]): ToBeOutput | undefined {
 
         let input = 0;
 
@@ -200,10 +201,10 @@ export class TransactionBuilder {
      * @param publicKeyToSignFor
      */
     public getMultisigUtxo(publicKeyToSignFor: string): Output {
-        const utxo: Output = {
-            txid: this.txid,
-            vout: undefined
-        };
+        const utxo = {
+            txid: this.txid
+        } as Output;
+
         const prevout = this.tx.outputs.find((out, i) => {
             // TODO: find using the exact p2sh script
             if (out.script.isScriptHashOut()) {

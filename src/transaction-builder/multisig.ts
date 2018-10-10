@@ -202,17 +202,21 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      */
     public bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
         const payment = mpa_listing.item.payment.cryptocurrency.find((crypto) => crypto.currency === mpa_bid.buyer.payment.cryptocurrency);
-        let satoshis = payment.basePrice;
 
-        if (mpa_listing.item.information.location && payment.shippingPrice) {
-            if (mpa_bid.buyer.shippingAddress.country === mpa_listing.item.information.location.country) {
-                satoshis += payment.shippingPrice.domestic;
-            } else {
-                satoshis += payment.shippingPrice.international;
+        if (payment) {
+            let satoshis = payment.basePrice;
+
+            if (mpa_listing.item.information.location && payment.shippingPrice) {
+                if (mpa_bid.buyer.shippingAddress.country === mpa_listing.item.information.location.country) {
+                    satoshis += payment.shippingPrice.domestic;
+                } else {
+                    satoshis += payment.shippingPrice.international;
+                }
             }
+            return satoshis;
+        } else {
+            throw new Error('Requested payment cryptocurrency not found.');
         }
-
-        return satoshis;
     }
 
     /**
