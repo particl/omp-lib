@@ -12,13 +12,14 @@ export abstract class Rpc {
     public abstract async call(method: string, params: any[]): Promise<any>;
 
     public abstract async getNewAddress(): Promise<string>;
+    public abstract async getAddressInfo(address: string): Promise<any>;
     public abstract async sendRawTransaction(rawtx: string): Promise<any>;
     public abstract async getRawTransaction(txid: string, verbose?: boolean, blockhash?: string): Promise<any>;
     public abstract async listUnspent(minconf?: number, maxconf?: number, addresses?: string[], includeUnsafe?: boolean,
                                       queryOptions?: any): Promise<any>;
     public abstract async lockUnspent(unlock: boolean, outputs: Output[], permanent?: boolean): Promise<any>;
     public abstract async importAddress(address: string, label?: string, rescan?: boolean, p2sh?: boolean): Promise<boolean>;
-
+    public abstract async createSignatureWithWallet(hex: string, prevtx: Output, address: string, sighashtype?: string): Promise<string>;
 
     public async getNewPubkey(): Promise<string> {
         throw new Error('Not Implemented.');
@@ -30,7 +31,7 @@ export abstract class Rpc {
 
         const unspent: Output[] = await this.listUnspent(0);
 
-        unspent
+        const result = unspent
             .filter((output: any) => output.spendable && output.safe)
             .find((utxo: any) => {
                     if (utxo.scriptPubKey.substring(0, 2) !== '76') {
@@ -47,10 +48,7 @@ export abstract class Rpc {
                         _address: utxo.address
                     });
 
-                    if (chosenSatoshis >= satoshis) {
-                        return true;
-                    }
-                    return false;
+                    return chosenSatoshis >= satoshis;
                 }
             );
 
@@ -79,32 +77,35 @@ export abstract class Rpc {
 
         // needs to synchronize, because the order needs to match
         // the inputs order.
-        for (const i of inputs) {
-            if (i) {
-                const input = inputs[i];
-                // console.log('signing for ', input)
-                const params = [
-                    await tx.build(),
-                    {
-                        txid: input.txid,
-                        vout: input.vout,
-                        scriptPubKey: input._scriptPubKey,
-                        amount: fromSatoshis(input._satoshis)
-                    },
-                    input._address
-                ];
+        for (const input of inputs) {
 
-                const sig = {
-                    signature: (await this.call('createsignaturewithwallet', params)),
-                    pubKey: (await this.call('getaddressinfo', [input._address])).pubkey
-                };
-                r.push(sig);
-                tx.addSignature(input, sig);
+            const hex: string = tx.build();
+            let amount;
+            if (input._satoshis) {
+                amount = fromSatoshis(input._satoshis);
+            } else {
+                throw new Error('Output missing _satoshis.');
             }
+            if (!input._address) {
+                throw new Error('Output missing _address.');
+            }
+
+            const prevtx = {
+                txid: input.txid,
+                vout: input.vout,
+                scriptPubKey: input._scriptPubKey,
+                amount
+            };
+            const signature: string = await this.createSignatureWithWallet(hex, prevtx, input._address);
+            const pubKey: string = (await this.getAddressInfo(input._address)).pubkey;
+            const sig = {
+                signature,
+                pubKey
+            };
+            r.push(sig);
+            tx.addSignature(input, sig);
         }
-
         return r;
-
     }
 
 }
