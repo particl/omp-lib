@@ -38,6 +38,12 @@ export class FV_MPA_RELEASE {
                 case EscrowType.MULTISIG:
                     FV_MPA_RELEASE_ESCROW_MULTISIG.validate(payment);
                     break;
+                case EscrowType.FE:
+                    // TODO: not implemented
+                case EscrowType.MAD:
+                    // TODO: not implemented
+                case EscrowType.MAD_CT:
+                    // TODO: not implemented
                 default:
                     throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
             }
