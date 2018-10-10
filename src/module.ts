@@ -6,6 +6,8 @@ export { DSN, ContentReference, ProtocolDSN } from './interfaces/dsn';
 export { MPM, MPA, MPA_LISTING_ADD, MPA_EXT_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from './interfaces/omp';
 export { MPAction, PaymentType, EscrowType } from './interfaces/omp-enums';
 export { Rpc } from '../src/abstract/rpc';
+export { TransactionBuilder } from '../src/transaction-builder/transaction';
+
 
 // /omp-lib/_tests_/buyflow-multisig.test.ts
 import { OpenMarketProtocol } from './omp';

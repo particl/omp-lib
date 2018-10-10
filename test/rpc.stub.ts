@@ -1,13 +1,14 @@
-import { injectable } from "inversify";
-import "reflect-metadata";
+import { injectable } from 'inversify';
+import 'reflect-metadata';
 
-import { Rpc } from "../src/abstract/rpc";
+import { Rpc } from '../src/abstract/rpc';
 
 import * as WebRequest from 'web-request';
-import { Output, ISignature } from "../src/interfaces/crypto";
-import { toSatoshis, fromSatoshis } from "../src/util";
+import { Output, ISignature } from '../src/interfaces/crypto';
+import { toSatoshis, fromSatoshis } from '../src/util';
 import { TransactionBuilder } from '../src/transaction-builder/transaction';
 
+// tslint:disable cognitive-complexity
 
 @injectable()
 class CoreRpcService implements Rpc {
@@ -57,27 +58,6 @@ class CoreRpcService implements Rpc {
 
     }
 
-    private getOptions(): any {
-
-        const auth = {
-            user: this._user,
-            pass: this._password,
-            sendImmediately: false
-        };
-
-        const headers = {
-            'User-Agent': 'OMP regtest',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        };
-        const rpcOpts = {
-            auth,
-            headers
-        };
-
-        return rpcOpts;
-    }
-
     public async getNewAddress(): Promise<string> {
         return await this.call('getnewaddress');
     }
@@ -88,19 +68,19 @@ class CoreRpcService implements Rpc {
     }
 
     public async getNormalOutputs(reqSatoshis: number): Promise<Output[]> {
-        const chosen: Array<Output> = [];
-        let utxoLessThanReq: Array<number> = [];
-        let exactMatchIdx: number = -1;
-        let maxOutputIdx: number = -1;
-        let chosenSatoshis: number = 0;
-        const defaultIdxs: Array<number> = [];
+        const chosen: Output[] = [];
+        const utxoLessThanReq: number[] = [];
+        let exactMatchIdx = -1;
+        let maxOutputIdx = -1;
+        let chosenSatoshis = 0;
+        const defaultIdxs: number[] = [];
 
-        const unspent: Array<Output> = await this.call('listunspent', [0]);
+        const unspent: Output[] = await this.call('listunspent', [0]);
 
         unspent.filter(
             (output: any, outIdx: number) => {
-                if (output.spendable && output.safe && (output.scriptPubKey.substring(0, 2) === '76') ) {
-                    if ( (exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
+                if (output.spendable && output.safe && (output.scriptPubKey.substring(0, 2) === '76')) {
+                    if ((exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
                         // Found a utxo with amount that is an exact match for the requested value.
                         exactMatchIdx = outIdx;
                     } else if (toSatoshis(output.amount) < reqSatoshis) {
@@ -111,7 +91,7 @@ class CoreRpcService implements Rpc {
                     // Get the max utxo amount in case an output needs to be split
                     if (maxOutputIdx === -1) {
                         maxOutputIdx = outIdx;
-                    } else if (unspent[maxOutputIdx].amount < output.amount){
+                    } else if (unspent[maxOutputIdx].amount < output.amount) {
                         maxOutputIdx = outIdx;
                     }
 
@@ -127,16 +107,18 @@ class CoreRpcService implements Rpc {
             }
         );
 
-        let utxoIdxs: Array<number> = [];
+        let utxoIdxs: number[] = [];
         // Step 1: Check whether an exact match was found.
         if (exactMatchIdx === -1) {
             // No exact match found, so...
             //  ... Step 2: Sum utxos to find a summed group that matches exactly or is greater than the requried amount by no more than 1%.
-            for (let ii: number = 0; ii < Math.pow(2, utxoLessThanReq.length); ii++) {
-                const selectedIdxs: Array<number> = utxoLessThanReq.filter((_: number, index: number) => { return ii & (1 << index); });
+            for (let ii = 0; ii < Math.pow(2, utxoLessThanReq.length); ii++) {
+                const selectedIdxs: number[] = utxoLessThanReq.filter((_: number, index: number) => {
+                    return ii & (1 << index);
+                });
                 const summed: number = toSatoshis(selectedIdxs.reduce((acc: number, idx: number) => acc + unspent[idx].amount, 0));
 
-                if ((summed >= reqSatoshis) && ((summed - reqSatoshis) < (reqSatoshis / 100)) ) {
+                if ((summed >= reqSatoshis) && ((summed - reqSatoshis) < (reqSatoshis / 100))) {
                     // Sum of utxos is within a 1 percent upper margin of the requested amount.
                     if (summed === reqSatoshis) {
                         // Found the exact required amount.
@@ -154,7 +136,7 @@ class CoreRpcService implements Rpc {
                 const newAddr = await this.call('getnewaddress', []);
                 const txid: string = await this.call('sendtoaddress', [newAddr, fromSatoshis(reqSatoshis), 'Split output']);
                 const txData: any = await this.call('getrawtransaction', [txid, true]);
-                const outData: any = txData.vout.find( outObj => outObj.valueSat === reqSatoshis );
+                const outData: any = txData.vout.find(outObj => outObj.valueSat === reqSatoshis);
                 if (outData) {
                     chosen.push({
                         txid: txData.txid,
@@ -179,7 +161,7 @@ class CoreRpcService implements Rpc {
             }
         }
 
-        utxoIdxs.forEach( utxoIdx => {
+        utxoIdxs.forEach(utxoIdx => {
             const utxo: any = unspent[utxoIdx];
             chosen.push({
                 txid: utxo.txid,
@@ -196,23 +178,22 @@ class CoreRpcService implements Rpc {
 
     public async getSatoshisForUtxo(utxo: Output): Promise<Output> {
         const vout = (await this.call('getrawtransaction', [utxo.txid, true]))
-            .vout.find((vout: any) => vout.n === utxo.vout);
+            .vout.find((value: any) => value.n === utxo.vout);
         utxo._satoshis = vout.valueSat;
         return utxo;
     }
 
     public async importRedeemScript(script: any): Promise<boolean> {
-       await this.call('importaddress', [script, '', false, true])
-       return true;
+        await this.call('importaddress', [script, '', false, true]);
+        return true;
     }
 
-    async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> {
-        let r: ISignature[] = [];
+    public async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> {
+        const r: ISignature[] = [];
 
         // needs to synchronize, because the order needs to match
         // the inputs order.
-        for(let i = 0; i < inputs.length; i++){
-            const input = inputs[i];
+        for (const input of inputs) {
             // console.log('signing for ', input)
             const params = [
                 await tx.build(),
@@ -232,7 +213,7 @@ class CoreRpcService implements Rpc {
             r.push(sig);
             tx.addSignature(input, sig);
 
-        };
+        }
 
         return r;
     }
@@ -242,6 +223,26 @@ class CoreRpcService implements Rpc {
 
     }
 
+    private getOptions(): any {
+
+        const auth = {
+            user: this._user,
+            pass: this._password,
+            sendImmediately: false
+        };
+
+        const headers = {
+            'User-Agent': 'OMP regtest',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        };
+        const rpcOpts = {
+            auth,
+            headers
+        };
+
+        return rpcOpts;
+    }
 }
 
 export const node0 = new CoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');
