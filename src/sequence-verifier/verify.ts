@@ -20,7 +20,9 @@ export class Sequence {
         // loop through each MPM in the sequence
         sequence.forEach((mpm: MPM, index) => {
             const type: MPAction = mpm.action.type;
-            this.validateActionIndex(index, type);
+
+            console.log('sequence, ' + index + ' type: ', type);
+            Sequence.validateActionIndex(index, type);
 
             switch (index) {
                 case 0: // must be an MPA_LISTING
@@ -30,37 +32,40 @@ export class Sequence {
 
                 case 1: { // must be an MPA_BID
                     const bid: MPA_BID = <MPA_BID> mpm.action;
-                    this.validatePreviousAction(type, MPAction.MPA_LISTING_ADD);
-                    this.validateHash(type, bid.item, listingHash);
-                    this.validateCurrency(type, bid.buyer.payment.cryptocurrency, listing.item.payment.cryptocurrency);
-                    this.validateEscrow(type, bid.buyer.payment.escrow, listing.item.payment.escrow.type);
+                    const prevType: MPAction = sequence[index - 1].action.type;
+                    Sequence.validatePreviousAction(prevType, MPAction.MPA_LISTING_ADD);
+                    Sequence.validateHash(type, bid.item, listingHash);
+                    Sequence.validateCurrency(type, bid.buyer.payment.cryptocurrency, listing.item.payment.cryptocurrency);
+                    Sequence.validateEscrow(type, bid.buyer.payment.escrow, listing.item.payment.escrow.type);
                     bidHash = hash(mpm);
                     break;
                 }
                 case 2: { // must be an MPA_ACCEPT, MPA_REJECT, MPA_CANCEL
                     const bid = <MPA_ACCEPT | MPA_REJECT | MPA_CANCEL> mpm.action;
-                    this.validatePreviousAction(type, MPAction.MPA_BID);
-                    this.validateHash(type, bid.bid, bidHash);
+                    const prevType: MPAction = sequence[index - 1].action.type;
+                    Sequence.validatePreviousAction(prevType, MPAction.MPA_BID);
+                    Sequence.validateHash(type, bid.bid, bidHash);
                     if (type === MPAction.MPA_ACCEPT) {
-                        this.validateEscrow(type, (<MPA_ACCEPT> bid).seller.payment.escrow, listing.item.payment.escrow.type);
+                        Sequence.validateEscrow(type, (<MPA_ACCEPT> bid).seller.payment.escrow, listing.item.payment.escrow.type);
                     }
                     break;
                 }
                 case 3: { // must be an MPA_LOCK
                     const bid = <MPA_LOCK> mpm.action;
-                    this.validatePreviousAction(type, MPAction.MPA_ACCEPT);
-                    this.validateHash(type, bid.bid, bidHash);
-                    this.validateEscrow(type, bid.buyer.payment.escrow, listing.item.payment.escrow.type);
+                    const prevType: MPAction = sequence[index - 1].action.type;
+                    Sequence.validatePreviousAction(prevType, MPAction.MPA_ACCEPT);
+                    Sequence.validateHash(type, bid.bid, bidHash);
+                    Sequence.validateEscrow(type, bid.buyer.payment.escrow, listing.item.payment.escrow.type);
                     break;
                 }
                 case 4: { // must be an MPA_RELEASE or MPA_REFUND
                     const bid = <MPA_RELEASE | MPA_REFUND> mpm.action;
-                    this.validatePreviousAction(type, MPAction.MPA_LOCK);
-                    this.validateHash(type, bid.bid, bidHash);
+                    const prevType: MPAction = sequence[index - 1].action.type;
+                    Sequence.validatePreviousAction(prevType, MPAction.MPA_LOCK);
+                    Sequence.validateHash(type, bid.bid, bidHash);
                     break;
                 }
             }
-
         });
         return true;
     }

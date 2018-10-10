@@ -63,10 +63,11 @@ const config: BidConfiguration = {
 };
 
 test('perform multisig bid', () => {
-    const out;
     const bool = false;
     try {
         // console.log(JSON.stringify(bid, null, 4))
+        // TODO: missing impl
+
     } catch (e) {
         console.log(e);
     }
