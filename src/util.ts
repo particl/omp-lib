@@ -74,7 +74,7 @@ export async function asyncForEach(array: any[], callback: (value: any, index: n
 }
 
 export async function asyncMap(array: any[], callback: (value: any, index: number, array: any[]) => any): Promise<any[]> {
-    await this.asyncForEach(array, callback);
+    await asyncForEach(array, callback);
     return array;
 }
 

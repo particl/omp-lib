@@ -57,9 +57,7 @@ export class TransactionBuilder {
         const inputIndex = this.tx.inputs.findIndex((input, i) => {
             const txid = input.prevTxId.toString('hex');
             const vout = input.outputIndex;
-            if (utxo.txid === txid && utxo.vout === vout) {
-                return true;
-            }
+            return utxo.txid === txid && utxo.vout === vout;
         });
 
         if (this.tx.inputs[inputIndex] && signature) {
@@ -209,13 +207,14 @@ export class TransactionBuilder {
         const prevout = this.tx.outputs.find((out, i) => {
             // TODO: find using the exact p2sh script
             if (out.script.isScriptHashOut()) {
-                utxo.vout = i,
-                    utxo._satoshis = out.satoshis;
+                utxo.vout = i;
+                utxo._satoshis = out.satoshis;
                 // required for signing
                 utxo._scriptPubKey = out.script.toHex();
                 utxo._address = publicKeyToAddress(publicKeyToSignFor);
                 return true;
             }
+            return false;
         });
 
         if (!prevout) {
