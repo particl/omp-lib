@@ -4,25 +4,35 @@ import { TransactionBuilder } from '../transaction-builder/transaction';
 /**
  * The abstract class for the Rpc class.
  */
-export interface Rpc {
-    call(method: string, params: any[]): Promise<any>;
+export abstract class Rpc {
 
-    /*
-        WALLET - generating keys, addresses.
-    */
-    getNewPubkey(): Promise<string>;
-    getNewAddress(): Promise<string>;
+    public abstract async isConnected(): Promise<boolean>;
+    public abstract async getVersion(): Promise<number>;
+    public abstract async call(method: string, params: any[]): Promise<any>;
 
-    // Retrieving information of outputs
-    getNormalOutputs(satoshis: number): Promise<Output[]>;
-    getSatoshisForUtxo(utxo: Output): Promise<Output>;
+    public abstract getNewAddress(): Promise<string>;
+    public abstract sendRawTransaction(rawtx: string): Promise<any>;
 
-    // Importing and signing
-    importRedeemScript(script: any): Promise<boolean>;
-    signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]>;
+    public getNewPubkey(): Promise<string> {
+        throw new Error('Not Implemented.');
+    }
 
-    // Networking
-    sendRawTransaction(rawtx: string): Promise<any>;
+    public getNormalOutputs(satoshis: number): Promise<Output[]> {
+        throw new Error('Not Implemented.');
+    }
+
+    public getSatoshisForUtxo(utxo: Output): Promise<Output> {
+        throw new Error('Not Implemented.');
+    }
+
+    public importRedeemScript(script: any): Promise<boolean> {
+        throw new Error('Not Implemented.');
+    }
+
+    public signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> {
+        throw new Error('Not Implemented.');
+    }
+
 }
 
 export type ILibrary = (parent: CryptoType) => Rpc;
