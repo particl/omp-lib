@@ -1,4 +1,4 @@
-import { MPA_LOCK, MPM } from '../interfaces/omp'
+import { MPA_LOCK, MPM } from '../interfaces/omp';
 import { MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isObject, isArray, isString, isSHA256Hash } from '../util';
 
