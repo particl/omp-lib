@@ -39,7 +39,7 @@ export enum CryptoAddressType {
 }
 
 /**
- * An address from a cryptocurrency.
+ * An address for a cryptocurrency.
  */
 export interface CryptoAddress {
     type: CryptoAddressType;
@@ -47,7 +47,7 @@ export interface CryptoAddress {
 }
 
 /**
- * An address from a cryptocurrency.
+ * An amount for a cryptocurrency.
  */
 export interface CryptoAmount {
     type: CryptoType;

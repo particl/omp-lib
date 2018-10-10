@@ -21,8 +21,8 @@ export enum PaymentType {
 }
 
 export enum EscrowType {
-    FE = 'FE', // Finalize early
-    MULTISIG = 'MULTISIG', // Normal 2-on-2 multisig
-    MAD = 'MAD', // Mutual assured destruction
-    MAD_CT = 'MAD_CT' // Mutual assured destruction with Confidential Tx
+    FE = 'FE',              // Finalize early
+    MULTISIG = 'MULTISIG',  // Normal 2-on-2 multisig
+    MAD = 'MAD',            // Mutual assured destruction
+    MAD_CT = 'MAD_CT'       // Mutual assured destruction with Confidential Tx
 }

@@ -36,7 +36,7 @@ export abstract class Rpc {
         let chosenSatoshis = 0;
         const defaultIdxs: number[] = [];
 
-        // TODO: Output doesnt seem to contain amount or scriptPubKey
+        // TODO: Output doesnt seem to contain amount/scriptPubKey/spendable
         const unspent: Output[] = await this.listUnspent(0);
 
         unspent.filter(

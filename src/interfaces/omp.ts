@@ -32,6 +32,7 @@ export interface MPA_LISTING_ADD extends MPA {
     type: MPAction.MPA_LISTING_ADD;
     item: {
         // created: number, // timestamp // add?
+        // item doesn't need created or any other timestamps, those come from the smsgmessage
         // hash: string, //item hash // TODO: remove
         information: {
             title: string,
@@ -48,19 +49,15 @@ export interface MPA_LISTING_ADD extends MPA {
                     seller: number
                 }
             },
-            cryptocurrency: [
-                {
-                    currency: CryptoType,
-                    basePrice: number
-                }
-                ]
+            cryptocurrency: [{
+                currency: CryptoType,
+                basePrice: number
+            }]
         },
-        messaging: [
-            {
-                protocol: string,
-                publicKey: string
-            }
-            ],
+        messaging: [{
+            protocol: string,
+            publicKey: string
+        }],
         objects?: any[]
     };
 }
