@@ -1,3 +1,4 @@
+import * from 'jest';
 import { FV_MPM} from "../../src/format-validators/mpm";
 
 const validate = FV_MPM.validate;

@@ -1,4 +1,4 @@
-
+import * from 'jest';
 import { FV_MPA_BID } from "../../../src/format-validators/mpa_bid";
 import { hash } from "../../../src/hasher/hash";
 import { FV_MPA_ACCEPT } from "../../../src/format-validators/mpa_accept";

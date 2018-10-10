@@ -1,7 +1,7 @@
-
-import { FV_MPA_BID } from "../../src/format-validators/mpa_bid";
-import { hash } from "../../src/hasher/hash";
-import { clone } from "../../src/util";
+import * from 'jest';
+import { FV_MPA_BID } from '../../src/format-validators/mpa_bid';
+import { hash } from '../../src/hasher/hash';
+import { clone } from '../../src/util';
 
 const validate = FV_MPA_BID.validate;
 const ok = JSON.parse(
@@ -11,7 +11,7 @@ const ok = JSON.parse(
             "type": "MPA_BID",
             "created": ${+ new Date()},
             "item": "${hash('listing')}",
-            "buyer": { 
+            "buyer": {
               "payment": {
                 "cryptocurrency": "PART",
                 "escrow": "MULTISIG",

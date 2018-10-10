@@ -1,3 +1,4 @@
+import * from 'jest';
 import { FV_CRYPTO } from "../../src/format-validators/crypto";
 import { hash } from "../../src/hasher/hash";
 

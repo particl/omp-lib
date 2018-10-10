@@ -1,3 +1,4 @@
+import * from 'jest';
 import { FV_MPA_ACCEPT } from "../../src/format-validators/mpa_accept";
 import { hash } from "../../src/hasher/hash";
 import { clone } from "../../src/util";
