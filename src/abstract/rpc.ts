@@ -22,7 +22,8 @@ export abstract class Rpc {
     public abstract async createSignatureWithWallet(hex: string, prevtx: Output, address: string, sighashtype?: string): Promise<string>;
 
     public async getNewPubkey(): Promise<string> {
-        throw new Error('Not Implemented.');
+        const address = await this.getNewAddress();
+        return (await this.getAddressInfo(address)).pubkey;
     }
 
     public async getNormalOutputs(satoshis: number): Promise<Output[]> {

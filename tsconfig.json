@@ -1,9 +1,16 @@
 {
     "compileOnSave": false,
     "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "pretty": true,
+        "sourceMap": true,
+        "inlineSources": true,
         "outDir": "dist",
         "rootDir": "src",
-        "sourceMap": true,
+        "importHelpers": true,
+        "strict": true,
+
         "declaration": true,
         "moduleResolution": "node",
         "types": [
@@ -12,14 +19,12 @@
         ],
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
-        "target": "es6",
         "lib": [
             "es6"
         ],
         "typeRoots": [
             "node_modules/@types"
         ],
-        "strict": true,
         "noImplicitAny": false,
         "strictNullChecks": true,
         "noImplicitThis": true,
