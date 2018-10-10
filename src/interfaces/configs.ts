@@ -13,7 +13,7 @@ export interface BidConfiguration {
         city: string,
         state: string,
         zipCode: string,
-        country: string,
+        country: string
     };
     objects?: KVS[];
 }
