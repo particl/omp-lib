@@ -1,25 +1,69 @@
-import { Output, CryptoType, ToBeOutput, CryptoAddress, ISignature } from '../interfaces/crypto';
+import { Output, CryptoType, ISignature } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { toSatoshis, fromSatoshis } from '../util';
+
+/*
+ * Interfaces which the Rpc class needs to implement
+ */
+export interface RpcAddressInfo {
+    pubkey: string;
+}
+
+export interface RpcRawTx {
+    txid: string;
+    vout: RpcVout[];
+}
+
+export interface RpcVout {
+    valueSat: number;
+    n: number;
+    scriptPubKey: RpcScriptPubKey;
+}
+
+export interface RpcScriptPubKey {
+    hex: string;
+}
+
+export interface RpcOutput {
+    txid: string;
+    vout: number;
+}
+
+export interface RpcUnspentOutput extends RpcOutput {
+    spendable: boolean;
+    safe: boolean;
+    scriptPubKey: string;
+    amount: number;
+}
 
 /**
  * The abstract class for the Rpc class.
  */
 export abstract class Rpc {
 
-    public abstract async isConnected(): Promise<boolean>;
-    public abstract async getVersion(): Promise<number>;
+    protected _host: string;
+    protected _port: number;
+    protected _user: string;
+    protected _password: string;
+
+    protected constructor(host: string, port: number, user: string, password: string) {
+        this._host = host;
+        this._port = port;
+        this._user = user;
+        this._password = password;
+    }
+
     public abstract async call(method: string, params: any[]): Promise<any>;
 
     public abstract async getNewAddress(): Promise<string>;
-    public abstract async getAddressInfo(address: string): Promise<any>;
-    public abstract async sendRawTransaction(rawtx: string): Promise<any>;
-    public abstract async getRawTransaction(txid: string, verbose?: boolean, blockhash?: string): Promise<any>;
-    public abstract async listUnspent(minconf?: number, maxconf?: number, addresses?: string[], includeUnsafe?: boolean,
-                                      queryOptions?: any): Promise<any>;
-    public abstract async lockUnspent(unlock: boolean, outputs: Output[], permanent?: boolean): Promise<any>;
-    public abstract async importAddress(address: string, label?: string, rescan?: boolean, p2sh?: boolean): Promise<boolean>;
-    public abstract async createSignatureWithWallet(hex: string, prevtx: Output, address: string, sighashtype?: string): Promise<string>;
+    public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
+    public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>;
+    public abstract async getRawTransaction(txid: string): Promise<RpcRawTx>;
+    public abstract async sendRawTransaction(rawtx: string): Promise<string>;
+    public abstract async listUnspent(minconf: number): Promise<RpcUnspentOutput[]>;
+    public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>;
+    public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>;
+    public abstract async createSignatureWithWallet(hex: string, prevtx: Output, address: string): Promise<string>;
 
     public async getNewPubkey(): Promise<string> {
         const address = await this.getNewAddress();
@@ -36,11 +80,10 @@ export abstract class Rpc {
         let chosenSatoshis = 0;
         const defaultIdxs: number[] = [];
 
-        // TODO: Output doesnt seem to contain amount/scriptPubKey/spendable
-        const unspent: Output[] = await this.listUnspent(0);
+        const unspent: RpcUnspentOutput[] = await this.listUnspent(0);
 
         unspent.filter(
-            (output: Output, outIdx: number) => {
+            (output: RpcUnspentOutput, outIdx: number) => {
                 if (output.spendable && output.safe && (output.scriptPubKey.substring(0, 2) === '76')) {
                     if ((exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
                         // Found a utxo with amount that is an exact match for the requested value.
@@ -95,10 +138,10 @@ export abstract class Rpc {
 
             // ... Step 3: If no summed values found, attempt to split a large enough output.
             if (utxoIdxs.length === 0 && maxOutputIdx !== -1 && toSatoshis(unspent[maxOutputIdx].amount) > reqSatoshis) {
-                const newAddr = await this.call('getnewaddress', []);
-                const txid: string = await this.call('sendtoaddress', [newAddr, fromSatoshis(reqSatoshis), 'Split output']);
-                const txData: any = await this.call('getrawtransaction', [txid, true]);
-                const outData: any = txData.vout.find(outObj => outObj.valueSat === reqSatoshis);
+                const newAddr = await this.getNewAddress();
+                const txid: string = await this.sendToAddress(newAddr, fromSatoshis(reqSatoshis), 'Split output');
+                const txData: RpcRawTx = await this.getRawTransaction(txid);
+                const outData: RpcVout | undefined = txData.vout.find(outObj => outObj.valueSat === reqSatoshis);
                 if (outData) {
                     chosen.push({
                         txid: txData.txid,
@@ -106,7 +149,7 @@ export abstract class Rpc {
                         _satoshis: outData.valueSat,
                         _scriptPubKey: outData.scriptPubKey.hex,
                         _address: newAddr
-                    });
+                    } as Output);
                 }
             }
         } else {
@@ -137,27 +180,36 @@ export abstract class Rpc {
         });
         // tslint:enable:no-for-each-push
 
-        await this.call('lockunspent', [false, chosen, true]);
+        const success: boolean = await this.lockUnspent(false, chosen, true);
+        if (!success) {
+            throw new Error('Locking of unspent Outputs failed.');
+        }
         return chosen;
     }
 
+    /**
+     * Fetch the rawtx and set the utxo._satoshis to the tx's matching vout's valueSat
+     *
+     * @param utxo
+     */
     public async getSatoshisForUtxo(utxo: Output): Promise<Output> {
-        const vout = (await this.getRawTransaction(utxo.txid, true))
-            .vout.find((tmpVout: any) => tmpVout.n === utxo.vout);
-        const utxoOmp: Output = vout;
-        utxoOmp._satoshis = vout.valueSat;
-        return utxoOmp;
+        const vout: RpcVout | undefined = (await this.getRawTransaction(utxo.txid))
+            .vout.find((value: RpcVout) => value.n === utxo.vout);
+        if (!vout) {
+            throw new Error('Transaction does not contain matching Output.');
+        }
+        utxo._satoshis = vout.valueSat;
+        return utxo;
     }
 
-    public async importRedeemScript(script: any): Promise<boolean> {
-        return await this.importAddress(script, '', false, true);
+    public async importRedeemScript(script: string): Promise<void> {
+        await this.importAddress(script, '', false, true);
     }
 
     public async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> {
         const r: ISignature[] = [];
 
-        // needs to synchronize, because the order needs to match
-        // the inputs order.
+        // needs to synchronize, because the order needs to match the inputs order.
         for (const input of inputs) {
 
             if (!input._satoshis) {
