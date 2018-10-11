@@ -1,6 +1,7 @@
 import * from 'jest';
 import { hash, hashListing, deepSortObject } from '../src/hasher/hash';
-import { clone } from '../src/util';
+import { clone, strip } from '../src/util';
+import { sha256 } from 'js-sha256';
 
 const deepNestOne = {
     b: {
@@ -69,21 +70,20 @@ const deepNestTwo = {
 };
 
 test('normalize and hash', () => {
-    let output = 'one';
+    let prevout = 'one';
     let two = 'two';
     try {
         // console.log(JSON.stringify(deepSortObject(deepNestOne), null, 4));
         // console.log(JSON.stringify(deepSortObject(deepNestTwo), null, 4));
 
-        output = hash(deepNestOne);
+        prevout = hash(deepNestOne);
         two = hash(deepNestTwo);
         // console.log(output + " === " + two);
     } catch (e) {
         console.log(e);
     }
-    expect(output).toBe(two);
+    expect(prevout).toBe(two);
 });
-
 
 
 const ok = JSON.parse(
@@ -156,13 +156,103 @@ ok_less_img_data.action.item.information.images.push({
 });
 
 test('compare hashes of two listings full vs less local images', () => {
-    let output = 'one';
+    let prevout = 'one';
     let two = 'two';
     try {
-        output = hashListing(ok_full_img_data);
+        prevout = hashListing(ok_full_img_data);
         two = hashListing(ok_less_img_data);
     } catch (e) {
         console.log(e);
     }
-    expect(output).toBe(two);
+    expect(prevout).toBe(two);
+});
+
+
+const dirty = {
+    b: {
+        outerarray: [
+            {
+                innerarray: [
+                    '_rm',
+                    'a',
+                    'd',
+                    {
+                        'to test aye': 'two',
+                        'alongerstring': 'one'
+                    },
+                    {
+                        _ihateparsers: 'two',
+                        aalongerstring: 'one'
+                    },
+                    {
+                        neveragain: 'two',
+                        seriously: 'one'
+                    }
+                ],
+                _removemplz: [
+                    'shouldn\'t be here'
+                ]
+            },
+            'blevel2',
+            'clevel2',
+            'alevel2',
+            'dlevel2'
+        ],
+        a: 'level1'
+    },
+    d: 5,
+    _thiscantbehere: 0
+};
+
+const clean = {
+    b: {
+        outerarray: [
+            {
+                innerarray: [
+                    'a',
+                    'd',
+                    {
+                        'to test aye': 'two',
+                        'alongerstring': 'one'
+                    },
+                    {
+                        aalongerstring: 'one'
+                    },
+                    {
+                        neveragain: 'two',
+                        seriously: 'one'
+                    }
+                ]
+            },
+            'blevel2',
+            'clevel2',
+            'alevel2',
+            'dlevel2'
+        ],
+        a: 'level1'
+    },
+    d: 5
+};
+
+test('strip', () => {
+    let stripped;
+    try {
+        // console.log(JSON.stringify(deepSortObject(deepNestOne), null, 4));
+        // console.log(JSON.stringify(deepSortObject(deepNestTwo), null, 4));
+
+        stripped = strip(dirty);
+        // console.log(JSON.stringify(stripped, null, 4));
+
+    } catch (e) {
+        console.log(e);
+    }
+
+    expect(stripped).toEqual(clean);
+});
+
+test.only('sha256hex', () => {
+    const s = sha256.create();
+    // bee405d40383879ca57d4eb24b9153b356c85ee6f4bc810b8bb1b67c1112c0bd
+    s.update(new Buffer('76d02c17ce9999108a568fa9c192eee9580674e73a47c1e85c1bd335aa57082e', 'hex'));
+    console.log('sha256hex s=', s.hex());
 });

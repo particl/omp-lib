@@ -8,138 +8,139 @@ describe('SequenceValidator', () => {
     const validate = Sequence.validate;
     const listing_ok = JSON.parse(
         `{
-            "version": "0.1.0.0",
-            "action": {
-                "type": "MPA_LISTING_ADD",
-                "item": {
-                  "information": {
-                    "title": "a 6 month old dog",
-                    "shortDescription": "very cute",
-                    "longDescription": "not for eating",
-                    "category": [
-                        "Animals"
-                    ]
-                  },
-                  "payment": {
-                    "type": "SALE",
-                    "escrow": {
-                      "type": "MULTISIG",
-                      "ratio": {
-                        "buyer": 100,
-                        "seller": 100
-                      }
-                    },
-                    "cryptocurrency": [
-                      {
-                        "currency": "PART",
-                        "basePrice": 10
-                      }
-                    ]
-                  },
-                  "messaging": [
-                    {
-                      "protocol": "TODO",
-                      "publicKey": "TODO"
-                    }
-                  ]
+        "version": "0.1.0.0",
+        "action": {
+            "type": "MPA_LISTING_ADD",
+            "item": {
+              "information": {
+                "title": "a 6 month old dog",
+                "shortDescription": "very cute",
+                "longDescription": "not for eating",
+                "category": [
+                    "Animals"
+                ]
+              },
+              "payment": {
+                "type": "SALE",
+                "escrow": {
+                  "type": "MULTISIG",
+                  "ratio": {
+                    "buyer": 100,
+                    "seller": 100
+                  }
+                },
+                "cryptocurrency": [
+                  {
+                    "currency": "PART",
+                    "basePrice": 10
+                  }
+                ]
+              },
+              "messaging": [
+                {
+                  "protocol": "TODO",
+                  "publicKey": "TODO"
                 }
+              ]
             }
-        }`);
+        }
+    }`);
 
     const bid_ok = JSON.parse(
         `{
-                "version": "0.1.0.0",
-                "action": {
-                    "type": "MPA_BID",
-                    "created": ${+new Date()},
-                    "item": "${hash(listing_ok)}",
-                    "buyer": {
-                      "payment": {
-                        "cryptocurrency": "PART",
-                        "escrow": "MULTISIG",
-                        "fee": 2000,
-                        "pubKey": "somepublickey",
-                        "changeAddress": {
-                            "type": "NORMAL",
-                            "address": "someaddress"
-                        },
-                        "outputs": [
-                            {
-                                "txid": "${hash('txid')}",
-                                "vout": 0
-                            }
-                        ]
-                      },
-                      "shippingAddress": {
-                        "firstName": "string",
-                        "lastName": "string",
-                        "addressLine1": "string",
-                        "addressLine2": "string",
-                        "city": "string",
-                        "state": "string",
-                        "zipCode": "zipCodeString",
-                        "country": "string"
-                      }
-                    }
-                }
-            }`);
-
-    const accept_ok = JSON.parse(
-        `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_ACCEPT",
-                    "bid": "${hash(bid_ok)}",
-                    "seller": {
-                        "payment": {
-                        "escrow": "MULTISIG",
-                        "fee": 2000,
-                        "pubKey": "somepublickey",
-                        "changeAddress": {
-                            "type": "NORMAL",
-                            "address": "someaddress"
-                        },
-                        "outputs": [
-                            {
-                                "txid": "${hash('txid')}",
-                                "vout": 0
-                            }
-                        ],
-                        "signatures": [
-                            {
-                                "signature": "signature1",
-                                "pubKey": "pubkey1"
-                            }
-                        ]
-                    }
+                "type": "MPA_BID",
+                "created": ${+ new Date()},
+                "item": "${hash(listing_ok)}",
+                "buyer": {
+                  "payment": {
+                    "cryptocurrency": "PART",
+                    "escrow": "MULTISIG",
+                    "fee": 2000,
+                    "pubKey": "somepublickey",
+                    "changeAddress": {
+                        "type": "NORMAL",
+                        "address": "someaddress"
+                    },
+                    "prevouts": [
+                        {
+                            "txid": "${hash('txid')}",
+                            "vout": 0
+                        }
+                    ]
+                  },
+                  "shippingAddress": {
+                    "firstName": "string",
+                    "lastName": "string",
+                    "addressLine1": "string",
+                    "addressLine2": "string",
+                    "city": "string",
+                    "state": "string",
+                    "zipCode": "zipCodeString",
+                    "country": "string"
+                  }
                 }
             }
         }`);
 
+    const accept_ok = JSON.parse(
+        `{
+        "version": "0.1.0.0",
+        "action": {
+            "type": "MPA_ACCEPT",
+                "bid": "${hash(bid_ok)}",
+                "seller": {
+                    "payment": {
+                    "escrow": "MULTISIG",
+                    "fee": 2000,
+                    "pubKey": "somepublickey",
+                    "changeAddress": {
+                        "type": "NORMAL",
+                        "address": "someaddress"
+                    },
+                    "prevouts": [
+                        {
+                            "txid": "${hash('txid')}",
+                            "vout": 0
+                        }
+                    ],
+                    "signatures": [
+                        {
+                            "signature": "signature1",
+                            "pubKey": "pubkey1"
+                        }
+                    ]
+                }
+            }
+        }
+    }`);
+
     const lock_ok = JSON.parse(
         `{
-                "version": "0.1.0.0",
-                "action": {
-                    "type": "MPA_LOCK",
-                    "bid": "${hash(bid_ok)}",
-                    "buyer": {
-                      "payment": {
-                        "escrow": "MULTISIG",
-                        "signatures": [
-                            {
-                                "signature": "signature1",
-                                "pubKey": "pubkey1"
-                            }
-                        ]
-                      }
-                    }
+            "version": "0.1.0.0",
+            "action": {
+                "type": "MPA_LOCK",
+                "bid": "${hash(bid_ok)}",
+                "buyer": {
+                  "payment": {
+                    "escrow": "MULTISIG",
+                    "signatures": [
+                        {
+                            "signature": "signature1",
+                            "pubKey": "pubkey1"
+                        }
+                    ]
+                  }
                 }
-            }`);
+            }
+        }`);
+
 
     test('seqver complete good cycle', () => {
         let fail = false;
         try {
-            console.log('listing_ok, bid_ok, accept_ok, lock_ok');
+
             fail = !validate([listing_ok, bid_ok, accept_ok, lock_ok]);
         } catch (e) {
             console.log(e);
@@ -168,7 +169,7 @@ describe('SequenceValidator', () => {
         } catch (e) {
             error = e.toString();
         }
-        expect(error).toEqual(expect.stringContaining('hash provided by MPA_ACCEPT did not match.'));
+        expect(error).toEqual(expect.stringContaining('did not match the hash of the bid.'));
     });
 
     const wrong_escrow_bid = clone(bid_ok);

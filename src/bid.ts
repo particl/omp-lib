@@ -1,12 +1,11 @@
-import { MPA_EXT_LISTING_ADD, MPA_BID, MPM } from './interfaces/omp';
-import { CryptoType, CryptoAddressType } from './interfaces/crypto';
-import { MPAction, EscrowType } from './interfaces/omp-enums';
+import { MPA_BID, MPA_EXT_LISTING_ADD, MPM } from './interfaces/omp';
+import { CryptoAddressType } from './interfaces/crypto';
+import { EscrowType, MPAction } from './interfaces/omp-enums';
 import { hash } from './hasher/hash';
-import { MultiSigBuilder } from './transaction-builder/multisig';
 import { BidConfiguration } from './interfaces/configs';
 
-import { injectable, inject } from 'inversify';
-import { IMultiSigBuilder } from './abstract/transactions';
+import { inject, injectable } from 'inversify';
+import { IMadCTBuilder, IMultiSigBuilder } from './abstract/transactions';
 import { TYPES } from './types';
 
 /**
@@ -17,11 +16,14 @@ import { TYPES } from './types';
 export class Bid {
 
     private _msb: IMultiSigBuilder;
+    private _madct: IMadCTBuilder;
 
     constructor(
-        @inject(TYPES.MultiSigBuilder) msb: IMultiSigBuilder
+        @inject(TYPES.MultiSigBuilder) msb: IMultiSigBuilder,
+        @inject(TYPES.MadCTBuilder) madct: IMadCTBuilder
     ) {
         this._msb = msb;
+        this._madct = madct;
     }
 
     /**
@@ -51,11 +53,10 @@ export class Bid {
                             type: CryptoAddressType.NORMAL,
                             address: ''
                         },
-                        outputs: []
+                        prevouts: []
                     },
                     shippingAddress: config.shippingAddress
-                },
-                objects: config.objects
+                }
                 // objects: KVS[]
             }
         };
@@ -66,18 +67,21 @@ export class Bid {
             case EscrowType.MULTISIG:
                 await this._msb.bid(listing, bid);
                 break;
-            case EscrowType.FE:
-            case EscrowType.MAD:
             case EscrowType.MAD_CT:
-            default:
+                delete bid.action.buyer.payment.pubKey;
+                delete bid.action.buyer.payment.changeAddress;
+                bid.action.buyer.payment.address = {};
+                await this._madct.bid(listing, bid);
+                break;
         }
 
         return bid;
     }
 
     /**
-     * Accept a bid.
-     * Add payment data to reply based on configured cryptocurrency & escrow.
+     * Seller accepts a bid.
+     * Add payment data to reply based on configured cryptocurrency & escrow (bid tx).
+     * Adds signatures for destruction transaction.
      *
      * @param listing the listing.
      * @param bid the bid for which to produce an accept message.
@@ -101,7 +105,7 @@ export class Bid {
                             type: CryptoAddressType.NORMAL,
                             address: ''
                         },
-                        outputs: [],
+                        prevouts: [],
                         signatures: []
                     }
                 }
@@ -114,18 +118,20 @@ export class Bid {
             case EscrowType.MULTISIG:
                 await this._msb.accept(listing, bid, accept);
                 break;
-            case EscrowType.FE:
-            case EscrowType.MAD:
             case EscrowType.MAD_CT:
-            default:
+                delete accept.action.seller.payment.pubKey;
+                delete accept.action.seller.payment.changeAddress;
+                accept.action.seller.payment.destroy = {};
+                await this._madct.accept(listing, bid, accept);
+                break;
         }
 
         return accept;
     }
 
     /**
-     * Lock a bid.
-     * Add signatures of buyer.
+     * Buyer locks a bid.
+     *
      *
      * @param listing the listing message.
      * @param bid the bid message.
@@ -157,13 +163,50 @@ export class Bid {
             case EscrowType.MULTISIG:
                 await this._msb.lock(listing, bid, accept, lock);
                 break;
-            case EscrowType.FE:
-            case EscrowType.MAD:
             case EscrowType.MAD_CT:
-            default:
+                /**
+                 * MAD CT
+                 * Add signatures of buyer for destroy tx and bid tx.
+                 * Destroy txn: fully signed
+                 * Bid txn: only signed by buyer.
+                 */
+                lock.action.buyer.payment.destroy = {};
+                await this._madct.lock(listing, bid, accept, lock);
+                break;
+
         }
 
         return lock;
+    }
+
+    /**
+     * Seller completes a bid.
+     * Add signatures of buyer.
+     *
+     * MAD CT
+     * Destroy txn: fully signed
+     * Bid txn: fully signed (no real message produced).
+     *
+     * @param listing the listing message.
+     * @param bid the bid message.
+     * @param accept the accept message for which to produce an lock message.
+     */
+    public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
+
+        const mpa_bid = <MPA_BID> bid.action;
+        const payment = mpa_bid.buyer.payment;
+        let complete;
+
+        switch (payment.escrow) {
+            case EscrowType.MULTISIG:
+                throw new Error('Multisig does not have a complete stage.');
+            case EscrowType.MAD_CT:
+                complete = await this._madct.complete(listing, bid, accept, lock);
+                break;
+
+        }
+
+        return complete;
     }
 
     /**
@@ -174,7 +217,7 @@ export class Bid {
      * @param bid the bid message.
      * @param accept the accept message.
      */
-    public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM> {
+    public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM | string> {
         const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
         const mpa_bid = <MPA_BID> bid.action;
 
@@ -201,10 +244,10 @@ export class Bid {
             case EscrowType.MULTISIG:
                 await this._msb.release(listing, bid, accept, release);
                 break;
-            case EscrowType.FE:
-            case EscrowType.MAD:
             case EscrowType.MAD_CT:
-            default:
+                return (await this._madct.release(listing, bid, accept));
+            case EscrowType.MAD:
+            case EscrowType.FE:
         }
 
         return release;
@@ -245,10 +288,9 @@ export class Bid {
             case EscrowType.MULTISIG:
                 await this._msb.refund(listing, bid, accept, lock, refund);
                 break;
-            case EscrowType.FE:
             case EscrowType.MAD:
             case EscrowType.MAD_CT:
-            default:
+            case EscrowType.FE:
         }
 
         return refund;

@@ -1,0 +1,23 @@
+bitcore-notes
+-------------
+
+_addOutput (transaction.js)
+
+Transaction.prototype._addOutput = function(prevout) {
+  //prevout.type = Prevout.OUTPUT_TYPES.OUTPUT_STANDARD;
+  prevout.type = prevout.type || 1;
+  this.prevouts.push(prevout);
+  this._prevoutAmount = undefined;
+};
+
+
+toBufferWrite (prevout.js)
+
+
+      if ((!_.isUndefined(includeWitness) // default value isn't working
+        && includeWitness != true) || _.isUndefined(this.rangeproof)) { // if rangeproof not set, force
+        writer.writeVarintNum(0);
+      } else  {
+        writer.writeVarintNum(this.rangeproof.length);
+        writer.write(this.rangeproof);
+      }

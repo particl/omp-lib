@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Output, CryptoAddress, CryptoType, ISignature } from './crypto';
+import { Prevout, CryptoAddress, CryptoType, ISignature, ToBeNormalOutput, ToBeOutput, EphemeralKey } from './crypto';
 import { DSN, ContentReference } from './dsn';
 import { MPAction, PaymentType, EscrowType } from './omp-enums';
 import { KVS } from './common';
@@ -70,8 +70,8 @@ export interface MPA_LISTING_ADD extends MPA {
 export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
     type: MPAction.MPA_LISTING_ADD;
     item: {
-        // created: number, // timestamp // add?
-        // hash: string, // remove!
+        // created: number,     // timestamp // add?
+        // hash: string,        // remove!
         information: {
             title: string,
             shortDescription: string,
@@ -94,29 +94,26 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
             type: PaymentType,
             escrow: {
                 type: EscrowType,
+                secondsToLock?: number,
                 ratio: {
                     buyer: number,
                     seller: number
                 }
             },
-            cryptocurrency: [
-                {
-                    currency: CryptoType,
-                    basePrice: number,
-                    shippingPrice: {
-                        domestic: number,
-                        international: number
-                    },
-                    address: CryptoAddress
-                }
-                ]
+            cryptocurrency: [{
+                currency: CryptoType,
+                basePrice: number,
+                shippingPrice: {
+                    domestic: number,
+                    international: number
+                },
+                address: CryptoAddress
+            }]
         },
-        messaging: [
-            {
-                protocol: string,
-                publicKey: string
-            }
-            ],
+        messaging: [{
+            protocol: string,
+            publicKey: string
+        }],
         objects?: KVS[]
     };
 }
@@ -127,21 +124,27 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
  */
 export interface MPA_BID extends MPA { // completely refactored, !implementation !protocol
     type: MPAction;
-    created: number; // timestamp
-    item: string; // item hash
+    created: number;    // timestamp
+    item: string;       // item hash
     buyer: {
         payment: {
             cryptocurrency: CryptoType,
             escrow: EscrowType,
             pubKey: string,
+            address?: CryptoAddress,        // CT
             changeAddress: CryptoAddress,
-            outputs: Output[]
+            prevouts: Prevout[],
+            outputs?: ToBeOutput[],         // CT
+            release?: {                     // CT
+                blindFactor: string,
+                ephem: EphemeralKey
+            }
         },
         shippingAddress: {
             firstName: string,
             lastName: string,
             addressLine1: string,
-            addressLine2: string, // optional
+            addressLine2: string,           // optional
             city: string,
             state: string,
             zipCode: string,
@@ -154,7 +157,6 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
 export interface MPA_REJECT extends MPA {
     type: MPAction.MPA_REJECT;
     bid: string; // item hash
-
 }
 
 /**
@@ -171,17 +173,24 @@ export interface MPA_ACCEPT extends MPA {
             pubKey: string,
             changeAddress: CryptoAddress,
             fee: number,
-            outputs: Output[],
-            signatures: ISignature[]
+            prevouts: Prevout[],
+            outputs?: ToBeOutput[],
+            signatures: ISignature[],
+            release?: {
+                blindFactor: string,
+                ephem: EphemeralKey,
+                signatures: ISignature[]
+            },
+            destroy?: {
+                signatures: ISignature[]
+            }
         }
     };
 }
 
 export interface MPA_CANCEL extends MPA { // !implementation !protocol
-
     type: MPAction.MPA_CANCEL;
     bid: string; // hash of MPA_BID
-
 }
 
 /**
@@ -194,7 +203,10 @@ export interface MPA_LOCK extends MPA {
     buyer: {
         payment: {
             escrow: EscrowType,
-            signatures: ISignature[]
+            signatures: ISignature[],
+            destroy?: {
+                signatures?: ISignature[]
+            }
         }
     };
     info: {
@@ -216,7 +228,6 @@ export interface MPA_RELEASE extends MPA { // !implementation !protocol
             signatures: ISignature[]
         }
     };
-
 }
 
 export interface MPA_REFUND extends MPA {

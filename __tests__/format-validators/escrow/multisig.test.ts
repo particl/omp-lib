@@ -24,7 +24,7 @@ const ok_bid = JSON.parse(
                     "type": "NORMAL",
                     "address": "someaddress"
                 },
-                "outputs": [
+                "prevouts": [
                     {
                         "txid": "${hash('txid')}",
                         "vout": 0
@@ -94,12 +94,12 @@ test('validate missing escrow type MPA_BID', () => {
     expect(error).toEqual(expect.stringContaining('CryptoAddress: missing or not an object'));
 });
 
-const bid_missing_outputs = clone(ok_bid);
-delete bid_missing_outputs.action.buyer.payment.outputs;
+const bid_missing_prevouts = clone(ok_bid);
+delete bid_missing_prevouts.action.buyer.payment.prevouts;
 test('validate missing escrow type MPA_BID', () => {
     let error = '';
     try {
-        validate(bid_missing_outputs);
+        validate(bid_missing_prevouts);
     } catch (e) {
         error = e.toString();
     }
@@ -122,7 +122,7 @@ const ok_accept = JSON.parse(
                     "type": "NORMAL",
                     "address": "someaddress"
                 },
-                "outputs": [
+                "prevouts": [
                     {
                         "txid": "${hash('txid')}",
                         "vout": 0
@@ -187,16 +187,16 @@ test('validate missing changeAddress MPA_ACCEPT', () => {
     expect(error).toEqual(expect.stringContaining('CryptoAddress: missing or not an object'));
 });
 
-const accept_missing_outputs = clone(ok_accept);
-delete accept_missing_outputs.action.seller.payment.outputs;
-test('validate missing outputs MPA_ACCEPT', () => {
+const accept_missing_prevouts = clone(ok_accept);
+delete accept_missing_prevouts.action.seller.payment.prevouts;
+test('validate missing prevouts MPA_ACCEPT', () => {
     let error = '';
     try {
-        validateAccept(accept_missing_outputs);
+        validateAccept(accept_missing_prevouts);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining('payment.outputs: not an array'));
+    expect(error).toEqual(expect.stringContaining('payment.prevouts: not an array'));
 });
 
 const accept_missing_signatures = clone(ok_accept);
@@ -212,7 +212,7 @@ test('validate missing signatures MPA_ACCEPT', () => {
 });
 
 const accept_not_enough_signatures = clone(ok_accept);
-accept_not_enough_signatures.action.seller.payment.outputs.push({
+accept_not_enough_signatures.action.seller.payment.prevouts.push({
     txid: hash('txid2'),
     vout: 1
 });
@@ -223,7 +223,7 @@ test('validate missing signatures MPA_ACCEPT', () => {
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining('signatures: amount of signatures does not match amount of outputs'));
+    expect(error).toEqual(expect.stringContaining('signatures: amount of signatures does not match amount of prevouts'));
 });
 
 

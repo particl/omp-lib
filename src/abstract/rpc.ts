@@ -2,6 +2,8 @@ import { Output, CryptoType, ISignature } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { toSatoshis, fromSatoshis } from '../util';
 
+import { Prevout, ToBeNormalOutput, CryptoAddress, BlindPrevout, ToBeBlindOutput } from '../interfaces/crypto';
+
 /*
  * Interfaces which the Rpc class needs to implement
  */
@@ -58,12 +60,28 @@ export abstract class Rpc {
     public abstract async getNewAddress(): Promise<string>;
     public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
     public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>;
-    public abstract async getRawTransaction(txid: string): Promise<RpcRawTx>;
-    public abstract async sendRawTransaction(rawtx: string): Promise<string>;
     public abstract async listUnspent(minconf: number): Promise<RpcUnspentOutput[]>;
     public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>;
     public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>;
     public abstract async createSignatureWithWallet(hex: string, prevtx: Output, address: string): Promise<string>;
+
+    // Networking
+    public abstract async getRawTransaction(txid: string): Promise<RpcRawTx>;
+    public abstract async sendRawTransaction(rawtx: string): Promise<string>;
+
+    // ------ new stuff
+    public abstract async getNewPubkey(): Promise<string>;
+    public abstract async getNewAddress(): Promise<string>;
+    public abstract async lockUnspent(prevout: Prevout[]): Promise<boolean>;
+
+    // Retrieving information of prevouts
+    public abstract async getNormalPrevouts(satoshis: number): Promise<Prevout[]>;
+
+
+    // Importing and signing
+    public abstract async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Prevout[]): Promise<ISignature[]>
+
+
 
     public async getNewPubkey(): Promise<string> {
         const address = await this.getNewAddress();
@@ -192,7 +210,7 @@ export abstract class Rpc {
      *
      * @param utxo
      */
-    public async getSatoshisForUtxo(utxo: Output): Promise<Output> {
+    public async getSatoshisForUtxo(utxo: Prevout): Promise<Prevout> {
         const vout: RpcVout | undefined = (await this.getRawTransaction(utxo.txid))
             .vout.find((value: RpcVout) => value.n === utxo.vout);
         if (!vout) {
@@ -206,7 +224,12 @@ export abstract class Rpc {
         await this.importAddress(script, '', false, true);
     }
 
-    public async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Output[]): Promise<ISignature[]> {
+    /**
+     * Sign a transaction and returns the signatures for an array of normal inputs.
+     * @param tx the transaction to build and sign for.
+     * @param inputs the _normal_ inputs to sign for.
+     */
+    public async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Prevout[]): Promise<ISignature[]> {
         const r: ISignature[] = [];
 
         // needs to synchronize, because the order needs to match the inputs order.
@@ -242,4 +265,31 @@ export abstract class Rpc {
 
 }
 
-export type ILibrary = (parent: CryptoType) => Rpc;
+/**
+ * The abstract class for the Confidential Transactions Rpc.
+ */
+export abstract class CtRpc extends Rpc {
+
+    call(method: string, params: any[]): Promise<any>;
+
+    /*
+        WALLET - generating keys, addresses.
+    */
+    getNewStealthAddressWithEphem(sx?: CryptoAddress): Promise<CryptoAddress>;
+    getPubkeyForStealthWithEphem(sx: CryptoAddress): Promise<CryptoAddress>;
+
+    // Retrieving information of prevouts
+    getBlindPrevouts(satoshis: number, blind?: string): Promise<BlindPrevout[]>;
+
+    loadTrustedFieldsForBlindUtxo(utxo: BlindPrevout): Promise<BlindPrevout>;
+    getLastMatchingBlindFactor(prevouts: Prevout[] | ToBeBlindOutput[], outputs: ToBeBlindOutput[]): Promise<string>;
+
+    generateRawConfidentialTx(prevouts: any[], outputs: any[], feeSatoshis: number): Promise<string>;
+
+    // Importing and signing
+    signRawTransactionForBlindInputs(tx: TransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]>
+}
+
+export type ILibrary = (parent: CryptoType, isCt?: boolean) => (Rpc | CtRpc);
+
+

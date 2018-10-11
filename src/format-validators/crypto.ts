@@ -1,25 +1,25 @@
-import { Output, CryptoAddress, CryptoAddressType, ISignature } from '../interfaces/crypto';
+import { Prevout, CryptoAddress, CryptoAddressType, ISignature } from '../interfaces/crypto';
 import { isObject, isNumber, isString, isTxid, isArray } from '../util';
-
+import { isPublicKey } from './util';
 
 export class FV_CRYPTO {
 
-    public static validateOutput(out: Output): boolean {
+    public static validatePrevout(out: Prevout): boolean {
 
         if (!isObject(out)) {
-            throw new Error('output: missing or not an object!');
+            throw new Error('prevout: missing or not an object!');
         }
 
         if (!isTxid(out.txid)) {
-            throw new Error('output: txid missing');
+            throw new Error('prevout: txid missing');
         }
 
         if (!isNumber(out.vout)) {
-            throw new Error('output: vout is of the wrong type, expecting number');
+            throw new Error('prevout: vout is of the wrong type, expecting number');
         }
 
         if (out.vout < 0) {
-            throw new Error('output: vout can not be negative');
+            throw new Error('prevout: vout can not be negative');
         }
 
         return true;
@@ -42,6 +42,9 @@ export class FV_CRYPTO {
             throw new Error('CryptoAddress.address: address is missing or wrong type, expecting string');
         }
 
+        if (address.type === CryptoAddressType.STEALTH && address.ephem && isObject(address.ephem) && !isPublicKey(address.ephem.public)) {
+            throw new Error('CryptoAddress.ephem: ephem is missing or wrong type, expecting public key');
+        }
         return true;
     }
 

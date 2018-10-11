@@ -8,10 +8,10 @@ const success = JSON.parse(
         "vout": 0
     }`);
 
-test('validate a normal output', () => {
+test('validate a normal prevout', () => {
     let fail: boolean;
     try {
-        fail = !FV_CRYPTO.validateOutput(success);
+        fail = !FV_CRYPTO.validatePrevout(success)
     } catch (e) {
         console.log(e);
         fail = true;
@@ -21,10 +21,10 @@ test('validate a normal output', () => {
 
 const horrible_fail = JSON.parse(`"not even an object"`);
 
-test('output not an object', () => {
+test('prevout not an object', () => {
     let fail: boolean;
     try {
-        fail = !FV_CRYPTO.validateOutput(horrible_fail);
+        fail = !FV_CRYPTO.validatePrevout(horrible_fail);
     } catch (e) {
         fail = true;
     }
@@ -41,7 +41,7 @@ const negative_vout = JSON.parse(
 test('try negative vout', () => {
     let fail: boolean;
     try {
-        fail = !FV_CRYPTO.validateOutput(negative_vout);
+        fail = !FV_CRYPTO.validatePrevout(negative_vout);
     } catch (e) {
         fail = true;
     }

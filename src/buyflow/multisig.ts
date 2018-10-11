@@ -5,7 +5,7 @@ import { CryptoAddressType } from '../interfaces/crypto';
 import { Rpc, ILibrary } from '../abstract/rpc';
 import { IMultiSigBuilder } from '../abstract/transactions';
 
-import { TransactionBuilder, getTxidFrom } from './transaction';
+import { TransactionBuilder, getTxidFrom } from './transaction-builder/transaction';
 import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from '../interfaces/omp';
 import { asyncForEach, asyncMap, clone, isArray } from '../util';
 
@@ -49,7 +49,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // TODO: escrow!
 
-        mpa_bid.buyer.payment.outputs = await lib.getNormalOutputs(requiredSatoshis);
+        mpa_bid.buyer.payment.prevouts = await lib.getNormalPrevouts(requiredSatoshis);
 
         return bid;
     }
@@ -94,31 +94,31 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             mpa_accept.seller.payment.fee = seller_fee;
         }
 
-        if (!isArray(mpa_accept.seller.payment.outputs)) {
-            // add chosen outputs to cover amount (MPA_ACCEPT)
-            mpa_accept.seller.payment.outputs = await lib.getNormalOutputs(seller_requiredSatoshis + seller_fee);
+        if (!isArray(mpa_accept.seller.payment.prevouts)) {
+            // add chosen prevouts to cover amount (MPA_ACCEPT)
+            mpa_accept.seller.payment.prevouts = await lib.getNormalPrevouts(seller_requiredSatoshis + seller_fee);
         }
 
         // prefetch amounts for inputs
         // makes sure the values are trusted.
-        const buyer_inputs = await asyncMap(mpa_bid.buyer.payment.outputs, async i => await lib.getSatoshisForUtxo(i));
-        const seller_inputs = await asyncMap(mpa_accept.seller.payment.outputs, async i => await lib.getSatoshisForUtxo(i));
+        const buyer_inputs = await asyncMap(mpa_bid.buyer.payment.prevouts, async i => await lib.getSatoshisForUtxo(i));
+        const seller_inputs = await asyncMap(mpa_accept.seller.payment.prevouts, async i => await lib.getSatoshisForUtxo(i));
 
         // add all inputs (TransactionBuilder)
         const tx: TransactionBuilder = new TransactionBuilder();
-        mpa_bid.buyer.payment.outputs.forEach((input) => tx.addInput(input));
-        mpa_accept.seller.payment.outputs.forEach((input) => tx.addInput(input));
+        mpa_bid.buyer.payment.prevouts.forEach((input) => tx.addInput(input));
+        mpa_accept.seller.payment.prevouts.forEach((input) => tx.addInput(input));
 
         // calculate changes (TransactionBuilder)
-        const buyer_change = tx.newChangeOutputFor(buyer_requiredSatoshis, mpa_bid.buyer.payment.changeAddress, mpa_bid.buyer.payment.outputs);
-        const seller_change = tx.newChangeOutputFor(seller_requiredSatoshis + seller_fee, mpa_accept.seller.payment.changeAddress,
-            mpa_accept.seller.payment.outputs);
+        const buyer_change = tx.newChangePrevoutFor(buyer_requiredSatoshis, mpa_bid.buyer.payment.changeAddress, mpa_bid.buyer.payment.prevouts);
+        const seller_change = tx.newChangePrevoutFor(seller_requiredSatoshis + seller_fee, mpa_accept.seller.payment.changeAddress,
+            mpa_accept.seller.payment.prevouts);
 
-        // build the multisig output
+        // build the multisig prevout
         const multisig_requiredSatoshis = buyer_requiredSatoshis + seller_requiredSatoshis;
         // TODO(security): is safe number?
 
-        const multisig_output = tx.newMultisigOutput(
+        const multisig_prevout = tx.newMultisigPrevout(
             multisig_requiredSatoshis,
             [
                 mpa_bid.buyer.payment.pubKey,
@@ -128,13 +128,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // import the redeem script so the wallet is aware to watch on it
         // losing the pubkey makes the redeem script unrecoverable.
         // (always import the redeem script, doesn't matter)
-        await lib.importRedeemScript(multisig_output._redeemScript);
+        await lib.importRedeemScript(multisig_prevout._redeemScript);
 
-        // If
         if (isArray(mpa_accept.seller.payment.signatures)) {
             // add signatures to inputs
             const signature = mpa_accept.seller.payment.signatures;
-            mpa_accept.seller.payment.outputs.forEach((out, i) => tx.addSignature(out, signature[i]));
+            mpa_accept.seller.payment.prevouts.forEach((out, i) => tx.addSignature(out, signature[i]));
 
         } else {
             mpa_accept.seller.payment.signatures = await lib.signRawTransactionForInputs(tx, seller_inputs);
@@ -171,17 +170,17 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency);
 
         // rebuild from accept message
-        const tx: TransactionBuilder = (await this.accept(listing, bid, clone(accept)))['_tx'];
+        const bidtx: TransactionBuilder = (await this.accept(listing, bid, clone(accept)))['_bidtx'];
 
         if (isArray(mpa_lock.buyer.payment.signatures)) {
             // add signatures to inputs
             const signature = mpa_lock.buyer.payment.signatures;
-            mpa_bid.buyer.payment.outputs.forEach((out, i) => tx.addSignature(out, signature[i]));
+            mpa_bid.buyer.payment.prevouts.forEach((out, i) => bidtx.addSignature(out, signature[i]));
         } else {
-            mpa_lock.buyer.payment.signatures = await lib.signRawTransactionForInputs(tx, mpa_bid.buyer.payment.outputs);
+            mpa_lock.buyer.payment.signatures = await lib.signRawTransactionForInputs(bidtx, mpa_bid.buyer.payment.prevouts);
         }
 
-        lock['_rawtx'] = tx.build();
+        lock['_rawbidtx'] = bidtx.build();
 
         return lock;
     }
@@ -248,7 +247,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         release['_rawtx_accept'] = acceptRawTx;
 
-        // retrieve multisig output from lock tx.
+        // retrieve multisig prevout from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
         console.log('(release) rebuilt accept txid', lockTx.txid);
 
@@ -266,15 +265,15 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             mpa_accept.seller.payment.pubKey
         ]);
 
-        // Add the output for the buyer
+        // Add the prevout for the buyer
         const buyer_address = mpa_bid.buyer.payment.changeAddress;
         const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false);
-        releaseTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
+        releaseTx.newNormalPrevout(buyer_address, buyer_releaseSatoshis);
 
         const seller_address = mpa_accept.seller.payment.changeAddress;
         const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true);
         const seller_fee = mpa_accept.seller.payment.fee;
-        releaseTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
+        releaseTx.newNormalPrevout(seller_address, seller_releaseSatoshis - seller_fee);
 
         if (isArray(mpa_release.seller.payment.signatures)) {
             // add signature of seller
@@ -319,7 +318,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // regenerate the transaction (from the messages)
         const rebuilt = (await this.accept(listing, bid, clone(accept)));
         const acceptTx = rebuilt['_tx'];
-        // retrieve multisig output from lock tx.
+        // retrieve multisig prevout from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
         console.log('(refund) rebuilt accept txid', lockTx.txid);
 
@@ -337,15 +336,15 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             mpa_accept.seller.payment.pubKey
         ]);
 
-        // Add the output for the buyer
+        // Add the prevout for the buyer
         const buyer_address = mpa_bid.buyer.payment.changeAddress;
         const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false, true);
-        refundTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
+        refundTx.newNormalPrevout(buyer_address, buyer_releaseSatoshis);
 
         const seller_address = mpa_accept.seller.payment.changeAddress;
         const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true, true);
         const seller_fee = mpa_accept.seller.payment.fee;
-        refundTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
+        refundTx.newNormalPrevout(seller_address, seller_releaseSatoshis - seller_fee);
 
         if (isArray(mpa_refund.buyer.payment.signatures)) {
             // add signature of buyer

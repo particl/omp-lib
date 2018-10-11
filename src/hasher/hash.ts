@@ -14,7 +14,6 @@ export function hash(v: any): string {
     } else {
         return sha256(v);
     }
-
 }
 
 function hashObject(unordered: object): string {

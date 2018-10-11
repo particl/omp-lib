@@ -102,7 +102,12 @@ function _strip(obj: any): any {
     return obj;
 }
 
+// TODO: use generics?
 export function strip(obj: any): any {
     const o = clone(obj);
     return _strip(o);
+}
+
+export function log(obj: any): void {
+    console.log(JSON.stringify(obj, null, 4));
 }
