@@ -4,10 +4,10 @@ import "reflect-metadata";
 import { Rpc, CtRpc } from "../src/abstract/rpc";
 
 import * as WebRequest from 'web-request';
-import { Prevout, ISignature, BlindPrevout, CryptoAddressType, CryptoAddress, ToBeBlindPrevout, EphemeralKey, ToBeBlindOutput } from "../src/interfaces/crypto";
+import { Prevout, ISignature, BlindPrevout, CryptoAddressType, CryptoAddress, ToBeBlindOutput } from "../src/interfaces/crypto";
 import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone, log } from "../src/util";
 import { TransactionBuilder } from '../src/transaction-builder/transaction';
-import { MadTransactionBuilder } from '../src/transaction-builder/mad-transaction';
+import { ConfidentialTransactionBuilder } from '../src/transaction-builder/confidential-transaction';
 import { CoreRpcService } from './rpc.stub';
 
 @injectable()
@@ -226,7 +226,7 @@ class CtRpcService extends CoreRpcService implements CtRpc {
         return b;
     }
 
-    async signRawTransactionForBlindInputs(tx: MadTransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]> {
+    async signRawTransactionForBlindInputs(tx: ConfidentialTransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]> {
         let r: ISignature[] = [];
 
         // needs to synchronize, because the order needs to match
