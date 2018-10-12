@@ -1,0 +1,125 @@
+{
+    "extends": [
+        "tslint:recommended",
+        "tslint-clean-code",
+        "tslint-sonarts"
+    ],
+    "rules": {
+        "max-line-length": [
+            true,
+            160
+        ],
+        "no-bitwise": false,
+        "no-consecutive-blank-lines": false,
+        "quotemark": [
+            true,
+            "single",
+            "avoid-escape"
+        ],
+        "interface-name": false,
+        "no-empty-interface": false,
+        "no-namespace": false,
+        "ordered-imports": false,
+        "object-literal-sort-keys": false,
+        "arrow-parens": false,
+        "no-string-literal": false,
+        "member-ordering": [
+            true,
+            {
+                "order": [
+                    "public-static-field",
+                    "public-static-method",
+                    "protected-static-field",
+                    "protected-static-method",
+                    "private-static-field",
+                    "private-static-method",
+                    "public-instance-field",
+                    "protected-instance-field",
+                    "private-instance-field",
+                    "public-constructor",
+                    "protected-constructor",
+                    "private-constructor",
+                    "public-instance-method",
+                    "protected-instance-method",
+                    "private-instance-method"
+                ]
+            }
+        ],
+        "no-console": [
+            true,
+            "debug",
+            "info",
+            "time",
+            "timeEnd",
+            "trace"
+        ],
+        "no-inferrable-types": [
+            true,
+            "ignore-params"
+        ],
+        "no-switch-case-fall-through": true,
+        "typedef": [
+            true,
+            "call-signature",
+            "parameter"
+        ],
+        "trailing-comma": [
+            true,
+            {
+                "multiline": "never",
+                "singleline": "never"
+            }
+        ],
+        "no-angle-bracket-type-assertion": false,
+        /*TODO: remove check-format and the rest*/
+        "variable-name": [
+            true,
+            "ban-keywords",
+            "check-format",
+            "allow-leading-underscore",
+            "allow-snake-case"
+        ],
+        /*so ugly*/
+        "class-name": false,
+        /*"try-catch-first": true,*/
+        /*"newspaper-order": true,*/
+        "no-for-each-push": true,
+        "no-map-without-usage": true,
+        /*"no-complex-conditionals": [
+            true,
+            2
+        ],*/
+        "prefer-dry-conditionals": [
+            true,
+            2
+        ],
+        /*"no-feature-envy": [
+            true,
+            5,
+            [
+                "_",
+                "ts"
+            ]
+        ],*/
+        /*"no-commented-out-code": true,*/
+
+        /*SONARTS, set these on...*/
+        "no-commented-code": false,
+        "no-big-function": false,
+        "no-duplicate-string": false,
+        "no-identical-functions": false,
+        "cognitive-complexity": [
+            true,
+            20
+        ],
+        /*default:15*/
+        "prefer-immediate-return": false,
+        "no-dead-store": false,
+        "parameters-max-number": [
+            true,
+            10
+        ],
+        "no-redundant-boolean": false,
+        "no-use-of-empty-return-value": false
+    }
+}

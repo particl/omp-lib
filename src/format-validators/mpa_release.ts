@@ -1,21 +1,18 @@
-import { MPA_RELEASE, MPM } from "../interfaces/omp"
-import { MPAction, EscrowType } from "../interfaces/omp-enums";
-import { isObject, isArray, isString, isSHA256Hash } from "../util";
+import { MPA_RELEASE, MPM } from '../interfaces/omp';
+import { MPAction, EscrowType } from '../interfaces/omp-enums';
+import { isObject, isArray, isString, isSHA256Hash } from '../util';
 
-import { FV_CRYPTO } from "./crypto";
-import { FV_MPM} from "./mpm";
-import { FV_MPA_RELEASE_ESCROW_MULTISIG } from "./escrow/multisig";
+import { FV_CRYPTO } from './crypto';
+import { FV_MPM } from './mpm';
+import { FV_MPA_RELEASE_ESCROW_MULTISIG } from './escrow/multisig';
 
 export class FV_MPA_RELEASE {
 
-    constructor() {
-    }
-
-    static validate(msg: MPM): boolean {
+    public static validate(msg: MPM): boolean {
         // validate base class
         FV_MPM.validate(msg);
 
-        const action = <MPA_RELEASE>msg.action;
+        const action = <MPA_RELEASE> msg.action;
         const seller = action.seller;
 
         if (!isString(action.type)) {
@@ -41,6 +38,12 @@ export class FV_MPA_RELEASE {
                 case EscrowType.MULTISIG:
                     FV_MPA_RELEASE_ESCROW_MULTISIG.validate(payment);
                     break;
+                case EscrowType.FE:
+                    // TODO: not implemented
+                case EscrowType.MAD:
+                    // TODO: not implemented
+                case EscrowType.MAD_CT:
+                    // TODO: not implemented
                 default:
                     throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
             }
@@ -50,6 +53,10 @@ export class FV_MPA_RELEASE {
         }
 
         return true;
+    }
+
+    constructor() {
+        //
     }
 
 }
