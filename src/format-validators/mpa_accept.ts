@@ -1,22 +1,19 @@
-import { MPA_ACCEPT, MPM } from "../interfaces/omp"
-import { MPAction, EscrowType } from "../interfaces/omp-enums";
-import { isNumber, isObject, isArray, isString, isSHA256Hash, isValidPrice, clone } from "../util";
+import { MPA_ACCEPT, MPM } from '../interfaces/omp';
+import { MPAction, EscrowType } from '../interfaces/omp-enums';
+import { isNumber, isObject, isArray, isString, isSHA256Hash, isValidPrice, clone } from '../util';
 
-import { FV_MPM} from "./mpm";
-import { FV_CRYPTO } from "./crypto";
-import { FV_OBJECTS } from "./objects";
-import { FV_MPA_ACCEPT_ESCROW_MULTISIG } from "./escrow/multisig";
+import { FV_MPM } from './mpm';
+import { FV_CRYPTO } from './crypto';
+import { FV_OBJECTS } from './objects';
+import { FV_MPA_ACCEPT_ESCROW_MULTISIG } from './escrow/multisig';
 
 export class FV_MPA_ACCEPT {
 
-    constructor() {
-    }
-
-    static validate(msg: MPM): boolean {
+    public static validate(msg: MPM): boolean {
         // validate base class
         FV_MPM.validate(msg);
 
-        const action = <MPA_ACCEPT>msg.action;
+        const action = <MPA_ACCEPT> msg.action;
         const seller = action.seller;
 
         if (!isString(action.type)) {
@@ -46,6 +43,12 @@ export class FV_MPA_ACCEPT {
                 case EscrowType.MULTISIG:
                     FV_MPA_ACCEPT_ESCROW_MULTISIG.validate(payment);
                     break;
+                case EscrowType.FE:
+                    // TODO: not implemented
+                case EscrowType.MAD:
+                    // TODO: not implemented
+                case EscrowType.MAD_CT:
+                    // TODO: not implemented
                 default:
                     throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
             }
@@ -61,5 +64,8 @@ export class FV_MPA_ACCEPT {
         return true;
     }
 
+    constructor() {
+        //
+    }
 
 }

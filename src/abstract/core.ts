@@ -8,6 +8,5 @@ export interface Core {
     signRawTransaction(rawtx: string): string; // returns signed rawtx
     getRawTransaction(txid: string): any; // returns rawtx
     decodeRawTransaction(rawtx: string): any; // decodes rawtx to object
-
     addMultiSigAddress(signers: number, pubkeys: any, label: string): any;
 }

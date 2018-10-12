@@ -1,23 +1,41 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src",
-    "sourceMap": true,
-    "declaration": false,
-    "moduleResolution": "node",
-    "types": ["reflect-metadata", "node"],
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "target": "es6",
-    "lib": ["es6"],
-    "typeRoots": [
-      "node_modules/@types"
-    ]
-  },
-  "include": [
-    "src/**/*"
-  ],
+    "compileOnSave": false,
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "pretty": true,
+        "sourceMap": true,
+        "inlineSources": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "importHelpers": true,
+        "strict": true,
+        "declaration": true,
+        "moduleResolution": "node",
+        "types": [
+            "reflect-metadata",
+            "node"
+        ],
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "lib": [
+            "es6"
+        ],
+        "typeRoots": [
+            "node_modules/@types"
+        ],
+        "noImplicitAny": false,
+        "strictNullChecks": true,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true
+    },
+    "include": [
+        "src/**/*"
+    ],
     "exclude": [
         "node_modules/**/*",
         "**/*.test.ts"
