@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 import { Rpc, RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from '../src/abstract/rpc';
-import { Output } from '../src/interfaces/crypto';
+import { CryptoAddress, Output } from '../src/interfaces/crypto';
 import { Prevout, ISignature } from '../src/interfaces/crypto';
 import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone } from '../src/util';
 import { TransactionBuilder } from '../src/transaction-builder/transaction';
@@ -15,38 +15,6 @@ class CoreRpcService extends Rpc {
 
     constructor(host: string, port: number, user: string, password: string) {
         super(host, port, user, password);
-    }
-
-    public async call(method: string, params: any[] = []): Promise<any> {
-
-        const id = this.RPC_REQUEST_ID++;
-        const postData = JSON.stringify({
-            jsonrpc: '2.0',
-            method,
-            params,
-            id
-        });
-
-        const url = 'http://' + this._host + ':' + this._port;
-        const options = this.getOptions();
-
-        return await WebRequest.post(url, options, postData)
-            .then(response => {
-
-                const jsonRpcResponse = JSON.parse(response.content);
-                if (response.statusCode !== 200) {
-                    const message = response.content ? JSON.parse(response.content) : response.statusMessage;
-                    if (this.DEBUG) {
-                        console.error('method:', method);
-                        console.error('params:', params);
-                        console.error(message);
-                    }
-                    throw message['error'];
-                }
-
-                return jsonRpcResponse.result;
-            });
-
     }
 
     public async getNewAddress(): Promise<string> {
@@ -77,7 +45,11 @@ class CoreRpcService extends Rpc {
         return (await this.call('sendrawtransaction', [hex]));
     }
 
-    public async getRawTransaction(txid: string, verbose: boolean): Promise<RpcRawTx> {
+    /**
+     * Get a raw transaction, always in verbose mode
+     * @param txid
+     */
+    public async getRawTransaction(txid: string): Promise<RpcRawTx> {
         return await this.call('getrawtransaction', [txid, true]);
     }
 
@@ -91,6 +63,36 @@ class CoreRpcService extends Rpc {
      */
     public async lockUnspent(prevouts: Prevout[]): Promise<boolean> {
         return await this.call('lockunspent', [false, prevouts, true]);
+    }
+
+    public async call(method: string, params: any[] = []): Promise<any> {
+        const id = this.RPC_REQUEST_ID++;
+        const postData = JSON.stringify({
+            jsonrpc: '2.0',
+            method,
+            params,
+            id
+        });
+
+        const url = 'http://' + this._host + ':' + this._port;
+        const options = this.getOptions();
+
+        return await WebRequest.post(url, options, postData)
+            .then(response => {
+
+                const jsonRpcResponse = JSON.parse(response.content);
+                if (response.statusCode !== 200) {
+                    const message = response.content ? JSON.parse(response.content) : response.statusMessage;
+                    if (this.DEBUG) {
+                        console.error('method:', method);
+                        console.error('params:', params);
+                        console.error(message);
+                    }
+                    throw message['error'];
+                }
+
+                return jsonRpcResponse.result;
+            });
     }
 
     private getOptions(): any {
@@ -113,7 +115,6 @@ class CoreRpcService extends Rpc {
 
         return rpcOpts;
     }
-
 }
 
 export const node0 = new CoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');

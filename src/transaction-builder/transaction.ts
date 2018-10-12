@@ -14,7 +14,7 @@ export class TransactionBuilder {
     // TODO: dynamic currency support
     // @inject(TYPES.Rpc) @named("PART") private rpc: Rpc;
 
-    private tx: bitcore.Transaction;
+    protected tx: bitcore.Transaction;
 
     constructor(rawtx?: string) {
         this.tx = new bitcore.Transaction(rawtx);

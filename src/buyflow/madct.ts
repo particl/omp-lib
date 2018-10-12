@@ -1,18 +1,18 @@
-import { inject, injectable } from "inversify";
-import { TYPES } from "../types";
+import { inject, injectable } from 'inversify';
+import { TYPES } from '../types';
 
-import { CryptoAddressType, BlindPrevout, ToBeBlindOutput, Prevout, CryptoAddress } from "../interfaces/crypto";
-import { BidConfiguration } from "../interfaces/configs";
-import { Rpc, ILibrary, CtRpc } from "../abstract/rpc";
-import { IMadCTBuilder } from "../abstract/transactions";
+import { CryptoAddressType, BlindPrevout, ToBeBlindOutput, Prevout, CryptoAddress } from '../interfaces/crypto';
+import { BidConfiguration } from '../interfaces/configs';
+import { Rpc, ILibrary, CtRpc } from '../abstract/rpc';
+import { IMadCTBuilder } from '../abstract/transactions';
 
-import { TransactionBuilder, getTxidFrom } from "../transaction-builder/transaction";
-import { ConfidentialTransactionBuilder, buildBidTxScript, buildDestroyTxScript, getExpectedSequence } from "../transaction-builder/confidential-transaction";
+import { TransactionBuilder, getTxidFrom } from '../transaction-builder/transaction';
+import { ConfidentialTransactionBuilder, buildBidTxScript, buildDestroyTxScript, getExpectedSequence } from '../transaction-builder/confidential-transaction';
 
-import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from "../interfaces/omp";
-import { asyncForEach, asyncMap, clone, isArray, fromSatoshis, log } from "../util";
-import { hash } from "../hasher/hash";
-import { Tx } from "../transaction-builder/build";
+import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from '../interfaces/omp';
+import { asyncForEach, asyncMap, clone, isArray, fromSatoshis, log } from '../util';
+import { hash } from '../hasher/hash';
+import { Tx } from '../transaction-builder/build';
 
 @injectable()
 export class MadCTBuilder implements IMadCTBuilder {
@@ -29,43 +29,44 @@ export class MadCTBuilder implements IMadCTBuilder {
      * Add the payment information for the MPA_BID.
      * The cryptocurrency to be used is extracted from the bid.
      * The right library for that currency is then retrieved and used.
-     * 
+     *
      * Adds:
      *  pubKey, changeAddress & inputs.
-     * 
+     *
      * @param config a configuration, storing the shipping details, cryptocurrency to be used etc.
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
-    async bid(listing: MPM, bid: MPM): Promise<MPM> {
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
+    public async bid(listing: MPM, bid: MPM): Promise<MPM> {
+        const mpa_listing: MPA_EXT_LISTING_ADD = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid: MPA_BID = (<MPA_BID> bid.action);
 
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc>this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
+        const lib = <CtRpc> this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
 
         const requiredSatoshis: number = this.bid_calculateRequiredSatoshis(mpa_listing, mpa_bid, false);
 
         mpa_bid.buyer.payment.prevouts = await lib.getBlindPrevouts(requiredSatoshis);
 
-        if(!mpa_bid.buyer.payment.outputs) {
+        if (!mpa_bid.buyer.payment.outputs) {
             mpa_bid.buyer.payment.outputs = [];
             mpa_bid.buyer.payment.outputs.push({});
         }
 
-        const buyer_prevout = (<BlindPrevout>mpa_bid.buyer.payment.prevouts[0]);
-        const buyer_output = (<ToBeBlindOutput>mpa_bid.buyer.payment.outputs[0]);
+        const buyer_prevout = (<BlindPrevout> mpa_bid.buyer.payment.prevouts[0]);
+        const buyer_output = (<ToBeBlindOutput> mpa_bid.buyer.payment.outputs[0]);
 
-        buyer_output._secret = "76d02c17ce9999108a568fa9c192eee9580674e73a47c1e85c1bd335aa57082e";
-        buyer_output.hashedSecret = hash(new Buffer(buyer_output._secret, "hex"));
-        buyer_output.blindFactor = "7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490";
+        buyer_output._secret = '76d02c17ce9999108a568fa9c192eee9580674e73a47c1e85c1bd335aa57082e';
+        buyer_output.hashedSecret = hash(new Buffer(buyer_output._secret, 'hex'));
+        buyer_output.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
         buyer_output.address = await lib.getNewStealthAddressWithEphem();
 
-        mpa_bid.buyer.payment.release = <any>{};
+        mpa_bid.buyer.payment.release = <any> {};
+
         // TODO(security): randomize
-        if(false) {
+        if (false) {
             // The buyer specifies the blind factor
-            mpa_bid.buyer.payment.release.blindFactor = "7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490"; // TODO(security): random
+            // mpa_bid.buyer.payment.release.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490'; // TODO(security): random
         }
         mpa_bid.buyer.payment.release.ephem = (await lib.getNewStealthAddressWithEphem(buyer_output.address)).ephem;
 
@@ -75,33 +76,33 @@ export class MadCTBuilder implements IMadCTBuilder {
     /**
      * Adds the payment information for the MPA_ACCEPT for the seller.
      * Create and includes signatures for the destruction txn (half signed).
-     * 
+     *
      * Rebuilds the unsigned bid txn, half signed destruction txn, (fully signed release tx).
-     * 
+     *
      * Note: this function is also called by the buyer.
      * If the "_secret" field is specified, it will build the release transaction.
-     * 
+     *
      * @param listing the marketplace listing message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      * @param accept the accept to fill in or rebuild the transaction from.
      */
-    async accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
+    public async accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
+        const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid = (<MPA_BID> bid.action);
+        const mpa_accept = (<MPA_ACCEPT> accept.action);
 
-        if(!mpa_accept.seller.payment.outputs || mpa_accept.seller.payment.outputs.length === 0) {
+        if (!mpa_accept.seller.payment.outputs || mpa_accept.seller.payment.outputs.length === 0) {
             mpa_accept.seller.payment.outputs = [];
             mpa_accept.seller.payment.outputs.push({});
         }
 
-        let seller_output = (<ToBeBlindOutput>mpa_accept.seller.payment.outputs[0]);
+        const seller_output = (<ToBeBlindOutput> mpa_accept.seller.payment.outputs[0]);
 
-        const buyer_prevout = (<BlindPrevout>mpa_bid.buyer.payment.prevouts[0]);
-        const buyer_output = (<ToBeBlindOutput>mpa_bid.buyer.payment.outputs[0]);
+        const buyer_prevout = (<BlindPrevout> mpa_bid.buyer.payment.prevouts[0]);
+        const buyer_output = (<ToBeBlindOutput> mpa_bid.buyer.payment.outputs[0]);
 
         // Get the right transaction library for the right currency.
         const lib = <CtRpc>this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
@@ -114,13 +115,13 @@ export class MadCTBuilder implements IMadCTBuilder {
         const seller_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(mpa_listing, mpa_bid, true);
 
         // Hardcoded fee
-        let seller_fee = 5000;
+        const seller_fee = 5000;
         if (!mpa_accept.seller.payment.fee) { // fee can never be 0 anyways
             mpa_accept.seller.payment.fee = seller_fee;
         }
 
         // Buyer must supply one input
-        if(mpa_bid.buyer.payment.prevouts.length !== 1) {
+        if (mpa_bid.buyer.payment.prevouts.length !== 1) {
             throw new Error('Currently only supports one input from the buyer.');
         } else {
             buyer_prevout._satoshis = buyer_requiredSatoshis;
@@ -136,7 +137,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             mpa_accept.seller.payment.prevouts = await lib.getBlindPrevouts(seller_requiredSatoshis + seller_fee, blind);
         }
 
-        const seller_prevout = (<BlindPrevout>mpa_accept.seller.payment.prevouts[0]);
+        const seller_prevout = (<BlindPrevout> mpa_accept.seller.payment.prevouts[0]);
         if(mpa_accept.seller.payment.prevouts.length !== 1) {
             throw new Error('Currently only supports one input from the seller.');
         } else {
@@ -162,11 +163,11 @@ export class MadCTBuilder implements IMadCTBuilder {
         seller_output._satoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true);
 
         const b = buildBidTxScript(seller_output.address, buyer_output.address, buyer_output.hashedSecret, 2880);
-        buyer_output._redeemScript = b.redeemScript; 
+        buyer_output._redeemScript = b.redeemScript;
         buyer_output._address = b.address;
         buyer_output._satoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false);
 
-        const all_inputs = clone(<BlindPrevout[]>mpa_bid.buyer.payment.prevouts).concat(mpa_accept.seller.payment.prevouts);
+        const all_inputs = clone(<BlindPrevout[]> mpa_bid.buyer.payment.prevouts).concat(mpa_accept.seller.payment.prevouts);
         const all_outputs = [seller_output, buyer_output];
 
         const rawbidtx = await lib.generateRawConfidentialTx(all_inputs, all_outputs, mpa_accept.seller.payment.fee);
@@ -180,19 +181,17 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         accept['_bidtx'] = bidtx;
         accept['_rawbidtx'] = bidtx.build();
- 
 
 
         /**
          * Destroy transaction from bid transaction.
          */
         const destroy_inputs = this.getTxPrevoutsFromBidTx(bidtx, seller_output, buyer_output, 2880);
- 
         const destroy_blind_out = await lib.getLastMatchingBlindFactor([buyer_output, seller_output], []);
         const destroy_output = this.getDestroyOutput(bidtx, seller_requiredSatoshis + buyer_requiredSatoshis - seller_fee, destroy_blind_out);
 
         const rawdesttx = await lib.generateRawConfidentialTx(destroy_inputs, destroy_output, mpa_accept.seller.payment.fee);
-        const desttx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawdesttx)
+        const desttx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawdesttx);
 
 
         if (!isArray(mpa_accept.seller.payment.destroy.signatures)) {
@@ -205,11 +204,11 @@ export class MadCTBuilder implements IMadCTBuilder {
          * Release transaction from bid transaction.
          */
 
-        if(!mpa_accept.seller.payment.release){
-            mpa_accept.seller.payment.release = <any>{};
+        if (!mpa_accept.seller.payment.release) {
+            mpa_accept.seller.payment.release = <any> {};
         }
         // If not rebuilding, generate new ephem key and insert in msg
-        if(!mpa_accept.seller.payment.release.ephem) {
+        if (!mpa_accept.seller.payment.release.ephem) {
             let sx = await lib.getNewStealthAddressWithEphem(seller_output.address);
             mpa_accept.seller.payment.release.ephem = sx.ephem;
         }
@@ -221,19 +220,22 @@ export class MadCTBuilder implements IMadCTBuilder {
         // Decide where the sellers output is going to be located.
         let isFirst: boolean;
         let lastBlindFactor: string;
-        if(!mpa_bid.buyer.payment.release.blindFactor) {
+        if (!mpa_bid.buyer.payment.release.blindFactor) {
             // The buyer did not specify  blind key, so we will
             // the buyers release output will be the last output
             // and it will have its blind factor generated for it.
-            mpa_accept.seller.payment.release.blindFactor = "7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490"; // TODO(security): random
-            lastBlindFactor = await lib.getLastMatchingBlindFactor(release_inputs, [<ToBeBlindOutput>{blindFactor:  mpa_accept.seller.payment.release.blindFactor}])
+            mpa_accept.seller.payment.release.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490'; // TODO(security): random
+            lastBlindFactor = await lib.getLastMatchingBlindFactor(
+                release_inputs,
+                [{blindFactor: mpa_accept.seller.payment.release.blindFactor} as ToBeBlindOutput]);
             isFirst = true;
         } else {
-            lastBlindFactor = await lib.getLastMatchingBlindFactor(release_inputs, [<ToBeBlindOutput>{blindFactor:  mpa_bid.buyer.payment.release.blindFactor}]) 
+            lastBlindFactor = await lib.getLastMatchingBlindFactor(release_inputs,
+                [{blindFactor: mpa_bid.buyer.payment.release.blindFactor} as ToBeBlindOutput]);
         }
 
         // Re-use sx address with new ephemeral keys
-        let buyer_release_address: CryptoAddress = clone(buyer_output.address);
+        const buyer_release_address: CryptoAddress = clone(buyer_output.address);
         delete buyer_release_address['pubKey'];
         buyer_release_address.ephem = mpa_bid.buyer.payment.release.ephem;
         await lib.getPubkeyForStealthWithEphem(buyer_release_address);
@@ -251,16 +253,16 @@ export class MadCTBuilder implements IMadCTBuilder {
         const seller_release_output = this.getReleaseOutput(seller_release_address, seller_output._satoshis - seller_fee, seller_blindFactor_release);
 
         let release_outputs: ToBeBlindOutput[];
-        if(isFirst) {
+        if (isFirst) {
             release_outputs = [
                 seller_release_output,
                 buyer_release_output
-            ]
+            ];
         } else {
             release_outputs = [
                 buyer_release_output,
                 seller_release_output
-            ]
+            ];
         }
 
         const rawreleasetx = await lib.generateRawConfidentialTx(release_inputs, release_outputs, seller_fee);
@@ -290,67 +292,16 @@ export class MadCTBuilder implements IMadCTBuilder {
         return accept;
     }
 
-
-    // TODO: move to confidential-tx ?
-    getTxPrevoutsFromBidTx(bidtx: ConfidentialTransactionBuilder, seller_output: ToBeBlindOutput, buyer_output: ToBeBlindOutput, secondsToLock: number): BlindPrevout[] {
-        return [
-            {
-                txid: bidtx.txid,
-                vout: 1,
-                _satoshis: seller_output._satoshis,
-                _scriptPubKey: bidtx.getPubKeyScriptForVout(1),
-                _commitment: bidtx.getCommitmentForVout(1),
-                blindFactor: seller_output.blindFactor,
-                _redeemScript: seller_output._redeemScript,
-                _sequence: getExpectedSequence(secondsToLock)
-            },
-            {
-                txid: bidtx.txid,
-                vout: 2,
-                _satoshis: buyer_output._satoshis,
-                _scriptPubKey: bidtx.getPubKeyScriptForVout(2),
-                _commitment: bidtx.getCommitmentForVout(2),
-                blindFactor: buyer_output.blindFactor,
-                _redeemScript: buyer_output._redeemScript,
-                _sequence: getExpectedSequence(secondsToLock)
-             }
-        ];
-    }
-
-    getDestroyOutput(bidtx: ConfidentialTransactionBuilder, satoshis: number, blind: string) {
-        const destroy_redeemScript = buildDestroyTxScript().redeemScript;
-        return [
-            {
-                _redeemScript: 'OP_RETURN', // TODO: fix particl-core, ASM only?
-                _type: 'blind',
-                _nonce: bidtx.txid, // TODO(security): random 32byte value
-                _satoshis: satoshis,
-                blindFactor: blind, //hash("random"), // TODO(security): unspendable anyways...
-                _data: '0a'+hash("random") // TODO(security): make fake ephem 33
-            }
-        ]
-    }
-
-    getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
-        return {
-            address: address,
-            _type: 'anon',
-            _satoshis: satoshis,
-            blindFactor: blind
-        }
-        
-    }
-
     /**
      * Adds the payment information for the MPA_LOCK for the buyer.
-     * Create and includes signatures for 
+     * Create and includes signatures for
      * - the destruction txn (fully signed)
      * - the bid txn (half signed)
-     * 
+     *
      * Rebuilds the half signed bid txn, fully signed destruction txn.
-     * 
+     *
      * Note: this function is also called by the seller for rebuilding.
-     * 
+     *
      * @param listing the marketplace listing message.
      * @param bid the marketplace bid message.
      * @param accept the marketplace accept message.
@@ -389,10 +340,12 @@ export class MadCTBuilder implements IMadCTBuilder {
          */
         const desttx: ConfidentialTransactionBuilder = rebuilt['_desttx'];
 
-        let seller_output = (<ToBeBlindOutput>mpa_accept.seller.payment.outputs[0]);
-        let buyer_output = (<ToBeBlindOutput>mpa_bid.buyer.payment.outputs[0]);
-        seller_output._redeemScript = buildBidTxScript(buyer_output.address, seller_output.address, buyer_output.hashedSecret, 2880).redeemScript; // TODO: real param
-        buyer_output._redeemScript = buildBidTxScript(seller_output.address, buyer_output.address, buyer_output.hashedSecret, 2880).redeemScript; // TODO: real param
+        const seller_output = (<ToBeBlindOutput> mpa_accept.seller.payment.outputs[0]);
+        const buyer_output = (<ToBeBlindOutput> mpa_bid.buyer.payment.outputs[0]);
+        seller_output._redeemScript = buildBidTxScript(buyer_output.address, seller_output.address, buyer_output.hashedSecret,
+            2880).redeemScript; // TODO: real param
+        buyer_output._redeemScript = buildBidTxScript(seller_output.address, buyer_output.address, buyer_output.hashedSecret,
+            2880).redeemScript; // TODO: real param
 
         const destroy_inputs = this.getTxPrevoutsFromBidTx(bidtx, seller_output, buyer_output, 2880);
         if (!isArray(mpa_lock.buyer.payment.destroy.signatures)) {
@@ -418,24 +371,24 @@ export class MadCTBuilder implements IMadCTBuilder {
     /**
      * Generate the fully signed bid txn in response to a
      * lock message. (seller only)
-     * 
+     *
      * @param listing the marketplace listing message.
      * @param bid the marketplace bid message.
      * @param accept the marketplace accept message.
      * @param lock the lock to fill in or rebuild the transaction from.
      */
-    async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
+    public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
 
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
-        const mpa_lock = (<MPA_LOCK>lock.action);
+        const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid = (<MPA_BID> bid.action);
+        const mpa_accept = (<MPA_ACCEPT> accept.action);
+        const mpa_lock = (<MPA_LOCK> lock.action);
 
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc>this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
+        const lib = <CtRpc> this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
 
         const rebuilt = (await this.lock(listing, bid, clone(accept), clone(lock)));
-        
+
         // rebuild from accept message
         const bidtx: ConfidentialTransactionBuilder = rebuilt['_bidtx'];
 
@@ -453,7 +406,56 @@ export class MadCTBuilder implements IMadCTBuilder {
         return bidtx.build();
     }
 
-    bid_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean): number {
+    // TODO: move to confidential-tx ?
+    private getTxPrevoutsFromBidTx(bidtx: ConfidentialTransactionBuilder, seller_output: ToBeBlindOutput, buyer_output: ToBeBlindOutput,
+                                   secondsToLock: number): BlindPrevout[] {
+        return [
+            {
+                txid: bidtx.txid,
+                vout: 1,
+                _satoshis: seller_output._satoshis,
+                _scriptPubKey: bidtx.getPubKeyScriptForVout(1),
+                _commitment: bidtx.getCommitmentForVout(1),
+                blindFactor: seller_output.blindFactor,
+                _redeemScript: seller_output._redeemScript,
+                _sequence: getExpectedSequence(secondsToLock)
+            },
+            {
+                txid: bidtx.txid,
+                vout: 2,
+                _satoshis: buyer_output._satoshis,
+                _scriptPubKey: bidtx.getPubKeyScriptForVout(2),
+                _commitment: bidtx.getCommitmentForVout(2),
+                blindFactor: buyer_output.blindFactor,
+                _redeemScript: buyer_output._redeemScript,
+                _sequence: getExpectedSequence(secondsToLock)
+            }
+        ];
+    }
+
+    // TODO: add proper return type
+    private getDestroyOutput(bidtx: ConfidentialTransactionBuilder, satoshis: number, blind: string): any[] {
+        const destroy_redeemScript = buildDestroyTxScript().redeemScript;
+        return [{
+                _redeemScript: 'OP_RETURN', // TODO: fix particl-core, ASM only?
+                _type: 'blind',
+                _nonce: bidtx.txid, // TODO(security): random 32byte value
+                _satoshis: satoshis,
+                blindFactor: blind, // hash("random"), // TODO(security): unspendable anyways...
+                _data: '0a' + hash('random') // TODO(security): make fake ephem 33
+        }];
+    }
+
+    private getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
+        return {
+            address,
+            _type: 'anon',
+            _satoshis: satoshis,
+            blindFactor: blind
+        };
+    }
+
+    private bid_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean): number {
         const basePrice = this.bid_valueToTransferSatoshis(mpa_listing, mpa_bid);
         const percentageRatio = seller ? mpa_listing.item.payment.escrow.ratio.seller : mpa_listing.item.payment.escrow.ratio.buyer;
         const ratio = percentageRatio / 100;
@@ -464,11 +466,11 @@ export class MadCTBuilder implements IMadCTBuilder {
 
     /**
      * The value to transfer from the buyer to the seller (basePrice + shippingPrice + additional prices)
-     * @param mpa_listing 
-     * @param mpa_bid 
+     * @param mpa_listing
+     * @param mpa_bid
      */
-    bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
-        let satoshis: number = 0;
+    private bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
+        let satoshis = 0;
         const payment = mpa_listing.item.payment.cryptocurrency.find((crypto) => crypto.currency === mpa_bid.buyer.payment.cryptocurrency);
         satoshis = payment.basePrice;
 
@@ -486,14 +488,14 @@ export class MadCTBuilder implements IMadCTBuilder {
     /**
      * Add the payment information for the MPA_RELEASE.
      * Performs two steps: both for buyer and seller.
-     * 
+     *
      * Adds:
      *  signature of seller.
-     *  
+     *
      *  if seller.signatures is present, it will complete the transaction
      *  and return a fully signed under _rawtx
      */
-    async release(listing: MPM, bid: MPM, accept: MPM): Promise<string> {
+    public async release(listing: MPM, bid: MPM, accept: MPM): Promise<string> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
@@ -510,7 +512,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         return rebuilt['_rawreleasetx'];
     }
 
-    release_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean, refund: boolean = false): number {
+    private release_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean, refund: boolean = false): number {
         const basePrice = this.bid_valueToTransferSatoshis(mpa_listing, mpa_bid);
         const percentageRatio = seller ? mpa_listing.item.payment.escrow.ratio.seller : mpa_listing.item.payment.escrow.ratio.buyer;
         const ratio = percentageRatio / 100;
@@ -524,7 +526,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         return required;
     }
 
-    async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM> {
+    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM> {
 
         const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
         const mpa_bid = (<MPA_BID>bid.action);
