@@ -65,7 +65,7 @@ export interface RpcBlindOutput {
     data_ct_fee?: number;
 }
 
-export interface CtFeeOutput {
+export interface RpcCtFeeOutput {
     type: string;
     amount: number;
     data_ct_fee: number;
@@ -425,7 +425,7 @@ export abstract class CtRpc extends Rpc {
             return i;
         });
 
-        let outs: Array<RpcBlindOutput|CtFeeOutput> = outputs.map((out: ToBeBlindOutput) => {
+        let outs: Array<RpcBlindOutput|RpcCtFeeOutput> = outputs.map((out: ToBeBlindOutput) => {
 
             const o = {
                 type: out._type || 'blind',
@@ -477,7 +477,7 @@ export abstract class CtRpc extends Rpc {
             type: 'data',
             data_ct_fee: fromSatoshis(feeSatoshis),
             amount: 0
-        } as RpcBlindOutput|CtFeeOutput].concat(outs);
+        } as RpcBlindOutput|RpcCtFeeOutput].concat(outs);
 
         const tx = (await this.call('createrawparttransaction', [inps, outs]));
         const rawtx = tx.hex;
