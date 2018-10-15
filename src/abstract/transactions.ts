@@ -9,11 +9,11 @@ export interface IMultiSigBuilder {
 }
 
 export interface IMadCTBuilder {
-    bid(listing: MPM, bid: MPM): Promise<MPM>
-    accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM>
-    lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM>
-    complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> // rawtx
-    release(listing: MPM, bid: MPM, accept: MPM): Promise<string>
+    bid(listing: MPM, bid: MPM): Promise<MPM>;
+    accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM>;
+    lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM>;
+    complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string>; // rawtx
+    release(listing: MPM, bid: MPM, accept: MPM): Promise<string>;
     /*
     refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM>
     */

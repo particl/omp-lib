@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 import { Rpc, RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from '../src/abstract/rpc';
-import { CryptoAddress, Output } from '../src/interfaces/crypto';
+import { CryptoAddress } from '../src/interfaces/crypto';
 import { Prevout, ISignature } from '../src/interfaces/crypto';
 import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone } from '../src/util';
 import { TransactionBuilder } from '../src/transaction-builder/transaction';

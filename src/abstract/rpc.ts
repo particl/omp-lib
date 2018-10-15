@@ -125,7 +125,7 @@ export abstract class Rpc {
 
         const unspent: RpcUnspentOutput[] = await this.listUnspent(0);
 
-        unspent.filter(
+        const result = unspent.filter(
             (output: RpcUnspentOutput, outIdx: number) => {
                 if (output.spendable && output.safe && (output.scriptPubKey.substring(0, 2) === '76')) {
                     if ((exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
@@ -307,10 +307,10 @@ export abstract class CtRpc extends Rpc {
     public abstract async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]>;
 
     public abstract async getBlindPrevouts(satoshis: number, blind?: string): Promise<BlindPrevout[]>;
-    public abstract async getLastMatchingBlindFactor(prevouts: Prevout[] | ToBeBlindOutput[], outputs: ToBeBlindOutput[]): Promise<string>;
+    // public abstract async getLastMatchingBlindFactor(prevouts: Prevout[] | ToBeBlindOutput[], outputs: ToBeBlindOutput[]): Promise<string>;
 
     // Importing and signing
-    public abstract async signRawTransactionForBlindInputs(tx: TransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]>;
+    // public abstract async signRawTransactionForBlindInputs(tx: TransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]>;
     public abstract async verifyCommitment(commitment: string, blindFactor: string, amount: number): Promise<boolean>;
 
     public abstract async createRawTransaction(inputs: BlindPrevout, outputs: any): Promise<any>;
@@ -511,8 +511,8 @@ export abstract class CtRpc extends Rpc {
     }
 
     public async getLastMatchingBlindFactor(inputs: (BlindPrevout[] | ToBeBlindOutput[]), outputs: ToBeBlindOutput[]): Promise<string> {
-        let inp = inputs.map(i => i.blindFactor);
-        let out = outputs.map(i => i.blindFactor);
+        const inp = inputs.map(i => i.blindFactor);
+        const out = outputs.map(i => i.blindFactor);
 
         if (!out) {
             out = [];
@@ -533,14 +533,13 @@ export abstract class CtRpc extends Rpc {
 
         // needs to synchronize, because the order needs to match
         // the inputs order.
-        for (let i = 0; i < inputs.length; i++) {
-            const input = inputs[i];
+        for (const input of inputs) {
             let sig;
 
             // If not a stealth address, sign with key in wallet.
             if (!sx) {
                 const params = [
-                    await tx.build(),
+                    tx.build(),
                     {
                         txid: input.txid,
                         vout: input.vout,
@@ -557,9 +556,9 @@ export abstract class CtRpc extends Rpc {
             } else {
                 // If it's a stealth address, derive the key and sign for it.
                 // TODO: verify sx type
-                const derived = (await this.call('derivefromstealthaddress', [sx.address, sx.ephem.public]))
+                const derived = (await this.call('derivefromstealthaddress', [sx.address, sx.ephem.public]));
                 const params = [
-                    await tx.build(),
+                    tx.build(),
                     {
                         txid: input.txid,
                         vout: input.vout,
@@ -568,7 +567,7 @@ export abstract class CtRpc extends Rpc {
                         redeemScript: input._redeemScript
                     },
                     derived.privatekey
-                ]
+                ];
 
                 sig = {
                     signature: (await this.call('createsignaturewithkey', params)),

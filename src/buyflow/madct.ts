@@ -61,14 +61,20 @@ export class MadCTBuilder implements IMadCTBuilder {
         buyer_output.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
         buyer_output.address = await lib.getNewStealthAddressWithEphem();
 
-        mpa_bid.buyer.payment.release = <any> {};
 
         // TODO(security): randomize
-        if (false) {
+        // if (false) {
             // The buyer specifies the blind factor
             // mpa_bid.buyer.payment.release.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490'; // TODO(security): random
-        }
-        mpa_bid.buyer.payment.release.ephem = (await lib.getNewStealthAddressWithEphem(buyer_output.address)).ephem;
+        // }
+
+        const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(buyer_output.address);
+        const blindFactor = undefined;
+
+        mpa_bid.buyer.payment.release = {
+            ephem: address.ephem,
+            blindFactor
+        } as any;
 
         return bid;
     }
@@ -86,6 +92,8 @@ export class MadCTBuilder implements IMadCTBuilder {
      * @param bid the marketplace bid message to add the transaction details to.
      * @param accept the accept to fill in or rebuild the transaction from.
      */
+// TODO: cognitive-complexity 28, should be less than 20
+// tslint:disable:cognitive-complexity
     public async accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
@@ -99,13 +107,17 @@ export class MadCTBuilder implements IMadCTBuilder {
             mpa_accept.seller.payment.outputs.push({});
         }
 
+        if (!mpa_bid.buyer.payment.outputs || mpa_bid.buyer.payment.outputs.length === 0) {
+            throw new Error('Missing buyer outputs.');
+        }
+
         const seller_output = (<ToBeBlindOutput> mpa_accept.seller.payment.outputs[0]);
 
         const buyer_prevout = (<BlindPrevout> mpa_bid.buyer.payment.prevouts[0]);
         const buyer_output = (<ToBeBlindOutput> mpa_bid.buyer.payment.outputs[0]);
 
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc>this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
+        const lib = <CtRpc> this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
 
 
         /**
@@ -129,6 +141,10 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         if (!isArray(mpa_accept.seller.payment.prevouts)) {
             const cryptocurrency = mpa_listing.item.payment.cryptocurrency.find((crypto) => crypto.currency === mpa_bid.buyer.payment.cryptocurrency);
+            if (!cryptocurrency) {
+                throw new Error('Missing buyer outputs.');
+            }
+
             // Buyer pregenerates the transaction blinding factor for the seller so he can sign earlier.
             // Currently not implemented because we're not checking ownership of the outputs.
             // TODO(security): fix
@@ -138,7 +154,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         }
 
         const seller_prevout = (<BlindPrevout> mpa_accept.seller.payment.prevouts[0]);
-        if(mpa_accept.seller.payment.prevouts.length !== 1) {
+        if (mpa_accept.seller.payment.prevouts.length !== 1) {
             throw new Error('Currently only supports one input from the seller.');
         } else {
             seller_prevout._satoshis = seller_requiredSatoshis + seller_fee;
@@ -148,8 +164,12 @@ export class MadCTBuilder implements IMadCTBuilder {
             seller_output.blindFactor = await lib.getLastMatchingBlindFactor([seller_prevout, buyer_prevout], [buyer_output]);
         }
 
-        if(!seller_output.address) {
+        if (!seller_output.address) {
             seller_output.address = await lib.getNewStealthAddressWithEphem();
+        }
+
+        if (!buyer_output.hashedSecret) {
+            throw new Error('Missing buyer outputs hashed secret.');
         }
 
          // Load all trusted values for prevouts from blockchain.
@@ -174,6 +194,9 @@ export class MadCTBuilder implements IMadCTBuilder {
         const bidtx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawbidtx);
 
 
+        if (!seller_output._redeemScript) {
+            throw new Error('Missing seller outputs redeem script.');
+        }
         // import the redeem script so the wallet is aware to watch on it
         // losing the pubkey makes the redeem script unrecoverable.
         // (always import the redeem script, doesn't matter)
@@ -193,6 +216,9 @@ export class MadCTBuilder implements IMadCTBuilder {
         const rawdesttx = await lib.generateRawConfidentialTx(destroy_inputs, destroy_output, mpa_accept.seller.payment.fee);
         const desttx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawdesttx);
 
+        if (!mpa_accept.seller.payment.destroy) {
+            throw new Error('Missing mpa_accept.seller.payment.destroy');
+        }
 
         if (!isArray(mpa_accept.seller.payment.destroy.signatures)) {
             mpa_accept.seller.payment.destroy.signatures = await lib.signRawTransactionForBlindInputs(desttx, destroy_inputs, seller_output.address);
@@ -209,7 +235,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         }
         // If not rebuilding, generate new ephem key and insert in msg
         if (!mpa_accept.seller.payment.release.ephem) {
-            let sx = await lib.getNewStealthAddressWithEphem(seller_output.address);
+            const sx = await lib.getNewStealthAddressWithEphem(seller_output.address);
             mpa_accept.seller.payment.release.ephem = sx.ephem;
         }
 
@@ -269,7 +295,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         accept['_rawreleasetxunsigned'] = rawreleasetx;
         const releasetx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawreleasetx);
 
-        if(!mpa_accept.seller.payment.release.signatures) {
+        if (!mpa_accept.seller.payment.release.signatures) {
             const seller_release_input = release_inputs[0];
             mpa_accept.seller.payment.release.signatures = await lib.signRawTransactionForBlindInputs(releasetx, [seller_release_input], seller_output.address);
         }
@@ -307,17 +333,17 @@ export class MadCTBuilder implements IMadCTBuilder {
      * @param accept the marketplace accept message.
      * @param lock the lock to fill in or rebuild the transaction from.
      */
-    async lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM> {
+    public async lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
         // TODO(security): safe numbers?
 
         // const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
-        const mpa_lock = (<MPA_LOCK>lock.action);
+        const mpa_bid = (<MPA_BID> bid.action);
+        const mpa_accept = (<MPA_ACCEPT> accept.action);
+        const mpa_lock = (<MPA_LOCK> lock.action);
 
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc>this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
+        const lib = <CtRpc> this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
 
         const rebuilt = (await this.accept(listing, bid, clone(accept)));
         // rebuild from accept message
@@ -328,7 +354,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             const signature = mpa_lock.buyer.payment.signatures;
             mpa_bid.buyer.payment.prevouts.forEach((out, i) => bidtx.setWitness(out, signature[i]));
         } else {
-            mpa_lock.buyer.payment.signatures = await lib.signRawTransactionForBlindInputs(bidtx, <BlindPrevout[]>mpa_bid.buyer.payment.prevouts);
+            mpa_lock.buyer.payment.signatures = await lib.signRawTransactionForBlindInputs(bidtx, <BlindPrevout[]> mpa_bid.buyer.payment.prevouts);
         }
 
         lock['_bidtx'] = bidtx;
@@ -357,11 +383,11 @@ export class MadCTBuilder implements IMadCTBuilder {
         lock['_rawdesttx'] = desttx.build();
 
 
-        if(rebuilt['_rawreleasetx']) {
+        if (rebuilt['_rawreleasetx']) {
             lock['_rawreleasetx'] = rebuilt['_rawreleasetx'];
         }
 
-        if(rebuilt['_rawreleasetxunsigned']) {
+        if (rebuilt['_rawreleasetxunsigned']) {
             lock['_rawreleasetxunsigned'] = rebuilt['_rawreleasetxunsigned'];
         }
 
@@ -406,6 +432,91 @@ export class MadCTBuilder implements IMadCTBuilder {
         return bidtx.build();
     }
 
+    /**
+     * Add the payment information for the MPA_RELEASE.
+     * Performs two steps: both for buyer and seller.
+     *
+     * Adds:
+     *  signature of seller.
+     *
+     *  if seller.signatures is present, it will complete the transaction
+     *  and return a fully signed under _rawtx
+     */
+    public async release(listing: MPM, bid: MPM, accept: MPM): Promise<string> {
+        // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
+        // TODO(security): safe numbers?
+
+        const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid = (<MPA_BID> bid.action);
+        const mpa_accept = (<MPA_ACCEPT> accept.action);
+
+        // Get the right transaction library for the right currency.
+        const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
+
+        // regenerate the transaction (from the messages)
+        const rebuilt = (await this.accept(listing, bid, clone(accept)));
+
+        return rebuilt['_rawreleasetx'];
+    }
+
+    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM> {
+
+        const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
+        const mpa_bid = (<MPA_BID> bid.action);
+        const mpa_accept = (<MPA_ACCEPT> accept.action);
+        const mpa_lock = (<MPA_LOCK> lock.action);
+        const mpa_refund = (<MPA_REFUND> refund.action);
+
+        // Get the right transaction library for the right currency.
+        const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
+
+        // regenerate the transaction (from the messages)
+        const rebuilt = (await this.accept(listing, bid, clone(accept)));
+        const acceptTx = rebuilt['_tx'];
+        // retrieve multisig prevout from lock tx.
+        const lockTx: TransactionBuilder = acceptTx;
+        console.log('(refund) rebuilt accept txid', lockTx.txid);
+
+        let publicKeyToSignFor: string;
+        if (isArray(mpa_refund.buyer.payment.signatures)) {
+            publicKeyToSignFor = mpa_accept.seller.payment.pubKey;
+        } else {
+            publicKeyToSignFor = mpa_bid.buyer.payment.pubKey;
+        }
+        const multisigUtxo = lockTx.getMultisigUtxo(publicKeyToSignFor);
+
+        const refundTx = new TransactionBuilder();
+        refundTx.addMultisigInput(multisigUtxo, [
+            mpa_bid.buyer.payment.pubKey,
+            mpa_accept.seller.payment.pubKey
+        ]);
+
+        // Add the prevout for the buyer
+        const buyer_address = mpa_bid.buyer.payment.changeAddress;
+        const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false, true);
+        refundTx.newNormalPrevout(buyer_address, buyer_releaseSatoshis);
+
+        const seller_address = mpa_accept.seller.payment.changeAddress;
+        const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true, true);
+        const seller_fee = mpa_accept.seller.payment.fee;
+        refundTx.newNormalPrevout(seller_address, seller_releaseSatoshis - seller_fee);
+
+        if (isArray(mpa_refund.buyer.payment.signatures)) {
+            // add signature of buyer
+            refundTx.addSignature(multisigUtxo, mpa_refund.buyer.payment.signatures[0]);
+
+            // sign for seller
+            await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
+        } else {
+            // sign for buyer
+            mpa_refund.buyer.payment.signatures = await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
+        }
+
+        refund['_rawtx'] = refundTx.build();
+
+        return refund;
+    }
+
     // TODO: move to confidential-tx ?
     private getTxPrevoutsFromBidTx(bidtx: ConfidentialTransactionBuilder, seller_output: ToBeBlindOutput, buyer_output: ToBeBlindOutput,
                                    secondsToLock: number): BlindPrevout[] {
@@ -437,12 +548,12 @@ export class MadCTBuilder implements IMadCTBuilder {
     private getDestroyOutput(bidtx: ConfidentialTransactionBuilder, satoshis: number, blind: string): any[] {
         const destroy_redeemScript = buildDestroyTxScript().redeemScript;
         return [{
-                _redeemScript: 'OP_RETURN', // TODO: fix particl-core, ASM only?
-                _type: 'blind',
-                _nonce: bidtx.txid, // TODO(security): random 32byte value
-                _satoshis: satoshis,
-                blindFactor: blind, // hash("random"), // TODO(security): unspendable anyways...
-                _data: '0a' + hash('random') // TODO(security): make fake ephem 33
+            _redeemScript: 'OP_RETURN', // TODO: fix particl-core, ASM only?
+            _type: 'blind',
+            _nonce: bidtx.txid, // TODO(security): random 32byte value
+            _satoshis: satoshis,
+            blindFactor: blind, // hash("random"), // TODO(security): unspendable anyways...
+            _data: '0a' + hash('random') // TODO(security): make fake ephem 33
         }];
     }
 
@@ -464,54 +575,6 @@ export class MadCTBuilder implements IMadCTBuilder {
         return required;
     }
 
-    /**
-     * The value to transfer from the buyer to the seller (basePrice + shippingPrice + additional prices)
-     * @param mpa_listing
-     * @param mpa_bid
-     */
-    private bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
-        let satoshis = 0;
-        const payment = mpa_listing.item.payment.cryptocurrency.find((crypto) => crypto.currency === mpa_bid.buyer.payment.cryptocurrency);
-        satoshis = payment.basePrice;
-
-        if (mpa_listing.item.information.location && payment.shippingPrice) {
-            if (mpa_bid.buyer.shippingAddress.country === mpa_listing.item.information.location.country) {
-                satoshis += payment.shippingPrice.domestic;
-            } else {
-                satoshis += payment.shippingPrice.international;
-            }
-        }
-
-        return satoshis;
-    }
-
-    /**
-     * Add the payment information for the MPA_RELEASE.
-     * Performs two steps: both for buyer and seller.
-     *
-     * Adds:
-     *  signature of seller.
-     *
-     *  if seller.signatures is present, it will complete the transaction
-     *  and return a fully signed under _rawtx
-     */
-    public async release(listing: MPM, bid: MPM, accept: MPM): Promise<string> {
-        // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
-        // TODO(security): safe numbers?
-
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
-
-        // Get the right transaction library for the right currency.
-        const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
-
-        // regenerate the transaction (from the messages)
-        const rebuilt = (await this.accept(listing, bid, clone(accept)));
-
-        return rebuilt['_rawreleasetx'];
-    }
-
     private release_calculateRequiredSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean, refund: boolean = false): number {
         const basePrice = this.bid_valueToTransferSatoshis(mpa_listing, mpa_bid);
         const percentageRatio = seller ? mpa_listing.item.payment.escrow.ratio.seller : mpa_listing.item.payment.escrow.ratio.buyer;
@@ -526,61 +589,29 @@ export class MadCTBuilder implements IMadCTBuilder {
         return required;
     }
 
-    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM> {
+    /**
+     * The value to transfer from the buyer to the seller (basePrice + shippingPrice + additional prices)
+     * @param mpa_listing
+     * @param mpa_bid
+     */
+    private bid_valueToTransferSatoshis(mpa_listing: MPA_EXT_LISTING_ADD, mpa_bid: MPA_BID): number {
+        let satoshis = 0;
+        const payment = mpa_listing.item.payment.cryptocurrency.find((crypto) => crypto.currency === mpa_bid.buyer.payment.cryptocurrency);
 
-        const mpa_listing = (<MPA_EXT_LISTING_ADD>listing.action);
-        const mpa_bid = (<MPA_BID>bid.action);
-        const mpa_accept = (<MPA_ACCEPT>accept.action);
-        const mpa_lock = (<MPA_LOCK>lock.action);
-        const mpa_refund = (<MPA_REFUND>refund.action);
-
-        // Get the right transaction library for the right currency.
-        const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency, true);
-
-        // regenerate the transaction (from the messages)
-        const rebuilt = (await this.accept(listing, bid, clone(accept)));
-        const acceptTx = rebuilt['_tx'];
-        // retrieve multisig prevout from lock tx.
-        const lockTx: TransactionBuilder = acceptTx;
-        console.log('(refund) rebuilt accept txid', lockTx.txid);
-
-        let publicKeyToSignFor: string;
-        if (isArray(mpa_refund.buyer.payment.signatures)) {
-            publicKeyToSignFor = mpa_accept.seller.payment.pubKey;
-        } else {
-            publicKeyToSignFor = mpa_bid.buyer.payment.pubKey;
-        }
-        const multisigUtxo = lockTx.getMultisigUtxo(publicKeyToSignFor);
-
-        const refundTx = new TransactionBuilder();
-        refundTx.addMultisigInput(multisigUtxo, [
-            mpa_bid.buyer.payment.pubKey,
-            mpa_accept.seller.payment.pubKey
-        ]);
-
-        // Add the prevout for the buyer
-        const buyer_address = mpa_bid.buyer.payment.changeAddress;
-        const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false, true);
-        refundTx.newNormalPrevout(buyer_address, buyer_releaseSatoshis)
-
-        const seller_address = mpa_accept.seller.payment.changeAddress;
-        const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true, true);
-        const seller_fee = mpa_accept.seller.payment.fee;
-        refundTx.newNormalPrevout(seller_address, seller_releaseSatoshis - seller_fee)
-
-        if (isArray(mpa_refund.buyer.payment.signatures)) {
-            // add signature of buyer
-            refundTx.addSignature(multisigUtxo, mpa_refund.buyer.payment.signatures[0]);
-
-            // sign for seller
-            await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
-        } else {
-            // sign for buyer
-            mpa_refund.buyer.payment.signatures = await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
+        if (!payment) {
+            throw new Error('Missing payment.');
         }
 
-        refund['_rawtx'] = refundTx.build();
+        satoshis = payment.basePrice;
 
-        return refund;
+        if (mpa_listing.item.information.location && payment.shippingPrice) {
+            if (mpa_bid.buyer.shippingAddress.country === mpa_listing.item.information.location.country) {
+                satoshis += payment.shippingPrice.domestic;
+            } else {
+                satoshis += payment.shippingPrice.international;
+            }
+        }
+
+        return satoshis;
     }
 }
