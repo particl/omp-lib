@@ -15,8 +15,10 @@ cache:
   - bins
 
 before_script:
+  - cd ./bins/particl-core
   - wget https://github.com/particl/particl-core/releases/download/v0.17.0.2/particl-0.17.0.2-x86_64-linux-gnu.tar.gz
   - tar -xvf particl-0.17.0.2-x86_64-linux-gnu.tar.gz
+  - cd ../..
   - yarn install
 
 script: 
