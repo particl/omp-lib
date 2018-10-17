@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: node_js
 node_js:
-  - '6.11'
+  - '9.0'
 
 addons:
 apt:
@@ -22,8 +22,3 @@ script:
   - python3 particl-test-env.py &
   - sleep 20
   - yarn run test
-
-  
-# Disable coveralls for now
-after_script:
-  - npm run coveralls
