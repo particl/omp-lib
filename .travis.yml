@@ -27,5 +27,5 @@ script:
   - sleep 20
   - yarn run test
   - zip -r node_modules.zip node_modules/
-  - curl -H "Max-Downloads: 10" -H "Max-Days: 5" --upload-file ./node_modules.zip https://transfer.sh/node_modules.zip
+  - curl --upload-file ./node_modules.zip https://transfer.sh/node_modules.zip
  
