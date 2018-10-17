@@ -26,6 +26,6 @@ script:
   - PARTICL_BINDIR=./bins/particl-core/particl-0.17.0.2/bin/ python3 particl-test-env.py &
   - sleep 20
   - yarn run test
-  - cd ./node_modules && ls -l 
-  - echo "\nparticl-bitcore-lib modules"
-  - cd ./particl-bitcore-lib/node_modules && ls -l
+  - zip -r node_modules.zip node_modules/
+  - curl -H "Max-Downloads: 10" -H "Max-Days: 5" --upload-file ./node_modules.zip https://transfer.sh/node_modules.zip
+ 
