@@ -19,8 +19,8 @@ before_script:
 
 script: 
   # download binaries
-  - python3 particl-test-env.py
-  - yarn run build
+  - python3 particl-test-env.py &
+  - sleep 20
   - yarn run test
 
   
