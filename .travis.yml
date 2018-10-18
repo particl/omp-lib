@@ -2,7 +2,7 @@ sudo: required
 dist: trusty
 language: node_js
 node_js:
-  - '6.11'
+  - '9.0'
 
 addons:
 apt:
@@ -15,15 +15,17 @@ cache:
   - bins
 
 before_script:
+  - cd ./bins/particl-core
+  - wget https://github.com/particl/particl-core/releases/download/v0.17.0.2/particl-0.17.0.2-x86_64-linux-gnu.tar.gz
+  - tar -xvf particl-0.17.0.2-x86_64-linux-gnu.tar.gz
+  - cd ../..
   - yarn install
 
 script: 
   # download binaries
-  - python3 particl-test-env.py
-  - yarn run build
+  - PARTICL_BINDIR=./bins/particl-core/particl-0.17.0.2/bin/ python3 particl-test-env.py &
+  - sleep 20
   - yarn run test
-
-  
-# Disable coveralls for now
-after_script:
-  - npm run coveralls
+  - zip -r node_modules.zip node_modules/
+  - curl --upload-file ./node_modules.zip https://transfer.sh/node_modules.zip
+ 
