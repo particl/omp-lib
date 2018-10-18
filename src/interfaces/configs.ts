@@ -3,8 +3,8 @@ import { EscrowType } from './omp-enums';
 import { KVS } from './common';
 
 export interface BidConfiguration {
-    cryptocurrency: CryptoType,
-    escrow: EscrowType,
+    cryptocurrency: CryptoType;
+    escrow: EscrowType;
     shippingAddress: {
         firstName: string,
         lastName: string,
@@ -13,7 +13,7 @@ export interface BidConfiguration {
         city: string,
         state: string,
         zipCode: string,
-        country: string,
-    },
-    objects?: KVS[]
+        country: string
+    };
+    objects?: KVS[];
 }

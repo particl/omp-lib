@@ -1,13 +1,10 @@
-import { MPA, MPM } from "../interfaces/omp"
-import { MPAction } from "../interfaces/omp-enums";
+import { MPA, MPM } from '../interfaces/omp';
+import { MPAction } from '../interfaces/omp-enums';
 
 
 export class FV_MPM {
 
-    constructor() {
-    }
-
-    static validate(msg: MPM): boolean {
+    public static validate(msg: MPM): boolean {
         if (!msg.version) {
             throw new Error('version: missing');
         }
@@ -25,6 +22,10 @@ export class FV_MPM {
         }
 
         return true;
+    }
+
+    constructor() {
+        //
     }
 
 }
