@@ -103,7 +103,7 @@ test('validate missing escrow type MPA_BID', () => {
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining('payment.outputs: not an array'));
+    expect(error).toEqual(expect.stringContaining('payment.prevouts: not an array'));
 });
 
 

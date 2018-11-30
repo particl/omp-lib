@@ -169,7 +169,7 @@ describe('SequenceValidator', () => {
         } catch (e) {
             error = e.toString();
         }
-        expect(error).toEqual(expect.stringContaining('did not match the hash of the bid.'));
+        expect(error).toEqual(expect.stringContaining('did not match.'));
     });
 
     const wrong_escrow_bid = clone(bid_ok);

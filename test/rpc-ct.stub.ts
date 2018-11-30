@@ -2,21 +2,17 @@ import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 
-import { Rpc, CtRpc, RpcAddressInfo, RpcRawTx, RpcUnspentOutput } from '../src/abstract/rpc';
+import { CtRpc, RpcAddressInfo, RpcRawTx, RpcUnspentOutput, RpcBlindSendToOutput } from '../src/abstract/rpc';
 import {
     Prevout,
     ISignature,
     BlindPrevout,
     CryptoAddressType,
     CryptoAddress,
-    ToBeBlindPrevout,
     EphemeralKey,
     ToBeBlindOutput,
-    Output
 } from '../src/interfaces/crypto';
-import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone, log } from '../src/util';
-import { TransactionBuilder } from '../src/transaction-builder/transaction';
-import { CoreRpcService } from './rpc.stub';
+import { fromSatoshis} from '../src/util';
 
 @injectable()
 class CtCoreRpcService extends CtRpc {
@@ -44,7 +40,11 @@ class CtCoreRpcService extends CtRpc {
         return await this.call('sendtoaddress', [address, amount, comment]);
     }
 
-    public async createSignatureWithWallet(hex: string, prevtx: Output, address: string): Promise<string> {
+    public async sendTypeTo(typeIn: string, typeOut: string, outputs: RpcBlindSendToOutput[]): Promise<string>{
+        return await this.call('sendtypeto', [typeIn, typeOut, outputs]);
+    }
+
+    public async createSignatureWithWallet(hex: string, prevtx: Prevout, address: string): Promise<string> {
         return await this.call('createsignaturewithwallet', [hex, prevtx, address]);
     }
 
@@ -66,6 +66,10 @@ class CtCoreRpcService extends CtRpc {
 
     public async listUnspent(minconf: number): Promise<RpcUnspentOutput[]> {
         return await this.call('listunspent', [minconf]);
+    }
+
+    public async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]>{
+        return await this.call('listunspentblind', [minconf]);
     }
 
     /**

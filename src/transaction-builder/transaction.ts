@@ -3,8 +3,7 @@ import 'reflect-metadata';
 import { TYPES } from '../types';
 import * as bitcore from 'particl-bitcore-lib';
 import { Rpc, ILibrary } from '../abstract/rpc';
-import { Output, ToBeOutput, ISignature } from '../interfaces/crypto';
-import { Prevout, ToBeNormalOutput, ISignature } from '../interfaces/crypto';
+import { Prevout, ToBeOutput, ToBeNormalOutput, ISignature } from '../interfaces/crypto';
 
 import { deepSortObject } from '../hasher/hash';
 import { CryptoAddress } from '../interfaces/crypto';
@@ -26,7 +25,7 @@ export class TransactionBuilder {
      * (Taken care of by bitcore-lib in this implementation)
      * @param input input to use in the transaction.
      */
-    public addInput(input: Output): TransactionBuilder {
+    public addInput(input: Prevout): TransactionBuilder {
         const i = clone(input);
         i.satoshis = input._satoshis;
         i.scriptPubKey = input._scriptPubKey;

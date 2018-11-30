@@ -5,7 +5,7 @@ import { CryptoAddressType } from '../interfaces/crypto';
 import { Rpc, ILibrary } from '../abstract/rpc';
 import { IMultiSigBuilder } from '../abstract/transactions';
 
-import { TransactionBuilder, getTxidFrom } from './transaction-builder/transaction';
+import { TransactionBuilder, getTxidFrom } from '../transaction-builder/transaction';
 import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from '../interfaces/omp';
 import { asyncForEach, asyncMap, clone, isArray } from '../util';
 
@@ -110,8 +110,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         mpa_accept.seller.payment.prevouts.forEach((input) => tx.addInput(input));
 
         // calculate changes (TransactionBuilder)
-        const buyer_change = tx.newChangePrevoutFor(buyer_requiredSatoshis, mpa_bid.buyer.payment.changeAddress, mpa_bid.buyer.payment.prevouts);
-        const seller_change = tx.newChangePrevoutFor(seller_requiredSatoshis + seller_fee, mpa_accept.seller.payment.changeAddress,
+        const buyer_change = tx.newChangeOutputFor(buyer_requiredSatoshis, mpa_bid.buyer.payment.changeAddress, mpa_bid.buyer.payment.prevouts);
+        const seller_change = tx.newChangeOutputFor(seller_requiredSatoshis + seller_fee, mpa_accept.seller.payment.changeAddress,
             mpa_accept.seller.payment.prevouts);
 
         // build the multisig prevout

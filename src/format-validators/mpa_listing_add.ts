@@ -168,6 +168,9 @@ export class FV_MPA_LISTING {
                     throw new Error('action.item.payment.escrow.ratio: missing or invalid percentages');
                 }
 
+                if (!isArray(payment.cryptocurrency)) {
+                    throw new Error('action.item.payment.cryptocurrency: not an array');
+                }
                 if (payment.cryptocurrency.length <= 0) {
                     throw new Error('action.item.payment.cryptocurrency: length of array is 0, missing?');
                 }
