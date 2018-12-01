@@ -156,7 +156,7 @@ export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAd
  * JS returns 4194306
  * Python returns 4194305
  */
-export function getExpectedSequence(seconds: number): number {
+export function getExpectedSequence(seconds: number): any {
     const SEQUENCE_LOCK_TIME = 2;
     const SEQUENCE_LOCKTIME_GRANULARITY = 9; // 1024 seconds
     const SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22);

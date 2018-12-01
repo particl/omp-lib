@@ -21,8 +21,7 @@ seller.inject(CryptoType.PART, node1, true);
 
 expect.extend({
     async toBeCompletedTransaction(rawtx) {
-      const tx = (await node0.call('verifyrawtransaction', [rawtx]));
-      const completed = tx['complete'];
+      const completed = (await node0.call('verifyrawtransaction', [rawtx]))['complete'];
       if (completed) {
         return {
           message: () =>
@@ -30,7 +29,6 @@ expect.extend({
           pass: true,
         };
       } else {
-          log(tx);
         return {
           message: () =>
             `expected ${rawtx} to be completed but got ${completed} instead`,
@@ -221,9 +219,16 @@ it.only('buyflow release', async () => {
         await node1.sendRawTransaction(complete)
         expect(completeTxid).toBeDefined();
 
+        const d = await node1.call('decoderawtransaction', [lock['_rawreleasetxunsigned']]);
+        log(d)
+
+        console.log('RELEASE')
+        await delay(10000)
         const release = await buyer.release(ok, bid, accept);
-        const decoded = await node1.call('verifyrawtransaction', [release]);
+        const decoded = await node1.call('decoderawtransaction', [release]);
         log(decoded)
+        const verify = await node1.call('verifyrawtransaction', [release]);
+        log(verify)
         expect(release).toBeCompletedTransaction();
 
         const releaseTxid = await node0.sendRawTransaction(release);
