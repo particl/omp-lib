@@ -16,13 +16,13 @@ cache:
 
 before_script:
   - cd ./bins/particl-core
-  - wget https://github.com/particl/particl-core/releases/download/v0.17.0.2/particl-0.17.0.2-x86_64-linux-gnu.tar.gz
-  - tar -xvf particl-0.17.0.2-x86_64-linux-gnu.tar.gz
+  - wget https://github.com/particl/particl-core/releases/download/v0.17.0.3/particl-0.17.0.3-x86_64-linux-gnu.tar.gz
+  - tar -xvf particl-0.17.0.3-x86_64-linux-gnu.tar.gz
   - cd ../..
   - yarn install
 
 script: 
   # download binaries
-  - PARTICL_BINDIR=./bins/particl-core/particl-0.17.0.2/bin/ python3 particl-test-env.py &
+  - PARTICL_BINDIR=./bins/particl-core/particl-0.17.0.3/bin/ python3 particl-test-env.py &
   - sleep 20
   - yarn run test
