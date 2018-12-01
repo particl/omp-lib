@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { MPA, MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp';
 import { PaymentType, MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry, isNonNegativeNaturalNumber } from '../util';
