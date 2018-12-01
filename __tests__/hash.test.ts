@@ -250,9 +250,14 @@ test('strip', () => {
     expect(stripped).toEqual(clean);
 });
 
-test.only('sha256hex', () => {
+test('sha256hex', () => {
     const s = sha256.create();
     // bee405d40383879ca57d4eb24b9153b356c85ee6f4bc810b8bb1b67c1112c0bd
     s.update(new Buffer('76d02c17ce9999108a568fa9c192eee9580674e73a47c1e85c1bd335aa57082e', 'hex'));
-    console.log('sha256hex s=', s.hex());
+    expect(s.hex()).toEqual('bee405d40383879ca57d4eb24b9153b356c85ee6f4bc810b8bb1b67c1112c0bd');
+});
+
+test('hash for particl-core', () => {
+    const h = hash(new Buffer('76d02c17ce9999108a568fa9c192eee9580674e73a47c1e85c1bd335aa57082e', 'hex'));
+    expect(h).toEqual('bee405d40383879ca57d4eb24b9153b356c85ee6f4bc810b8bb1b67c1112c0bd');
 });

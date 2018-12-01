@@ -83,8 +83,6 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
      * @param secret The secret revealed by the buyer
      */
     public puzzleReleaseWitness(bidPrevout: BlindPrevout, party: ISignature, secret: string): boolean {
-        console.log('puzzleReleaseWitness')
-        log(bidPrevout);
         const input = this.tx.inputs.find((tmpInput) => (tmpInput.outputIndex === bidPrevout.vout));
         // console.log('secret byte length =', new Buffer(secret, 'hex').byteLength);
         if (!bidPrevout._redeemScript) {
@@ -156,14 +154,14 @@ export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAd
  * JS returns 4194306
  * Python returns 4194305
  */
-export function getExpectedSequence(seconds: number): any {
+export function getExpectedSequence(seconds: number): Buffer {
     const SEQUENCE_LOCK_TIME = 2;
     const SEQUENCE_LOCKTIME_GRANULARITY = 9; // 1024 seconds
     const SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22);
     const secondsLocked = Math.trunc(seconds / (SEQUENCE_LOCK_TIME << SEQUENCE_LOCKTIME_GRANULARITY));
     const r = (secondsLocked | SEQUENCE_LOCKTIME_TYPE_FLAG);
     // console.log('getExpectedSequence(): r = ', r)
-    return r;
+    return <any> r;
 }
 
 

@@ -136,7 +136,6 @@ const ok = JSON.parse(
     };
 
 it('buyflow', async () => {
-    console.log('buyflow')
     jest.setTimeout(40000);
     let end = false;
 
@@ -180,8 +179,7 @@ it('buyflow', async () => {
     expect(end).toEqual(true);
 });
 
-it.only('buyflow release', async () => {
-    console.log('buyflow release')
+it('buyflow release', async () => {
     jest.setTimeout(400000);
     let end = false;
 
@@ -190,14 +188,12 @@ it.only('buyflow release', async () => {
         ok.action.item.payment.cryptocurrency.address = await node0.getNewStealthAddress();
         // Step1: Buyer does bid
         const bid = await buyer.bid(config, ok);
-        log(bid);
         const bid_stripped = strip(bid);
 
         await delay(7000);
         // Step 2: seller accepts
         const accept = await seller.accept(ok, bid_stripped);
         const accept_stripped = strip(accept);
-        log(accept_stripped)
 
         expect(accept['_rawdesttx']).not.toBeCompletedTransaction();
 
@@ -205,7 +201,6 @@ it.only('buyflow release', async () => {
         await delay(7000);
         const lock = await buyer.lock(ok, bid, accept_stripped);
         const lock_stripped = strip(lock);
-        log(lock_stripped);
 
         expect(lock['_rawdesttx']).not.toBeCompletedTransaction();
 
@@ -220,15 +215,11 @@ it.only('buyflow release', async () => {
         expect(completeTxid).toBeDefined();
 
         const d = await node1.call('decoderawtransaction', [lock['_rawreleasetxunsigned']]);
-        log(d)
+
 
         console.log('RELEASE')
         await delay(10000)
         const release = await buyer.release(ok, bid, accept);
-        const decoded = await node1.call('decoderawtransaction', [release]);
-        log(decoded)
-        const verify = await node1.call('verifyrawtransaction', [release]);
-        log(verify)
         expect(release).toBeCompletedTransaction();
 
         const releaseTxid = await node0.sendRawTransaction(release);

@@ -11,7 +11,7 @@ import { FV_MPA_LOCK } from '../../src/format-validators/mpa_lock';
 import { FV_MPA_RELEASE } from '../../src/format-validators/mpa_release';
 import { FV_MPA_REFUND } from '../../src/format-validators/mpa_refund';
 
-describe('Multisig Buy Flow', () => {
+
 
     const delay = ms => {
         return new Promise(resolve => {
@@ -105,11 +105,11 @@ describe('Multisig Buy Flow', () => {
             await delay(5000);
             lock = await buyer.lock(ok, bid, accept);
             FV_MPA_LOCK.validate(lock);
-            await node0.sendRawTransaction(lock['_rawtx']);
+            await node0.sendRawTransaction(lock['_rawbidtx']);
 
             // Step 4: buyer optionally releases
             complete = await buyer.release(ok, bid, accept, release);
-            await node0.sendRawTransaction(complete['_rawtx']);
+            await node0.sendRawTransaction(complete['_rawreleasetx']);
 
             bool = true;
         } catch (e) {
@@ -119,7 +119,7 @@ describe('Multisig Buy Flow', () => {
         expect(lock).toBeDefined();
         expect(accept).toBeDefined();
 
-        expect(accept['_rawtx']).toEqual(release['_rawtx_accept']);
+        expect(accept['_rawbidtx']).toEqual(release['_rawbidtx']);
     });
 
     it('determinstic transaction generation refund', async () => {
@@ -140,13 +140,13 @@ describe('Multisig Buy Flow', () => {
             await delay(5000);
             lock = await buyer.lock(ok, bid, accept);
             FV_MPA_LOCK.validate(lock);
-            await node0.sendRawTransaction(lock['_rawtx']);
+            await node0.sendRawTransaction(lock['_rawbidtx']);
 
             refund = await buyer.refund(ok, bid, accept, lock);
             FV_MPA_REFUND.validate(refund);
             complete = await seller.refund(ok, bid, accept, lock, refund);
             await delay(5000);
-            await node0.sendRawTransaction(complete['_rawtx']);
+            await node0.sendRawTransaction(complete['_rawrefundtx']);
 
             bool = true;
         } catch (e) {
@@ -156,4 +156,4 @@ describe('Multisig Buy Flow', () => {
         expect(lock).toBeDefined();
         expect(accept).toBeDefined();
     });
-});
+

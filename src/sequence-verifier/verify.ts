@@ -20,8 +20,6 @@ export class Sequence {
         // loop through each MPM in the sequence
         sequence.forEach((mpm: MPM, index) => {
             const type: MPAction = mpm.action.type;
-
-            console.log('sequence, ' + index + ' type: ', type);
             Sequence.validateActionIndex(index, type);
 
             switch (index) {
@@ -96,7 +94,7 @@ export class Sequence {
                 break;
             case 3: // must be an MPA_LOCK
                 if ([MPAction.MPA_LOCK].indexOf(type) === -1) {
-                    throw new Error('Sequence: fourth action in the sequence must be a MPA_ACCEPT, MPA_REJECT, MPA_CANCEL.');
+                    throw new Error('Sequence: fourth action in the sequence must be a MPA_LOCK.');
                 }
                 break;
             case 4: // must be an MPA_RELEASE or MPA_REFUND

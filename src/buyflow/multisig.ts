@@ -139,9 +139,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             mpa_accept.seller.payment.signatures = await lib.signRawTransactionForInputs(tx, seller_inputs);
         }
 
-        accept['_tx'] = tx;
-        accept['_rawtx'] = tx.build();
-
+        accept['_bidtx'] = tx;
+        accept['_rawbidtx'] = tx.build();
         return accept;
     }
 
@@ -180,6 +179,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             mpa_lock.buyer.payment.signatures = await lib.signRawTransactionForInputs(bidtx, mpa_bid.buyer.payment.prevouts);
         }
 
+        lock['_bidtx'] = bidtx;
         lock['_rawbidtx'] = bidtx.build();
 
         return lock;
@@ -226,7 +226,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      *  signature of seller.
      *
      *  if seller.signatures is present, it will complete the transaction
-     *  and return a fully signed under _rawtx
+     *  and return a fully signed under _rawreleasetx
      */
     public async release(listing: MPM, bid: MPM, accept: MPM, release: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
@@ -242,14 +242,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // regenerate the transaction (from the messages)
         const rebuilt = (await this.accept(listing, bid, clone(accept)));
-        const acceptRawTx = rebuilt['_rawtx'];
-        const acceptTx = rebuilt['_tx'];
+        const acceptRawTx = rebuilt['_rawbidtx'];
+        const acceptTx = rebuilt['_bidtx'];
 
-        release['_rawtx_accept'] = acceptRawTx;
+        release['_rawbidtx'] = acceptRawTx;
 
         // retrieve multisig prevout from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
-        console.log('(release) rebuilt accept txid', lockTx.txid);
 
         let publicKeyToSignFor: string;
         if (isArray(mpa_release.seller.payment.signatures)) {
@@ -286,7 +285,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             mpa_release.seller.payment.signatures = await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
         }
 
-        release['_rawtx'] = releaseTx.build();
+        release['_rawreleasetx'] = releaseTx.build();
         return release;
     }
 
@@ -317,10 +316,9 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // regenerate the transaction (from the messages)
         const rebuilt = (await this.accept(listing, bid, clone(accept)));
-        const acceptTx = rebuilt['_tx'];
+        const acceptTx = rebuilt['_bidtx'];
         // retrieve multisig prevout from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
-        console.log('(refund) rebuilt accept txid', lockTx.txid);
 
         let publicKeyToSignFor: string;
         if (isArray(mpa_refund.buyer.payment.signatures)) {
@@ -339,12 +337,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Add the prevout for the buyer
         const buyer_address = mpa_bid.buyer.payment.changeAddress;
         const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false, true);
-        refundTx.newNormalPrevout(buyer_address, buyer_releaseSatoshis);
+        refundTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
         const seller_address = mpa_accept.seller.payment.changeAddress;
         const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true, true);
         const seller_fee = mpa_accept.seller.payment.fee;
-        refundTx.newNormalPrevout(seller_address, seller_releaseSatoshis - seller_fee);
+        refundTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
 
         if (isArray(mpa_refund.buyer.payment.signatures)) {
             // add signature of buyer
@@ -357,7 +355,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             mpa_refund.buyer.payment.signatures = await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
         }
 
-        refund['_rawtx'] = refundTx.build();
+        refund['_rawrefundtx'] = refundTx.build();
 
         return refund;
     }

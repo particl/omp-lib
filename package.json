@@ -10,7 +10,7 @@
         "start": "node ./dist/src/module.js",
 
         "setuptest": "python3 particl-test-env.py",
-        "test": "jest",
+        "test": "jest --verbose",
         "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
     },
     "contributors": [

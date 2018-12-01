@@ -576,7 +576,7 @@ export abstract class CtRpc extends Rpc {
             }
 
             r.push(sig);
-            console.log('signRawTransactionForBlindInputs(): txid= ', tx.txid);
+            // console.log('signRawTransactionForBlindInputs(): txid= ', tx.txid);
             // console.log('signRawTransactionForBlindInputs(): signing for ', input)
             // console.log('signRawTransactionForBlindInputs(): sig ', sig)
 

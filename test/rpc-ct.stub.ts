@@ -15,7 +15,7 @@ import { CoreRpcService } from './rpc.stub';
 class CtCoreRpcService extends CtRpc {
 
     private RPC_REQUEST_ID = 1;
-    private DEBUG = true;
+    private DEBUG = false;
 
     constructor(host: string, port: number, user: string, password: string) {
         super(host, port, user, password);

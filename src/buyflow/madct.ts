@@ -60,13 +60,12 @@ export class MadCTBuilder implements IMadCTBuilder {
         buyer_output.hashedSecret = hash(new Buffer(buyer_output._secret, 'hex'));
         buyer_output.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
         buyer_output.address = await lib.getNewStealthAddressWithEphem();
-        console.log("buyer_output.address", buyer_output.address)
 
 
         const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(buyer_output.address);
         // TODO (security): randomize value and PRESENCE. Can be undefined! -> randomizes index too
         const blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
-        //const blindFactor = undefined;
+        // const blindFactor = undefined;
 
         mpa_bid.buyer.payment.release = {
             ephem: address.ephem,
@@ -241,7 +240,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         delete release_inputs[1]['_sequence'];
 
         // Decide where the sellers output is going to be located.
-        let seller_index: number = 1;
+        let seller_index = 1;
         let lastBlindFactor: string;
         if (!mpa_bid.buyer.payment.release.blindFactor) {
             // The buyer did not specify  blind key, so we will
@@ -472,7 +471,6 @@ export class MadCTBuilder implements IMadCTBuilder {
         const acceptTx = rebuilt['_tx'];
         // retrieve multisig prevout from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
-        console.log('(refund) rebuilt accept txid', lockTx.txid);
 
         let publicKeyToSignFor: string;
         if (isArray(mpa_refund.buyer.payment.signatures)) {

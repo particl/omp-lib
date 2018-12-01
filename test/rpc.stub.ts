@@ -11,7 +11,7 @@ import { TransactionBuilder } from '../src/transaction-builder/transaction';
 class CoreRpcService extends Rpc {
 
     private RPC_REQUEST_ID = 1;
-    private DEBUG = true;
+    private DEBUG = false;
 
     constructor(host: string, port: number, user: string, password: string) {
         super(host, port, user, password);
