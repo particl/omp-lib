@@ -3,16 +3,13 @@ import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 
 import { CtRpc, RpcAddressInfo, RpcRawTx, RpcUnspentOutput, RpcBlindSendToOutput } from '../src/abstract/rpc';
-import {
-    Prevout,
-    ISignature,
-    BlindPrevout,
-    CryptoAddressType,
-    CryptoAddress,
-    EphemeralKey,
-    ToBeBlindOutput,
-} from '../src/interfaces/crypto';
-import { fromSatoshis} from '../src/util';
+
+import { Prevout, ISignature, BlindPrevout, CryptoAddressType, CryptoAddress, ToBeBlindOutput } from "../src/interfaces/crypto";
+import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone, log } from "../src/util";
+import { TransactionBuilder } from '../src/transaction-builder/transaction';
+import { ConfidentialTransactionBuilder } from '../src/transaction-builder/confidential-transaction';
+import { CoreRpcService } from './rpc.stub';
+
 
 @injectable()
 class CtCoreRpcService extends CtRpc {
