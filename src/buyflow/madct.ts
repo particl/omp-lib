@@ -65,7 +65,8 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(buyer_output.address);
         // TODO (security): randomize value and PRESENCE. Can be undefined! -> randomizes index too
-        const blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+        //const blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+        const blindFactor = undefined;
 
         mpa_bid.buyer.payment.release = {
             ephem: address.ephem,
@@ -300,11 +301,11 @@ export class MadCTBuilder implements IMadCTBuilder {
         // so this is the buyer rebuilding the txs.
         // complete the release tx but don't reveal to seller.
         if (buyer_output._secret) {
-            const buyer_release_input = release_inputs[1 - seller_index];
+            const buyer_release_input = release_inputs[1];
             const buyer_signatures = await lib.signRawTransactionForBlindInputs(releasetx, [buyer_release_input], buyer_output.address);
             releasetx.puzzleReleaseWitness(buyer_release_input, buyer_signatures[0], buyer_output._secret);
 
-            const seller_release_input = release_inputs[seller_index];
+            const seller_release_input = release_inputs[0];
             const seller_signatures =  mpa_accept.seller.payment.release.signatures;
             releasetx.puzzleReleaseWitness(seller_release_input, seller_signatures[0], buyer_output._secret);
         }

@@ -58,7 +58,7 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
                     new Buffer(redeemScript, 'hex')
                 ]);
             } else if (i === 1) {
-                const redeemScript = bidPrevouts[0]._redeemScript;
+                const redeemScript = bidPrevouts[1]._redeemScript;
                 if (!redeemScript) {
                     throw new Error('Missing redeemScript,');
                 }
@@ -83,6 +83,8 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
      * @param secret The secret revealed by the buyer
      */
     public puzzleReleaseWitness(bidPrevout: BlindPrevout, party: ISignature, secret: string): boolean {
+        console.log('puzzleReleaseWitness')
+        log(bidPrevout);
         const input = this.tx.inputs.find((tmpInput) => (tmpInput.outputIndex === bidPrevout.vout));
         // console.log('secret byte length =', new Buffer(secret, 'hex').byteLength);
         if (!bidPrevout._redeemScript) {

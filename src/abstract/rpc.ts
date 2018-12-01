@@ -512,7 +512,7 @@ export abstract class CtRpc extends Rpc {
 
     public async getLastMatchingBlindFactor(inputs: (BlindPrevout[] | ToBeBlindOutput[]), outputs: ToBeBlindOutput[]): Promise<string> {
         const inp = inputs.map(i => i.blindFactor);
-        const out = outputs.map(i => i.blindFactor);
+        let out = outputs.map(i => i.blindFactor);
 
         if (!out) {
             out = [];
