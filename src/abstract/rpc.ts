@@ -429,11 +429,6 @@ export abstract class CtRpc extends Rpc {
 
             const o = {
                 type: out._type || 'blind',
-                rangeproof_params: {
-                    ct_exponent: 2,
-                    ct_bits: 32,
-                    min_value: 0
-                },
                 amount: fromSatoshis(out._satoshis)
             };
 
