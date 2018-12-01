@@ -60,16 +60,12 @@ export class MadCTBuilder implements IMadCTBuilder {
         buyer_output.hashedSecret = hash(new Buffer(buyer_output._secret, 'hex'));
         buyer_output.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
         buyer_output.address = await lib.getNewStealthAddressWithEphem();
+        console.log("buyer_output.address", buyer_output.address)
 
-
-        // TODO(security): randomize
-        // if (false) {
-            // The buyer specifies the blind factor
-            // mpa_bid.buyer.payment.release.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490'; // TODO(security): random
-        // }
 
         const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(buyer_output.address);
-        const blindFactor = undefined;
+        // TODO (security): randomize value and PRESENCE. Can be undefined! -> randomizes index too
+        const blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
 
         mpa_bid.buyer.payment.release = {
             ephem: address.ephem,
@@ -244,7 +240,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         delete release_inputs[1]['_sequence'];
 
         // Decide where the sellers output is going to be located.
-        let isFirst: boolean;
+        let seller_index: number = 1;
         let lastBlindFactor: string;
         if (!mpa_bid.buyer.payment.release.blindFactor) {
             // The buyer did not specify  blind key, so we will
@@ -254,7 +250,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             lastBlindFactor = await lib.getLastMatchingBlindFactor(
                 release_inputs,
                 [{blindFactor: mpa_accept.seller.payment.release.blindFactor} as ToBeBlindOutput]);
-            isFirst = true;
+            seller_index = 0;
         } else {
             lastBlindFactor = await lib.getLastMatchingBlindFactor(release_inputs,
                 [{blindFactor: mpa_bid.buyer.payment.release.blindFactor} as ToBeBlindOutput]);
@@ -271,15 +267,15 @@ export class MadCTBuilder implements IMadCTBuilder {
         seller_release_address.ephem = mpa_accept.seller.payment.release.ephem;
         await lib.getPubkeyForStealthWithEphem(seller_release_address);
 
-        // If seller is first output, then buyer didnt provide a blind factor
-        const buyer_blindFactor_release = isFirst ? lastBlindFactor : mpa_bid.buyer.payment.release.blindFactor;
+        // If seller is first (index = 0), then buyer didnt provide a blind factor and it get lastBlindFactor generated
+        const buyer_blindFactor_release = seller_index ? mpa_bid.buyer.payment.release.blindFactor : lastBlindFactor;
         const buyer_release_output = this.getReleaseOutput(buyer_release_address, buyer_output._satoshis, buyer_blindFactor_release);
 
-        const seller_blindFactor_release = isFirst ? mpa_accept.seller.payment.release.blindFactor : lastBlindFactor;
+        const seller_blindFactor_release = seller_index ?  lastBlindFactor : mpa_accept.seller.payment.release.blindFactor;
         const seller_release_output = this.getReleaseOutput(seller_release_address, seller_output._satoshis - seller_fee, seller_blindFactor_release);
 
         let release_outputs: ToBeBlindOutput[];
-        if (isFirst) {
+        if (!seller_index) {
             release_outputs = [
                 seller_release_output,
                 buyer_release_output
@@ -304,11 +300,11 @@ export class MadCTBuilder implements IMadCTBuilder {
         // so this is the buyer rebuilding the txs.
         // complete the release tx but don't reveal to seller.
         if (buyer_output._secret) {
-            const buyer_release_input = release_inputs[1];
+            const buyer_release_input = release_inputs[1 - seller_index];
             const buyer_signatures = await lib.signRawTransactionForBlindInputs(releasetx, [buyer_release_input], buyer_output.address);
             releasetx.puzzleReleaseWitness(buyer_release_input, buyer_signatures[0], buyer_output._secret);
 
-            const seller_release_input = release_inputs[0];
+            const seller_release_input = release_inputs[seller_index];
             const seller_signatures =  mpa_accept.seller.payment.release.signatures;
             releasetx.puzzleReleaseWitness(seller_release_input, seller_signatures[0], buyer_output._secret);
         }

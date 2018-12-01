@@ -21,7 +21,8 @@ seller.inject(CryptoType.PART, node1, true);
 
 expect.extend({
     async toBeCompletedTransaction(rawtx) {
-      const completed = (await node0.call('verifyrawtransaction', [rawtx]))['complete'];
+      const tx = (await node0.call('verifyrawtransaction', [rawtx]));
+      const completed = tx['complete'];
       if (completed) {
         return {
           message: () =>
@@ -29,6 +30,7 @@ expect.extend({
           pass: true,
         };
       } else {
+          log(tx);
         return {
           message: () =>
             `expected ${rawtx} to be completed but got ${completed} instead`,
@@ -136,6 +138,7 @@ const ok = JSON.parse(
     };
 
 it('buyflow', async () => {
+    console.log('buyflow')
     jest.setTimeout(40000);
     let end = false;
 
@@ -174,12 +177,13 @@ it('buyflow', async () => {
 
         end = true;
     } catch (e) {
-        console.log(e)
+        log(e)
     }
     expect(end).toEqual(true);
 });
 
 it.only('buyflow release', async () => {
+    console.log('buyflow release')
     jest.setTimeout(400000);
     let end = false;
 
@@ -188,12 +192,14 @@ it.only('buyflow release', async () => {
         ok.action.item.payment.cryptocurrency.address = await node0.getNewStealthAddress();
         // Step1: Buyer does bid
         const bid = await buyer.bid(config, ok);
+        log(bid);
         const bid_stripped = strip(bid);
 
         await delay(7000);
         // Step 2: seller accepts
         const accept = await seller.accept(ok, bid_stripped);
         const accept_stripped = strip(accept);
+        log(accept_stripped)
 
         expect(accept['_rawdesttx']).not.toBeCompletedTransaction();
 
@@ -201,6 +207,7 @@ it.only('buyflow release', async () => {
         await delay(7000);
         const lock = await buyer.lock(ok, bid, accept_stripped);
         const lock_stripped = strip(lock);
+        log(lock_stripped);
 
         expect(lock['_rawdesttx']).not.toBeCompletedTransaction();
 
@@ -215,6 +222,8 @@ it.only('buyflow release', async () => {
         expect(completeTxid).toBeDefined();
 
         const release = await buyer.release(ok, bid, accept);
+        const decoded = await node1.call('verifyrawtransaction', [release]);
+        log(decoded)
         expect(release).toBeCompletedTransaction();
 
         const releaseTxid = await node0.sendRawTransaction(release);

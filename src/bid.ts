@@ -70,7 +70,6 @@ export class Bid {
             case EscrowType.MAD_CT:
                 delete bid.action.buyer.payment.pubKey;
                 delete bid.action.buyer.payment.changeAddress;
-                bid.action.buyer.payment.address = {};
                 await this._madct.bid(listing, bid);
                 break;
         }
@@ -121,6 +120,7 @@ export class Bid {
             case EscrowType.MAD_CT:
                 delete accept.action.seller.payment.pubKey;
                 delete accept.action.seller.payment.changeAddress;
+                delete accept.action.seller.payment.signatures;
                 accept.action.seller.payment.destroy = {};
                 await this._madct.accept(listing, bid, accept);
                 break;
