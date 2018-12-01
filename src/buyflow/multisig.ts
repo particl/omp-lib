@@ -268,12 +268,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Add the prevout for the buyer
         const buyer_address = mpa_bid.buyer.payment.changeAddress;
         const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, false);
-        releaseTx.newNormalPrevout(buyer_address, buyer_releaseSatoshis);
+        releaseTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
         const seller_address = mpa_accept.seller.payment.changeAddress;
         const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(mpa_listing, mpa_bid, true);
         const seller_fee = mpa_accept.seller.payment.fee;
-        releaseTx.newNormalPrevout(seller_address, seller_releaseSatoshis - seller_fee);
+        releaseTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
 
         if (isArray(mpa_release.seller.payment.signatures)) {
             // add signature of seller
