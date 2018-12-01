@@ -4,12 +4,14 @@ import { isString, isObject, isArray, isNumber } from '../format-validators/util
 import { MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp';
 import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
 
-export function hash(v: any): string {
+export function hash(v: any): any {
     if (typeof v === 'undefined') {
         throw new Error('hash(): value is undefined');
     }
 
-    if (isObject(v)) {
+    if (v instanceof Buffer) {
+        return sha256(v);
+    } else if (isObject(v)) {
         return hashObject(v);
     } else {
         return sha256(v);
