@@ -206,6 +206,9 @@ export interface MPA_LOCK extends MPA {
             signatures: ISignature[],
             destroy?: {
                 signatures?: ISignature[]
+            },
+            refund?: {
+                signatures?: ISignature[]
             }
         }
     };

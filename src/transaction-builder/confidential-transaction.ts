@@ -122,7 +122,7 @@ export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAd
     const publicKeyHashFrom =  bitcore.PublicKey.fromString(addressFrom.pubKey).toAddress().hashBuffer;
     const publicKeyHashTo = bitcore.PublicKey.fromString(addressTo.pubKey).toAddress().hashBuffer;
 
-    // create a multisig redeemScript
+    // create a multisig redeemScript 
     const redeemScript = bitcore.Script('OP_IF OP_SIZE 0x01 0x20 OP_EQUALVERIFY OP_SHA256')
         .add(new Buffer(hashedSecret, 'hex'))
         .add(bitcore.Script('OP_EQUALVERIFY OP_ELSE'))

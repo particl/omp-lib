@@ -359,6 +359,11 @@ export abstract class CtRpc extends Rpc {
         return prevout;
     }
 
+    /**
+     * Load a set of trusted fields for a blind (u)txo.
+     * also validates the satoshis entered in the utxo against the commitment!
+     * @param utxo the output to load the fields for.
+     */
     public async loadTrustedFieldsForBlindUtxo(utxo: BlindPrevout): Promise<BlindPrevout> {
         const tx: RpcRawTx = await this.getRawTransaction(utxo.txid);
         const found: RpcVout | undefined = tx.vout.find(i => i.n === utxo.vout);

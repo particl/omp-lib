@@ -28,7 +28,8 @@
     "dependencies": {
         "inversify": "^4.13.0",
         "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
-        "reflect-metadata": "^0.1.12"
+        "reflect-metadata": "^0.1.12",
+        "js-sha256": "^0.9.0"
     },
     "devDependencies": {
         "@types/jest": "^23.1.4",
@@ -36,7 +37,6 @@
         "jest": "^23.6.0",
         "jest-cli": "^23.6.0",
         "jest-sonar-reporter": "^2.0.0",
-        "js-sha256": "^0.9.0",
         "nodemon": "^1.11.0",
         "sonarqube-scanner": "^2.1.2",
         "ts-jest": "^23.10.4",
