@@ -1,21 +1,18 @@
-import { MPA } from "../interfaces/omp"
-import { MPAction } from "../interfaces/omp-enums";
-import { FV_MPM} from "./mpm";
-import { FV_MPA_LISTING } from "./mpa_listing_add";
-import { FV_MPA_BID } from "./mpa_bid";
-import { FV_MPA_LOCK } from "./mpa_lock";
-import { FV_MPA_ACCEPT } from "./mpa_accept";
-import { FV_MPA_RELEASE } from "./mpa_release";
-import { FV_MPA_REJECT } from "./mpa_reject";
-import { FV_MPA_CANCEL } from "./mpa_cancel";
-import { FV_MPA_REFUND } from "./mpa_refund";
+import { MPA } from '../interfaces/omp';
+import { MPAction } from '../interfaces/omp-enums';
+import { FV_MPM } from './mpm';
+import { FV_MPA_LISTING } from './mpa_listing_add';
+import { FV_MPA_BID } from './mpa_bid';
+import { FV_MPA_LOCK } from './mpa_lock';
+import { FV_MPA_ACCEPT } from './mpa_accept';
+import { FV_MPA_RELEASE } from './mpa_release';
+import { FV_MPA_REJECT } from './mpa_reject';
+import { FV_MPA_CANCEL } from './mpa_cancel';
+import { FV_MPA_REFUND } from './mpa_refund';
 
 export class Format {
 
-    constructor() {
-    }
-
-    static validate(msg: any): boolean {
+    public static validate(msg: any): boolean {
         // validate base class
         FV_MPM.validate(msg);
 
@@ -46,6 +43,10 @@ export class Format {
                 break;
         }
         return true;
+    }
+
+    constructor() {
+        //
     }
 
 }

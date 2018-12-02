@@ -1,27 +1,27 @@
+// tslint:disable:no-for-each-push
 import { sha256 } from 'js-sha256';
 import { isString, isObject, isArray, isNumber } from '../format-validators/util';
-import { MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp'
-import { ContentReference, ProtocolDSN } from '../interfaces/dsn'
+import { MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp';
+import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
 
-export function hash(v: any): any {
-    if(typeof v === 'undefined') {
+export function hash(v: any): (object | Buffer | string) {
+    if (typeof v === 'undefined') {
         throw new Error('hash(): value is undefined');
     }
 
     if (v instanceof Buffer) {
         return sha256(v);
-    }else if(isObject(v)){
+    } else if (isObject(v)) {
         return hashObject(v);
     } else {
         return sha256(v);
     }
-
 }
 
 function hashObject(unordered: object): string {
     const sorted = deepSortObject(unordered);
 
-    let keyHashes = sha256.update('OpenMarketProtocol');
+    const keyHashes = sha256.update('OpenMarketProtocol');
     deep(sorted, (toHash) => {
         keyHashes.update(toHash);
     });
@@ -29,24 +29,24 @@ function hashObject(unordered: object): string {
     return sha256(keyHashes.array().join());
 }
 
-export function hashListing(l: MPM) {
+export function hashListing(l: MPM): string {
 
     // remove the local image data from the hashing
     // the ContentReference hash already provides us
     // with authentication for the data
-    const listing: MPA_EXT_LISTING_ADD = <MPA_EXT_LISTING_ADD>(l.action);
-    if(listing.item.information.images) {
+    const listing: MPA_EXT_LISTING_ADD = <MPA_EXT_LISTING_ADD> (l.action);
+    if (listing.item.information.images) {
         listing.item.information.images.forEach((img: ContentReference) => {
             img.data.forEach((dsn) => {
-                if(dsn.protocol === ProtocolDSN.LOCAL) {
+                if (dsn.protocol === ProtocolDSN.LOCAL) {
                     delete dsn.data;
                 }
             });
-        })
-    } 
+        });
+    }
 
-     //console.log(JSON.stringify(l, null, 4));
-    
+    // console.log(JSON.stringify(l, null, 4));
+
     return hash(l);
 
 }
@@ -54,28 +54,27 @@ export function hashListing(l: MPM) {
 
 export function deepSortObject(unordered: any): any {
     // order the keys alphabetically!
-    let result = {};
-    let ordered = undefined;
-    if(isArray(unordered)) {
+    const result = {};
+    let ordered;
+    if (isArray(unordered)) {
         ordered = unordered.sort();
-    } else if(isObject(unordered)) {
+    } else if (isObject(unordered)) {
         ordered = Object.keys(unordered).sort();
     } else {
         return unordered;
     }
 
-    ordered.forEach(function(key) {
+    ordered.forEach(key => {
         // if value is object, recursively sort it
-        if(isArray(unordered[key])) {
+        if (isArray(unordered[key])) {
             result[key] = [];
             unordered[key].forEach((elem) => {
                 result[key].push(deepSortObject(elem));
-            })
+            });
 
             result[key] = result[key].sort(deepCompare);
-        }
-        else if(isObject(unordered[key])) {
-            result[key] = deepSortObject(unordered[key])
+        } else if (isObject(unordered[key])) {
+            result[key] = deepSortObject(unordered[key]);
         } else {
             result[key] = unordered[key];
         }
@@ -85,21 +84,21 @@ export function deepSortObject(unordered: any): any {
 }
 
 
-function deep(sorted: any, callback: Function, parentKey?: string) {
+function deep(sorted: any, callback: (toHash: string) => void, parentKey?: string): void {
 
-    parentKey = parentKey ? (parentKey + ":") : "";
-    if(isArray(sorted)) {
+    parentKey = parentKey ? (parentKey + ':') : '';
+    if (isArray(sorted)) {
         sorted.forEach(elem => {
             deep(elem, callback, parentKey);
         });
-    } else if(isObject(sorted)) {
+    } else if (isObject(sorted)) {
         Object.keys(sorted).forEach((key) => {
-            const childKey =  parentKey + key;
+            const childKey = parentKey + key;
             deep(sorted[key], callback, childKey);
         });
     } else {
         const toHash = parentKey + sorted;
-        callback(toHash)
+        callback(toHash);
     }
 }
 
@@ -111,22 +110,22 @@ function deep(sorted: any, callback: Function, parentKey?: string) {
  * @param a object, string, number
  * @param b object, string, number
  */
-function deepCompare (a, b) {
+function deepCompare(a: object | string | number, b: object | string | number): number {
 
-    if(isObject(a)) {
+    if (isObject(a)) {
         a = Object.keys(a)[0];
     }
 
-    if(isObject(b)) {
+    if (isObject(b)) {
         b = Object.keys(b)[0];
     }
 
-    if(a > b) {
-        return 1
+    if (a > b) {
+        return 1;
     }
 
     if (b > a) {
-        return -1
+        return -1;
     }
 
     return 0;

@@ -1,58 +1,68 @@
 {
-  "name": "omp-lib",
-  "version": "0.0.3",
-  "description": "Particl OMP-library",
-  "main": "src/module.ts",
-  "scripts": {
-    "build": "tsc",
-    "prestart": "npm run build",
-    "start": "node ./dist/src/module.js",
-    "test": "jest",
-    "lint": "tslint -c tslint.json \"./src/**/*.ts\""
-  },
-  "contributors": [
-    {
-      "name": "Kewde",
-      "email": "kewde@particl.io",
-      "url": "https://github.com/kewde"
+    "name": "omp-lib",
+    "version": "0.1.2",
+    "description": "Particl OMP-library",
+    "main": "dist/module.ts",
+    "types": "dist/module.d.ts",
+    "scripts": {
+        "build": "tsc",
+        "prestart": "npm run build",
+        "start": "node ./dist/src/module.js",
+
+        "setuptest": "python3 particl-test-env.py",
+        "test": "jest --verbose",
+        "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
     },
-    {
-      "name": "Cube",
-      "email": "cube@particl.io"
-    }
-  ],
-  "license": "MIT",
-  "dependencies": {
-    "inversify": "^4.13.0",
-    "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
-    "reflect-metadata": "^0.1.12"
-  },
-  "devDependencies": {
-    "@types/jest": "^23.1.4",
-    "@types/node": "^10.5.2",
-    "jest": "^23.3.0",
-    "js-sha256": "^0.9.0",
-    "nodemon": "^1.11.0",
-    "ts-jest": "^23.0.0",
-    "tslint": "^3.15.1",
-    "typescript": "^2.0.3",
-    "web-request": "^1.0.7"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
-    "roots": [
-      "__tests__"
+    "contributors": [
+        {
+            "name": "Kewde",
+            "email": "kewde@particl.io",
+            "url": "https://github.com/kewde"
+        },
+        {
+            "name": "Cube",
+            "email": "cube@particl.io"
+        }
     ],
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
-    ]
-  }
+    "license": "MIT",
+    "dependencies": {
+        "inversify": "^4.13.0",
+        "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
+        "reflect-metadata": "^0.1.12",
+        "js-sha256": "^0.9.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^23.1.4",
+        "@types/node": "^10.5.2",
+        "jest": "^23.6.0",
+        "jest-cli": "^23.6.0",
+        "jest-sonar-reporter": "^2.0.0",
+        "nodemon": "^1.11.0",
+        "sonarqube-scanner": "^2.1.2",
+        "ts-jest": "^23.10.4",
+        "ts-node": "^7.0.1",
+        "tslint": "5.11.0",
+        "tslint-clean-code": "^0.2.7",
+        "tslint-sonarts": "^1.8.0",
+        "typescript": "^2.4.1",
+        "web-request": "^1.0.7"
+    },
+    "jest": {
+        "transform": {
+            ".(ts|tsx)": "<rootDir>/test/preprocessor.js"
+        },
+        "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+        "roots": [
+            "__tests__"
+        ],
+        "moduleFileExtensions": [
+            "ts",
+            "tsx",
+            "js",
+            "jsx",
+            "json",
+            "node"
+        ],
+        "testEnvironment": "node"
+    }
 }

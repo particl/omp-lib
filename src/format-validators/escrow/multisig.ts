@@ -1,15 +1,14 @@
-import { Prevout, CryptoAddress, CryptoAddressType } from "../../interfaces/crypto";
-import { isObject, isNumber, isString, isTxid, isArray } from "../../util";
-import { FV_CRYPTO } from "../crypto";
-import { EscrowType } from "../../interfaces/omp-enums";
+import { Prevout, CryptoAddress, CryptoAddressType } from '../../interfaces/crypto';
+import { isObject, isNumber, isString, isTxid, isArray } from '../../util';
+import { FV_CRYPTO } from '../crypto';
+import { EscrowType } from '../../interfaces/omp-enums';
 
+// TODO: max one class per file
+// tslint:disable max-classes-per-file
 
 export class FV_MPA_BID_ESCROW_MULTISIG {
 
-    constructor() {
-    }
-
-    static validate(payment: any): boolean {
+    public static validate(payment: any): boolean {
 
         if (!isObject(payment)) {
             throw new Error('escrow mad: missing or not an object!');
@@ -36,14 +35,15 @@ export class FV_MPA_BID_ESCROW_MULTISIG {
         return true;
     }
 
+    constructor() {
+        //
+    }
+
 }
 
 export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
 
-    constructor() {
-    }
-
-    static validate(payment: any): boolean {
+    public static validate(payment: any): boolean {
         FV_MPA_BID_ESCROW_MULTISIG.validate(payment);
 
         if (!isArray(payment.signatures)) {
@@ -61,14 +61,15 @@ export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
         return true;
     }
 
+    constructor() {
+        //
+    }
+
 }
 
 export class FV_MPA_LOCK_ESCROW_MULTISIG {
 
-    constructor() {
-    }
-
-    static validate(payment: any): boolean {
+    public static validate(payment: any): boolean {
 
         if (!isArray(payment.signatures)) {
             throw new Error('action.buyer.payment.signatures: missing or not an array');
@@ -81,14 +82,14 @@ export class FV_MPA_LOCK_ESCROW_MULTISIG {
         return true;
     }
 
+    constructor() {
+        //
+    }
 }
 
 export class FV_MPA_RELEASE_ESCROW_MULTISIG {
 
-    constructor() {
-    }
-
-    static validate(payment: any): boolean {
+    public static validate(payment: any): boolean {
 
         if (!isArray(payment.signatures)) {
             throw new Error('action.seller.payment.signatures: missing or not an array');
@@ -101,14 +102,14 @@ export class FV_MPA_RELEASE_ESCROW_MULTISIG {
         return true;
     }
 
+    constructor() {
+        //
+    }
 }
 
 export class FV_MPA_REFUND_ESCROW_MULTISIG {
 
-    constructor() {
-    }
-
-    static validate(payment: any): boolean {
+    public static validate(payment: any): boolean {
 
         if (!isArray(payment.signatures)) {
             throw new Error('action.buyer.payment.signatures: missing or not an array');
@@ -121,4 +122,7 @@ export class FV_MPA_REFUND_ESCROW_MULTISIG {
         return true;
     }
 
+    constructor() {
+        //
+    }
 }

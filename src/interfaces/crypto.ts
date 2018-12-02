@@ -2,30 +2,31 @@
  * An Prevout from a cryptocurrency.
  */
 export interface Prevout {
-    txid: string,
-    vout: number,
-    _satoshis?: number,
-    _address?: string,
-    _signature?: ISignature,
-    _redeemScript?: string,
-    _scriptPubKey?: string,
-    _sequence?: number
+    txid: string;
+    vout: number;
+    _satoshis?: number;
+    _address?: string;
+    _signature?: ISignature;
+    _redeemScript?: string;
+    _scriptPubKey?: string;
+    _sequence?: number;
 }
 
 export interface BlindPrevout extends Prevout {  // TODO: FV
-    blindFactor?: string,
-    _commitment: string
+    blindFactor?: string;
+    _commitment: string;
 }
 
 // Base class
 export interface ToBeOutput {}
+
 /**
  * A "new" Prevout, that does not exist yet.
  */
 export interface ToBeNormalOutput extends ToBeOutput {
-    script: string,
-    satoshis: number,
-    _redeemScript?: string,
+    script: string;
+    satoshis: number;
+    _redeemScript?: string;
 }
 
 /**
@@ -33,28 +34,28 @@ export interface ToBeNormalOutput extends ToBeOutput {
  */
 export interface ToBeBlindOutput extends ToBeOutput {  // TODO: FV
     // Stealth address
-    address: CryptoAddress,
+    address: CryptoAddress;
     // CT
-    _type: string,
-    blindFactor: string,
+    _type: string;
+    blindFactor: string;
     // Escrow
-    _secret?: string,
-    hashedSecret?: string,
+    _secret?: string;
+    hashedSecret?: string;
     // Destroy txn
-    _nonce?: string,
-    _data?: string,
+    _nonce?: string;
+    _data?: string;
     // Private details
-    _satoshis: number,
-    _redeemScript?: string,
-    _address?: string // _redeemScript to address
+    _satoshis: number;
+    _redeemScript?: string;
+    _address?: string; // _redeemScript to address
 }
 
 /**
  * A signature for a prevout.
  */
 export interface ISignature {
-    signature: string,
-    pubKey: string
+    signature: string;
+    pubKey: string;
 }
 
 export enum CryptoType {
@@ -69,27 +70,27 @@ export enum CryptoAddressType {
 }
 
 /**
- * An address from a cryptocurrency.
+ * An address for a cryptocurrency.
  */
 export interface CryptoAddress {
-    type: CryptoAddressType,
-    address: string,
-    pubKey?: string,
-    ephem?: EphemeralKey // if stealth, might provide ephem.
+    type: CryptoAddressType;
+    address: string;
+    pubKey?: string;
+    ephem?: EphemeralKey; // if stealth, might provide ephem.
 }
 
 /**
  * An ephemeral key.
  */
 export interface EphemeralKey {
-    private?: string,
-    public: string
+    private?: string;
+    public: string;
 }
 
 /**
  * An amount of cryptocurrency.
  */
 export interface CryptoAmount {
-    type: CryptoType,
-    basePrice: number
+    type: CryptoType;
+    basePrice: number;
 }

@@ -174,12 +174,12 @@ it('buyflow', async () => {
 
         end = true;
     } catch (e) {
-        console.log(e)
+        log(e)
     }
     expect(end).toEqual(true);
 });
 
-it.only('buyflow release', async () => {
+it('buyflow release', async () => {
     jest.setTimeout(400000);
     let end = false;
 
@@ -214,6 +214,11 @@ it.only('buyflow release', async () => {
         await node1.sendRawTransaction(complete)
         expect(completeTxid).toBeDefined();
 
+        const d = await node1.call('decoderawtransaction', [lock['_rawreleasetxunsigned']]);
+
+
+        console.log('RELEASE')
+        await delay(10000)
         const release = await buyer.release(ok, bid, accept);
         expect(release).toBeCompletedTransaction();
 

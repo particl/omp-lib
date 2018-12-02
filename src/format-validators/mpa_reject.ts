@@ -1,18 +1,15 @@
-import { FV_MPM} from "./mpm";
-import { MPA_REJECT, MPM } from "../interfaces/omp"
-import { MPAction } from "../interfaces/omp-enums";
-import { isString, isSHA256Hash } from "../util";
+import { FV_MPM } from './mpm';
+import { MPA_REJECT, MPM } from '../interfaces/omp';
+import { MPAction } from '../interfaces/omp-enums';
+import { isString, isSHA256Hash } from '../util';
 
 export class FV_MPA_REJECT {
 
-    constructor() {
-    }
-
-    static validate(msg: MPM): boolean {
+    public static validate(msg: MPM): boolean {
         // validate base class
         FV_MPM.validate(msg);
 
-        const action = <MPA_REJECT>msg.action;
+        const action = <MPA_REJECT> msg.action;
 
         if (!isString(action.type)) {
             throw new Error('action.type: missing');
@@ -27,6 +24,10 @@ export class FV_MPA_REJECT {
         }
 
         return true;
+    }
+
+    constructor() {
+        //
     }
 
 }

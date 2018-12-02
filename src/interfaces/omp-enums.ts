@@ -15,14 +15,14 @@ export enum MPAction {
 }
 
 export enum PaymentType {
-    FREE = "FREE",
-    SALE = "SALE",
-    RENT = "RENT"
+    FREE = 'FREE',
+    SALE = 'SALE',
+    RENT = 'RENT'
 }
 
 export enum EscrowType {
-    FE = 'FE', // Finalize early
-    MULTISIG = 'MULTISIG', // Normal 2-on-2 multisig
-    MAD = 'MAD', // Mutual assured destruction
-    MAD_CT = 'MAD_CT' // Mutual assured destruction with Confidential Tx
+    FE = 'FE',              // Finalize early
+    MULTISIG = 'MULTISIG',  // Normal 2-on-2 multisig
+    MAD = 'MAD',            // Mutual assured destruction
+    MAD_CT = 'MAD_CT'       // Mutual assured destruction with Confidential Tx
 }
