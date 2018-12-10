@@ -21,7 +21,9 @@ seller.inject(CryptoType.PART, node1, true);
 
 expect.extend({
     async toBeCompletedTransaction(rawtx) {
-      const completed = (await node0.call('verifyrawtransaction', [rawtx]))['complete'];
+      const verify = await node0.call('verifyrawtransaction', [rawtx])
+      log(verify)
+      const completed = verify['complete'];
       if (completed) {
         return {
           message: () =>
@@ -147,6 +149,7 @@ it('buyflow', async () => {
         const bid_stripped = strip(bid);
 
         await delay(7000);
+        console.log()
         // Step 2: seller accepts
         const accept = await seller.accept(ok, bid_stripped);
         const accept_stripped = strip(accept);
@@ -154,6 +157,7 @@ it('buyflow', async () => {
         // Destroy tx should not be minable due to missing inputs (bid not submitted yet).
         expect(accept['_rawdesttx']).not.toBeCompletedTransaction();
         
+        console.log("Locking now")
         // Step 3: buyer locks and submits
         await delay(7000);
         const lock = await buyer.lock(ok, bid_stripped, accept_stripped);
@@ -161,6 +165,7 @@ it('buyflow', async () => {
         // Bid tx should not be fully signed.
         expect(lock['_rawbidtx']).not.toBeCompletedTransaction();
 
+        console.log("Completing now")
         const lock_stripped = strip(lock);
         const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
         expect(complete).toBeCompletedTransaction();
@@ -214,10 +219,8 @@ it('buyflow release', async () => {
         await node1.sendRawTransaction(complete)
         expect(completeTxid).toBeDefined();
 
-        const d = await node1.call('decoderawtransaction', [lock['_rawreleasetxunsigned']]);
 
-
-        console.log('RELEASE')
+        console.log('calling release for the buyer')
         await delay(10000)
         const release = await buyer.release(ok, bid, accept);
         expect(release).toBeCompletedTransaction();
@@ -266,6 +269,7 @@ it('destroy prevent early mining', async () => {
         // Step 4: seller signs bid txn (full) and submits
         await delay(7000);
         const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
+        console.log('bidtx complete:')
         expect(complete).toBeCompletedTransaction();
         
         const completeTxid = await node0.sendRawTransaction(complete);

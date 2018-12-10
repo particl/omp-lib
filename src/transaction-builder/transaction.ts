@@ -257,7 +257,11 @@ export function publicKeyToAddress(publicKey: string): string {
     return bitcore.Address(pk, 'testnet').toString();
 }
 
-export function getSerializedInteger(n: number): any {
+export function getSerializedInteger(n: number): Buffer {
+    if(n === undefined) {
+        throw "Number to serialize is undefined."
+    }
+
     const hex = n.toString(16)
         .match(/../g)   // TODO: fix, object is possibly null
         .reverse()

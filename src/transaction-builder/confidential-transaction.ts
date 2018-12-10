@@ -43,34 +43,8 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
      * @param buyer The signatures of the buyer
      */
     public puzzleDestroyWitness(bidPrevouts: BlindPrevout[], seller: ISignature[], buyer: ISignature[]): boolean {
-        this.tx.inputs.forEach((input, i) => {
-            if (i === 0) { // Sellers output
-                const redeemScript = bidPrevouts[0]._redeemScript;
-                if (!redeemScript) { // kinda ugly, but redeemScript is optional
-                    throw new Error('Missing redeemScript,');
-                }
-                input.setWitness([
-                    new Buffer(seller[0].signature, 'hex'),
-                    new Buffer(seller[0].pubKey, 'hex'),
-                    new Buffer(buyer[0].signature, 'hex'),
-                    new Buffer(buyer[0].pubKey, 'hex'),
-                    new Buffer('00', 'hex'),
-                    new Buffer(redeemScript, 'hex')
-                ]);
-            } else if (i === 1) {
-                const redeemScript = bidPrevouts[1]._redeemScript;
-                if (!redeemScript) {
-                    throw new Error('Missing redeemScript,');
-                }
-                input.setWitness([
-                    new Buffer(buyer[1].signature, 'hex'),
-                    new Buffer(buyer[1].pubKey, 'hex'),
-                    new Buffer(seller[1].signature, 'hex'),
-                    new Buffer(seller[1].pubKey, 'hex'),
-                    new Buffer('00', 'hex'),
-                    new Buffer(redeemScript, 'hex')
-                ]);
-            }
+        bidPrevouts.forEach((prevout, i) => {
+            this.puzzleReleaseWitness(prevout, seller[i], buyer[i]);
         });
 
         return true;
@@ -82,17 +56,16 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
      * @param party The signatures of the buyer or seller
      * @param secret The secret revealed by the buyer
      */
-    public puzzleReleaseWitness(bidPrevout: BlindPrevout, party: ISignature, secret: string): boolean {
+    public puzzleReleaseWitness(bidPrevout: BlindPrevout, seller: ISignature, buyer: ISignature): boolean {
         const input = this.tx.inputs.find((tmpInput) => (tmpInput.outputIndex === bidPrevout.vout));
-        // console.log('secret byte length =', new Buffer(secret, 'hex').byteLength);
+
         if (!bidPrevout._redeemScript) {
             throw new Error('Missing redeemScript,');
         }
         input.setWitness([
-            new Buffer(party.signature, 'hex'),
-            new Buffer(party.pubKey, 'hex'),
-            new Buffer(secret, 'hex'),
-            new Buffer('01', 'hex'),
+            new Buffer('', 'hex'),
+            new Buffer(buyer.signature, 'hex'),
+            new Buffer(seller.signature, 'hex'),
             new Buffer(bidPrevout._redeemScript, 'hex')
         ]);
 
@@ -114,25 +87,19 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
  *
  * @param addressFrom
  * @param addressTo
- * @param hashedSecret
  * @param secondsToLock
  */
-export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAddress, hashedSecret: string, secondsToLock: number): any {
+export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAddress, secondsToLock: number): any {
     // commitment: string, ephem: EphemeralKey,
-    const publicKeyHashFrom =  bitcore.PublicKey.fromString(addressFrom.pubKey).toAddress().hashBuffer;
-    const publicKeyHashTo = bitcore.PublicKey.fromString(addressTo.pubKey).toAddress().hashBuffer;
+    const publicKeyFrom =  bitcore.PublicKey.fromString(addressFrom.pubKey).toDER()
+    const publicKeyTo = bitcore.PublicKey.fromString(addressTo.pubKey).toDER()
 
     // create a multisig redeemScript 
-    const redeemScript = bitcore.Script('OP_IF OP_SIZE 0x01 0x20 OP_EQUALVERIFY OP_SHA256')
-        .add(new Buffer(hashedSecret, 'hex'))
-        .add(bitcore.Script('OP_EQUALVERIFY OP_ELSE'))
-        .add(getSerializedInteger(getExpectedSequence(secondsToLock))) // Sequence
-        .add(178) // OP_CHECKSEQUENCEVERIFY
-        .add(bitcore.Script('OP_DROP OP_DUP OP_HASH160'))
-        .add(publicKeyHashFrom)
-        .add(bitcore.Script('OP_EQUALVERIFY OP_CHECKSIGVERIFY OP_ENDIF OP_DUP OP_HASH160'))
-        .add(publicKeyHashTo)
-        .add(bitcore.Script('OP_EQUALVERIFY OP_CHECKSIG'));
+    const redeemScript = bitcore.Script('OP_2')
+        .add(publicKeyTo)
+        .add(publicKeyFrom)
+        .add('OP_2')
+        .add(bitcore.Script('OP_CHECKMULTISIG'));
 
     // transform into p2sh script
     // console.log('p2sh bid=', redeemScript.toScriptHashOut().toHex())
@@ -154,7 +121,7 @@ export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAd
  * JS returns 4194306
  * Python returns 4194305
  */
-export function getExpectedSequence(seconds: number): Buffer {
+export function getExpectedSequence(seconds: number): number {
     const SEQUENCE_LOCK_TIME = 2;
     const SEQUENCE_LOCKTIME_GRANULARITY = 9; // 1024 seconds
     const SEQUENCE_LOCKTIME_TYPE_FLAG = (1 << 22);

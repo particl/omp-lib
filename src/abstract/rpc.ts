@@ -1,7 +1,7 @@
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { ConfidentialTransactionBuilder } from '../transaction-builder/confidential-transaction';
 
-import { toSatoshis, fromSatoshis, clone } from '../util';
+import { toSatoshis, fromSatoshis, clone, log } from '../util';
 import { Prevout, CryptoType, ISignature, ToBeNormalOutput, CryptoAddress, BlindPrevout, ToBeBlindOutput, EphemeralKey } from '../interfaces/crypto';
 
 // TODO: allowing multiple classes per file for now
@@ -491,7 +491,7 @@ export abstract class CtRpc extends Rpc {
         } else {
             sx = clone(sx) as CryptoAddress;
         }
-
+        
         const info = await this.call('derivefromstealthaddress', [sx.address]);
         sx.pubKey = info.pubkey;
         sx.ephem = {
@@ -505,6 +505,7 @@ export abstract class CtRpc extends Rpc {
         if (!sx.ephem) {
             throw new Error('Missing EphemeralKey.');
         }
+
         const info = await this.call('derivefromstealthaddress', [sx.address, sx.ephem.private]);
         sx.pubKey = info.pubkey;
         return sx;
@@ -531,6 +532,7 @@ export abstract class CtRpc extends Rpc {
     public async signRawTransactionForBlindInputs(tx: ConfidentialTransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]> {
         const r: ISignature[] = [];
 
+        log("signing for rawtx with blind innputs" + tx.txid)
         // needs to synchronize, because the order needs to match
         // the inputs order.
         for (const input of inputs) {
