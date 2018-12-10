@@ -261,7 +261,7 @@ export class Bid {
      * @param bid the bid message.
      * @param accept the accept message for which to produce an lock message.
      */
-    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM> {
+    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM | string> {
         const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
         const mpa_bid = <MPA_BID> bid.action;
 
@@ -289,6 +289,7 @@ export class Bid {
                 break;
             case EscrowType.MAD:
             case EscrowType.MAD_CT:
+                return (await this._madct.refund(listing, bid, accept, lock));
             case EscrowType.FE:
         }
 
