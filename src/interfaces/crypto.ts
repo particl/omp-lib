@@ -38,9 +38,6 @@ export interface ToBeBlindOutput extends ToBeOutput {  // TODO: FV
     // CT
     _type: string;
     blindFactor: string;
-    // Escrow
-    _secret?: string;
-    hashedSecret?: string;
     // Destroy txn
     _nonce?: string;
     _data?: string;

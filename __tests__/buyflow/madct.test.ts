@@ -21,7 +21,8 @@ seller.inject(CryptoType.PART, node1, true);
 
 expect.extend({
     async toBeCompletedTransaction(rawtx) {
-      const completed = (await node0.call('verifyrawtransaction', [rawtx]))['complete'];
+      const verify = await node0.call('verifyrawtransaction', [rawtx])
+      const completed = verify['complete'];
       if (completed) {
         return {
           message: () =>
@@ -214,10 +215,7 @@ it('buyflow release', async () => {
         await node1.sendRawTransaction(complete)
         expect(completeTxid).toBeDefined();
 
-        const d = await node1.call('decoderawtransaction', [lock['_rawreleasetxunsigned']]);
-
-
-        console.log('RELEASE')
+        // Step 5: buyer signs release
         await delay(10000)
         const release = await buyer.release(ok, bid, accept);
         expect(release).toBeCompletedTransaction();
@@ -229,6 +227,62 @@ it('buyflow release', async () => {
         await delay(10000)
         expect(releaseTxid).toBeUtxoWithAmount(node0, 2);
         expect(releaseTxid).toBeUtxoWithAmount(node1, 3.99995000);
+
+
+        end = true;
+    } catch (e) {
+        console.log(e)
+    }
+    expect(end).toEqual(true);
+});
+
+it('buyflow refund', async () => {
+    jest.setTimeout(400000);
+    let end = false;
+
+    try {
+
+        ok.action.item.payment.cryptocurrency.address = await node0.getNewStealthAddress();
+        // Step1: Buyer does bid
+        const bid = await buyer.bid(config, ok);
+        const bid_stripped = strip(bid);
+
+        await delay(7000);
+        // Step 2: seller accepts
+        const accept = await seller.accept(ok, bid_stripped);
+        const accept_stripped = strip(accept);
+
+        expect(accept['_rawdesttx']).not.toBeCompletedTransaction();
+
+        // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        await delay(7000);
+        const lock = await buyer.lock(ok, bid, accept_stripped);
+        const lock_stripped = strip(lock);
+
+        expect(lock['_rawdesttx']).not.toBeCompletedTransaction();
+
+        expect(lock['_rawreleasetxunsigned']).toEqual(accept['_rawreleasetxunsigned']);
+
+        // Step 4: seller signs bid txn (full) and submits
+        const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
+        expect(complete).toBeCompletedTransaction();
+        
+        const completeTxid = await node0.sendRawTransaction(complete);
+        await node1.sendRawTransaction(complete)
+        expect(completeTxid).toBeDefined();
+
+        // Step 5: seller signs refund
+        await delay(10000)
+        const refund = await seller.refund(ok, bid, accept, lock);
+        expect(refund).toBeCompletedTransaction();
+
+        const refundTxid = await node0.sendRawTransaction(refund);
+        await node1.sendRawTransaction(refund)
+        expect(refundTxid).toBeDefined();
+
+        await delay(10000)
+        expect(refundTxid).toBeUtxoWithAmount(node0, 4);
+        expect(refundTxid).toBeUtxoWithAmount(node1, 1.99995000);
 
 
         end = true;
