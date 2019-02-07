@@ -1,12 +1,9 @@
 import { injectable, inject, named } from 'inversify';
 import 'reflect-metadata';
-import { TYPES } from '../types';
 import * as bitcore from 'particl-bitcore-lib';
-import { Rpc, ILibrary } from '../abstract/rpc';
 import { Output, ToBeOutput, ISignature } from '../interfaces/crypto';
-import { deepSortObject } from '../hasher/hash';
 import { CryptoAddress } from '../interfaces/crypto';
-import { clone, fromSatoshis } from '../util';
+import { clone } from '../util';
 
 export class TransactionBuilder {
     // TODO: dynamic currency support

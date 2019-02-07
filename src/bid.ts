@@ -82,7 +82,6 @@ export class Bid {
      * @param bid the bid for which to produce an accept message.
      */
     public async accept(listing: MPM, bid: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
@@ -174,7 +173,6 @@ export class Bid {
      * @param accept the accept message.
      */
     public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
@@ -218,7 +216,6 @@ export class Bid {
      * @param accept the accept message for which to produce an lock message.
      */
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;

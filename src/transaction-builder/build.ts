@@ -26,8 +26,6 @@ export class Tx {
             throw new Error('Tx: does not have an MPA_ACCEPT');
         }
 
-        const cryptocurrency: CryptoType = (<MPA_BID> sequence[1].action).buyer.payment.cryptocurrency;
-
         return true;
     }
 

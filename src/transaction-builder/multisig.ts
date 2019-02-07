@@ -5,9 +5,9 @@ import { CryptoAddressType } from '../interfaces/crypto';
 import { Rpc, ILibrary } from '../abstract/rpc';
 import { IMultiSigBuilder } from '../abstract/transactions';
 
-import { TransactionBuilder, getTxidFrom } from './transaction';
+import { TransactionBuilder } from './transaction';
 import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND } from '../interfaces/omp';
-import { asyncForEach, asyncMap, clone, isArray } from '../util';
+import { asyncMap, clone, isArray } from '../util';
 
 @injectable()
 export class MultiSigBuilder implements IMultiSigBuilder {
@@ -46,8 +46,6 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         };
 
         const requiredSatoshis: number = this.bid_calculateRequiredSatoshis(mpa_listing, mpa_bid, false);
-
-        // TODO: escrow!
 
         mpa_bid.buyer.payment.outputs = await lib.getNormalOutputs(requiredSatoshis);
 
@@ -128,7 +126,10 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // import the redeem script so the wallet is aware to watch on it
         // losing the pubkey makes the redeem script unrecoverable.
         // (always import the redeem script, doesn't matter)
-        await lib.importRedeemScript(multisig_output._redeemScript);
+        if (multisig_output._redeemScript) {
+            await lib.importRedeemScript(multisig_output._redeemScript);
+        }
+
 
         // If
         if (isArray(mpa_accept.seller.payment.signatures)) {
