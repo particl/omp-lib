@@ -38,7 +38,11 @@ export interface MPA_LISTING_ADD extends MPA {
             title: string,
             shortDescription: string,
             longDescription: string,
-            category: string[]
+            category: string[],
+            location: {
+                country: string,
+            },
+            shippingDestinations: string[],
         },
         payment: {
             type: PaymentType,
@@ -51,7 +55,12 @@ export interface MPA_LISTING_ADD extends MPA {
             },
             cryptocurrency: [{
                 currency: CryptoType,
-                basePrice: number
+                basePrice: number,
+                shippingPrice: {
+                    domestic: number,
+                    international: number
+                },
+                address: CryptoAddress
             }]
         },
         messaging: [{
@@ -212,7 +221,7 @@ export interface MPA_LOCK extends MPA {
             }
         }
     };
-    info: {
+    info?: {
         memo: string // is  this useful?
     };
 }
