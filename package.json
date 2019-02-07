@@ -1,13 +1,12 @@
 {
     "name": "omp-lib",
-    "version": "0.1.3",
+    "version": "0.1.4",
     "description": "Particl OMP-library",
     "main": "dist/omp.ts",
     "types": "dist/omp.d.ts",
     "scripts": {
         "build": "tsc",
         "prestart": "npm run build",
-        "start": "node ./dist/src/module.js",
         "pretest": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish '__tests__/**/*.{ts,tsx}'",
         "setuptest": "python3 particl-test-env.py",
         "test": "jest",

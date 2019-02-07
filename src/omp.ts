@@ -12,6 +12,9 @@ import { MultiSigBuilder } from './transaction-builder/multisig';
 
 import { strip } from './util';
 
+import { node0, node1, node2 } from '../test/rpc.stub';
+export { node0, node1, node2 };
+
 // @injectable()
 export class OpenMarketProtocol {
 
