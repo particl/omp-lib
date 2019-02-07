@@ -1,9 +1,12 @@
 {
     "name": "omp-lib",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "Particl OMP-library",
     "main": "dist/omp.ts",
     "types": "dist/omp.d.ts",
+    "files": [
+        "dist"
+    ],
     "scripts": {
         "build": "tsc",
         "prestart": "npm run build",
@@ -26,9 +29,9 @@
     "license": "MIT",
     "dependencies": {
         "inversify": "^4.13.0",
+        "js-sha256": "^0.9.0",
         "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
         "reflect-metadata": "^0.1.12",
-        "js-sha256": "^0.9.0",
         "web-request": "^1.0.7"
     },
     "devDependencies": {
