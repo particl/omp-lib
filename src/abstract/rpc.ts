@@ -82,7 +82,7 @@ export abstract class Rpc {
 
         const unspent: RpcUnspentOutput[] = await this.listUnspent(0);
 
-        unspent.filter(
+        const filtered = unspent.filter(
             (output: RpcUnspentOutput, outIdx: number) => {
                 if (output.spendable && output.safe && (output.scriptPubKey.substring(0, 2) === '76')) {
                     if ((exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
