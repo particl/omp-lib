@@ -58,7 +58,7 @@ export abstract class Rpc {
     public abstract async getNewAddress(): Promise<string>;
     public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
     public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>;
-    public abstract async getRawTransaction(txid: string): Promise<RpcRawTx>;
+    public abstract async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx>;
     public abstract async sendRawTransaction(rawtx: string): Promise<string>;
     public abstract async listUnspent(minconf: number): Promise<RpcUnspentOutput[]>;
     public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>;

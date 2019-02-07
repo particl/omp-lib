@@ -4,7 +4,7 @@ import { TYPES } from './types';
 import { Rpc, ILibrary } from './abstract/rpc';
 import { MPM } from './interfaces/omp';
 import { BidConfiguration } from './interfaces/configs';
-import { IBid } from './abstract/actions';
+import { OMP } from './abstract/omp';
 import { Bid } from './bid';
 import { CryptoType } from './interfaces/crypto';
 import { IMultiSigBuilder } from './abstract/transactions';
@@ -36,27 +36,27 @@ export class OpenMarketProtocol {
     }
 
     public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
-        const bid = this.container.get<IBid>(TYPES.Bid);
+        const bid = this.container.get<OMP>(TYPES.Bid);
         return await bid.bid(config, listing);
     }
 
     public async accept(listing: MPM, bid: MPM): Promise<MPM> {
-        const action = this.container.get<IBid>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Bid);
         return await action.accept(listing, bid);
     }
 
     public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
-        const action = this.container.get<IBid>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Bid);
         return await action.lock(listing, bid, accept);
     }
 
     public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM> {
-        const action = this.container.get<IBid>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Bid);
         return await action.release(listing, bid, accept, release);
     }
 
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM> {
-        const action = this.container.get<IBid>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Bid);
         return await action.refund(listing, bid, accept, lock, refund);
     }
 
@@ -83,7 +83,7 @@ export class OpenMarketProtocol {
                 };
             });
 
-        this.container.bind<IBid>(TYPES.Bid).to(Bid);
+        this.container.bind<OMP>(TYPES.Bid).to(Bid);
         this.container.bind<IMultiSigBuilder>(TYPES.MultiSigBuilder).to(MultiSigBuilder);
     }
 }

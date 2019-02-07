@@ -68,7 +68,7 @@ class CoreRpcService extends Rpc {
         return await this.call('getaddressinfo', [address]);
     }
 
-    public async getRawTransaction(txid: string, verbose: boolean): Promise<RpcRawTx> {
+    public async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx> {
         return await this.call('getrawtransaction', [txid, true]);
     }
 
