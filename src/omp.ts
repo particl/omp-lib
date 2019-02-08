@@ -55,8 +55,8 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Sequence.validate([listing, bid]);
 
-        const cloned_listing = <MPM>clone(listing);
-        const cloned_bid = <MPM>clone(bid);
+        const cloned_listing = <MPM> clone(listing);
+        const cloned_bid = <MPM> clone(bid);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
         return await action.accept(cloned_listing, cloned_bid);
@@ -68,9 +68,9 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(accept);
         Sequence.validate([listing, bid, accept]);
 
-        const cloned_listing = <MPM>clone(listing);
-        const cloned_bid = <MPM>clone(bid);
-        const cloned_accept = <MPM>clone(accept);
+        const cloned_listing = <MPM> clone(listing);
+        const cloned_bid = <MPM> clone(bid);
+        const cloned_accept = <MPM> clone(accept);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
         return await action.lock(cloned_listing, cloned_bid, cloned_accept);
@@ -81,10 +81,10 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Format.validate(accept);
 
-        const cloned_listing = <MPM>clone(listing);
-        const cloned_bid = <MPM>clone(bid);
-        const cloned_accept = <MPM>clone(accept);
-        const cloned_release = <MPM>clone(release);
+        const cloned_listing = <MPM> clone(listing);
+        const cloned_bid = <MPM> clone(bid);
+        const cloned_accept = <MPM> clone(accept);
+        const cloned_release = <MPM> clone(release);
 
         if (release) {
             Format.validate(release);
@@ -106,11 +106,11 @@ export class OpenMarketProtocol implements OMP {
             Format.validate(refund);
         }
 
-        const cloned_listing = <MPM>clone(listing);
-        const cloned_bid = <MPM>clone(bid);
-        const cloned_accept = <MPM>clone(accept);
-        const cloned_lock = <MPM>clone(lock);
-        const cloned_refund = <MPM>clone(refund);
+        const cloned_listing = <MPM> clone(listing);
+        const cloned_bid = <MPM> clone(bid);
+        const cloned_accept = <MPM> clone(accept);
+        const cloned_lock = <MPM> clone(lock);
+        const cloned_refund = <MPM> clone(refund);
 
         const chain = refund ? [cloned_listing, cloned_bid, cloned_accept, cloned_lock, refund ] : [cloned_listing, cloned_bid, cloned_accept, cloned_lock];
         Sequence.validate(chain);
