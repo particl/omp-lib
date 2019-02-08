@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Output, CryptoAddress, CryptoType, ISignature } from './crypto';
+import { Output, CryptoAddress, Cryptocurrency, ISignature } from './crypto';
 import { DSN, ContentReference } from './dsn';
 import { MPAction, PaymentType, EscrowType } from './omp-enums';
 import { KVS } from './common';
@@ -50,7 +50,7 @@ export interface MPA_LISTING_ADD extends MPA {
                 }
             },
             cryptocurrency: [{
-                currency: CryptoType,
+                currency: Cryptocurrency,
                 basePrice: number
             }]
         },
@@ -101,7 +101,7 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
             },
             cryptocurrency: [
                 {
-                    currency: CryptoType,
+                    currency: Cryptocurrency,
                     basePrice: number,
                     shippingPrice: {
                         domestic: number,
@@ -131,7 +131,7 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
     item: string; // item hash
     buyer: {
         payment: {
-            cryptocurrency: CryptoType,
+            cryptocurrency: Cryptocurrency,
             escrow: EscrowType,
             pubKey: string,
             changeAddress: CryptoAddress,

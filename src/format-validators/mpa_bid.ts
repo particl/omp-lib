@@ -5,7 +5,7 @@ import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash, isCou
 import { FV_MPM } from './mpm';
 import { FV_OBJECTS } from './objects';
 import { FV_MPA_BID_ESCROW_MULTISIG } from './escrow/multisig';
-import { CryptoType } from '../interfaces/crypto';
+import { Cryptocurrency } from '../interfaces/crypto';
 
 // TODO: cognitive-complexity 22, should be less than 20
 // tslint:disable:cognitive-complexity
@@ -42,7 +42,7 @@ export class FV_MPA_BID {
         if (isObject(buyer.payment)) {
             const payment = buyer.payment;
 
-            if (!(payment.cryptocurrency in CryptoType)) {
+            if (!(payment.cryptocurrency in Cryptocurrency)) {
                 throw new Error('action.buyer.payment.cryptocurrency: expecting cryptocurrency type, unknown value, got ' + payment.cryptocurrency);
             }
 

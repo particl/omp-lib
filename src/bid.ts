@@ -1,5 +1,5 @@
 import { MPA_EXT_LISTING_ADD, MPA_BID, MPM } from './interfaces/omp';
-import { CryptoType, CryptoAddressType } from './interfaces/crypto';
+import { Cryptocurrency, CryptoAddressType } from './interfaces/crypto';
 import { MPAction, EscrowType } from './interfaces/omp-enums';
 import { hash } from './hasher/hash';
 import { MultiSigBuilder } from './transaction-builder/multisig';
@@ -85,7 +85,7 @@ export class Bid {
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
-
+        console.log(bid);
         const accept = {
             version: '0.1.0.0',
             action: {

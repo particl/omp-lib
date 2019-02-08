@@ -27,7 +27,7 @@ export interface ISignature {
     pubKey: string;
 }
 
-export enum CryptoType {
+export enum Cryptocurrency {
     BTC = 'BTC',
     PART = 'PART',
     ZCASH = 'ZEC'
@@ -50,6 +50,6 @@ export interface CryptoAddress {
  * An amount for a cryptocurrency.
  */
 export interface CryptoAmount {
-    type: CryptoType;
+    type: Cryptocurrency;
     basePrice: number;
 }

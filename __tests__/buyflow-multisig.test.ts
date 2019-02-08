@@ -1,7 +1,7 @@
 import * from 'jest';
-import { node0, node1 } from '../test/rpc.stub';
+import { node0, node1 } from '../src/rpc.stub';
 import { OpenMarketProtocol } from '../src/omp';
-import { CryptoType } from '../src/interfaces/crypto';
+import { Cryptocurrency } from '../src/interfaces/crypto';
 import { BidConfiguration } from '../src/interfaces/configs';
 import { EscrowType } from '../src/interfaces/omp-enums';
 import { toSatoshis } from '../src/util';
@@ -21,10 +21,10 @@ describe('Multisig Buy Flow', () => {
     };
 
     const buyer = new OpenMarketProtocol();
-    buyer.inject(CryptoType.PART, node0);
+    buyer.inject(Cryptocurrency.PART, node0);
 
     const seller = new OpenMarketProtocol();
-    seller.inject(CryptoType.PART, node1);
+    seller.inject(Cryptocurrency.PART, node1);
 
     const ok = JSON.parse(
         `{
@@ -67,7 +67,7 @@ describe('Multisig Buy Flow', () => {
         }`);
 
     const config: BidConfiguration = {
-        cryptocurrency: CryptoType.PART,
+        cryptocurrency: Cryptocurrency.PART,
         escrow: EscrowType.MULTISIG,
         shippingAddress: {
             firstName: 'string',
@@ -128,6 +128,7 @@ describe('Multisig Buy Flow', () => {
 
         let success = false;
         let accept: MPM;
+        let release: MPM;
         let lock: MPM;
         let refund: MPM;
         let complete: MPM;
@@ -140,6 +141,9 @@ describe('Multisig Buy Flow', () => {
             await delay(7000);
             accept = await seller.accept(ok, bid);
             FV_MPA_ACCEPT.validate(accept);
+
+            release = await seller.release(ok, bid, accept);
+            FV_MPA_RELEASE.validate(release);
 
             await delay(5000);
             lock = await buyer.lock(ok, bid, accept);

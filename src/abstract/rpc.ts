@@ -1,4 +1,4 @@
-import { Output, CryptoType, ISignature } from '../interfaces/crypto';
+import { Output, Cryptocurrency, ISignature } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { toSatoshis, fromSatoshis } from '../util';
 
@@ -188,17 +188,18 @@ export abstract class Rpc {
     }
 
     /**
-     * Fetch the rawtx and set the utxo._satoshis to the tx's matching vout's valueSat
+     * Fetch the rawtx and set the utxo._satoshis and utxo._scriptPubKey to the tx's matching vout's valueSat
      *
      * @param utxo
      */
-    public async getSatoshisForUtxo(utxo: Output): Promise<Output> {
+    public async loadTrustedFieldsForUtxos(utxo: Output): Promise<Output> {
         const vout: RpcVout | undefined = (await this.getRawTransaction(utxo.txid))
             .vout.find((value: RpcVout) => value.n === utxo.vout);
         if (!vout) {
             throw new Error('Transaction does not contain matching Output.');
         }
         utxo._satoshis = vout.valueSat;
+        utxo._scriptPubKey = vout.scriptPubKey.hex;
         return utxo;
     }
 
@@ -242,4 +243,4 @@ export abstract class Rpc {
 
 }
 
-export type ILibrary = (parent: CryptoType) => Rpc;
+export type ILibrary = (parent: Cryptocurrency) => Rpc;

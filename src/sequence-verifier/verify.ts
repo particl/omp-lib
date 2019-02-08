@@ -3,7 +3,7 @@ import { isObject, isArray, isString, isSHA256Hash } from '../util';
 import { Format } from '../format-validators/validate';
 import { EscrowType, MPAction } from '../interfaces/omp-enums';
 import { hash } from '../hasher/hash';
-import { CryptoType } from '../interfaces/crypto';
+import { Cryptocurrency } from '../interfaces/crypto';
 
 export class Sequence {
 
@@ -21,7 +21,6 @@ export class Sequence {
         sequence.forEach((mpm: MPM, index) => {
             const type: MPAction = mpm.action.type;
 
-            console.log('sequence, ' + index + ' type: ', type);
             Sequence.validateActionIndex(index, type);
 
             switch (index) {
@@ -41,28 +40,38 @@ export class Sequence {
                     break;
                 }
                 case 2: { // must be an MPA_ACCEPT, MPA_REJECT, MPA_CANCEL
-                    const bid = <MPA_ACCEPT | MPA_REJECT | MPA_CANCEL> mpm.action;
+                    const action = <MPA_ACCEPT | MPA_REJECT | MPA_CANCEL> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
                     Sequence.validatePreviousAction(prevType, MPAction.MPA_BID);
-                    Sequence.validateHash(type, bid.bid, bidHash);
+                    Sequence.validateHash(type, action.bid, bidHash);
                     if (type === MPAction.MPA_ACCEPT) {
-                        Sequence.validateEscrow(type, (<MPA_ACCEPT> bid).seller.payment.escrow, listing.item.payment.escrow.type);
+                        Sequence.validateEscrow(type, (<MPA_ACCEPT> action).seller.payment.escrow, listing.item.payment.escrow.type);
                     }
+
+                    if (mpm.action.type !== MPAction.MPA_ACCEPT && index !== sequence.length) {
+                        throw new Error('Sequence: there should not be any more messages after MPA_REJCT or MPA_CANCEL!.');
+                    }
+
                     break;
                 }
-                case 3: { // must be an MPA_LOCK
-                    const bid = <MPA_LOCK> mpm.action;
+                case 3: { // must be an MPA_LOCK or MPA_RELEASE
+                    const action = <MPA_LOCK | MPA_RELEASE> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
                     Sequence.validatePreviousAction(prevType, MPAction.MPA_ACCEPT);
-                    Sequence.validateHash(type, bid.bid, bidHash);
-                    Sequence.validateEscrow(type, bid.buyer.payment.escrow, listing.item.payment.escrow.type);
+                    Sequence.validateHash(type, action.bid, bidHash);
+                    if (action.type === MPAction.MPA_LOCK) {
+                        Sequence.validateEscrow(type, action.buyer.payment.escrow, listing.item.payment.escrow.type);
+                    } else {
+                        Sequence.validateEscrow(type, action.seller.payment.escrow, listing.item.payment.escrow.type);
+                    }
+
                     break;
                 }
                 case 4: { // must be an MPA_RELEASE or MPA_REFUND
-                    const bid = <MPA_RELEASE | MPA_REFUND> mpm.action;
+                    const action = <MPA_RELEASE | MPA_REFUND> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
                     Sequence.validatePreviousAction(prevType, MPAction.MPA_LOCK);
-                    Sequence.validateHash(type, bid.bid, bidHash);
+                    Sequence.validateHash(type, action.bid, bidHash);
                     break;
                 }
             }
@@ -94,14 +103,19 @@ export class Sequence {
                     throw new Error('Sequence: third action in the sequence must be a MPA_ACCEPT, MPA_REJECT, MPA_CANCEL.');
                 }
                 break;
-            case 3: // must be an MPA_LOCK
-                if ([MPAction.MPA_LOCK].indexOf(type) === -1) {
-                    throw new Error('Sequence: fourth action in the sequence must be a MPA_ACCEPT, MPA_REJECT, MPA_CANCEL.');
+            case 3: // must be an MPA_LOCK or eager release of seller!
+                if ([MPAction.MPA_LOCK, MPAction.MPA_RELEASE].indexOf(type) === -1) {
+                    throw new Error('Sequence: fourth action in the sequence must be a MPA_LOCK, MPA_RELEASE or MPA_REFUND, got=' + type);
                 }
                 break;
-            case 4: // must be an MPA_RELEASE or MPA_REFUND
-                if ([MPAction.MPA_RELEASE, MPAction.MPA_REFUND].indexOf(type) === -1) {
+            case 4: // must be an MPA_RELEASE or MPA_REFUND  OR a MPA_LOCK in the case of an eager release
+                if ([MPAction.MPA_RELEASE, MPAction.MPA_REFUND, MPAction.MPA_LOCK].indexOf(type) === -1) {
                     throw new Error('Sequence: fifth action in the sequence must be a MPA_RELEASE or a MPA_REFUND.');
+                }
+                break;
+            case 5: // Can potentially be a MPA_REFUND if eagerly requesting refund.
+                if ([MPAction.MPA_REFUND].indexOf(type) === -1) {
+                    throw new Error('Sequence: sixth action can only be an eagerly requested MPA_REFUND.');
                 }
                 break;
             default:
@@ -117,7 +131,7 @@ export class Sequence {
      */
     private static validateHash(type: MPAction, givenHash: string, requiredHash: string): void {
         if (requiredHash !== givenHash) {
-            throw new Error('Sequence: hash provided by ' + type + ' did not match. expecting=' + requiredHash);
+            throw new Error('Sequence: hash provided by ' + type + ' did not match. expecting=' + requiredHash + ' got=' + givenHash);
         }
     }
 
@@ -127,7 +141,7 @@ export class Sequence {
      * @param bidderCurrency
      * @param listingCurrencies
      */
-    private static validateCurrency(type: MPAction, bidderCurrency: CryptoType, listingCurrencies: any[]): void {
+    private static validateCurrency(type: MPAction, bidderCurrency: Cryptocurrency, listingCurrencies: any[]): void {
         const isRightCurrency = listingCurrencies.find(elem => elem.currency === bidderCurrency);
         if (!isObject(isRightCurrency)) {
             throw new Error('Sequence: currency provided by ' + type + ' not accepted by the listing.');

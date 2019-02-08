@@ -99,8 +99,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // prefetch amounts for inputs
         // makes sure the values are trusted.
-        const buyer_inputs = await asyncMap(mpa_bid.buyer.payment.outputs, async i => await lib.getSatoshisForUtxo(i));
-        const seller_inputs = await asyncMap(mpa_accept.seller.payment.outputs, async i => await lib.getSatoshisForUtxo(i));
+        const buyer_inputs = await asyncMap(mpa_bid.buyer.payment.outputs, async i => await lib.loadTrustedFieldsForUtxos(i));
+        const seller_inputs = await asyncMap(mpa_accept.seller.payment.outputs, async i => await lib.loadTrustedFieldsForUtxos(i));
 
         // add all inputs (TransactionBuilder)
         const tx: TransactionBuilder = new TransactionBuilder();

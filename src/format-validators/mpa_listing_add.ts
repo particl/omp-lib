@@ -3,7 +3,7 @@ import { PaymentType, MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry } from '../util';
 import { FV_MPM } from './mpm';
 import { FV_CRYPTO } from './crypto';
-import { CryptoType } from '../interfaces/crypto';
+import { Cryptocurrency } from '../interfaces/crypto';
 import { FV_CONTENT } from './content';
 import { FV_OBJECTS } from './objects';
 
@@ -181,7 +181,7 @@ export class FV_MPA_LISTING {
                         throw new Error('action.item.payment.cryptocurrency.currency: missing or not a string, fault in element=' + i);
                     }
 
-                    if (!(elem.currency in CryptoType)) {
+                    if (!(elem.currency in Cryptocurrency)) {
                         throw new Error('action.item.payment.cryptocurrency.currency: unknown value, fault in element=' + i);
                     }
 
