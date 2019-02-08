@@ -10,7 +10,7 @@ import { Cryptocurrency } from './interfaces/crypto';
 import { IMultiSigBuilder } from './abstract/transactions';
 import { MultiSigBuilder } from './transaction-builder/multisig';
 
-import { strip } from './util';
+import { strip, clone } from './util';
 
 import { node0, node1, node2 } from './rpc.stub';
 import { FV_MPM } from './format-validators/mpm';
@@ -55,8 +55,11 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Sequence.validate([listing, bid]);
 
+        const cloned_listing = <MPM>clone(listing);
+        const cloned_bid = <MPM>clone(bid);
+
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.accept(listing, bid);
+        return await action.accept(cloned_listing, cloned_bid);
     }
 
     public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
@@ -65,8 +68,12 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(accept);
         Sequence.validate([listing, bid, accept]);
 
+        const cloned_listing = <MPM>clone(listing);
+        const cloned_bid = <MPM>clone(bid);
+        const cloned_accept = <MPM>clone(accept);
+
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.lock(listing, bid, accept);
+        return await action.lock(cloned_listing, cloned_bid, cloned_accept);
     }
 
     public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM> {
@@ -74,15 +81,20 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Format.validate(accept);
 
+        const cloned_listing = <MPM>clone(listing);
+        const cloned_bid = <MPM>clone(bid);
+        const cloned_accept = <MPM>clone(accept);
+        const cloned_release = <MPM>clone(release);
+
         if (release) {
             Format.validate(release);
         }
 
-        const chain = release ? [listing, bid, accept, release ] : [listing, bid, accept];
+        const chain = release ? [cloned_listing, cloned_bid, cloned_accept, cloned_release ] : [cloned_listing, cloned_bid, cloned_accept];
         Sequence.validate(chain);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.release(listing, bid, accept, release);
+        return await action.release(cloned_listing, cloned_bid, cloned_accept, cloned_release);
     }
 
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM> {
@@ -94,11 +106,17 @@ export class OpenMarketProtocol implements OMP {
             Format.validate(refund);
         }
 
-        const chain = refund ? [listing, bid, accept, lock, refund ] : [listing, bid, accept, lock];
+        const cloned_listing = <MPM>clone(listing);
+        const cloned_bid = <MPM>clone(bid);
+        const cloned_accept = <MPM>clone(accept);
+        const cloned_lock = <MPM>clone(lock);
+        const cloned_refund = <MPM>clone(refund);
+
+        const chain = refund ? [cloned_listing, cloned_bid, cloned_accept, cloned_lock, refund ] : [cloned_listing, cloned_bid, cloned_accept, cloned_lock];
         Sequence.validate(chain);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.refund(listing, bid, accept, lock, refund);
+        return await action.refund(cloned_listing, cloned_bid, cloned_accept, cloned_lock, cloned_refund);
     }
 
     public strip(msg: MPM): MPM {
