@@ -22,6 +22,7 @@ export interface RpcVout {
 
 export interface RpcScriptPubKey {
     hex: string;
+    addresses: string[];
 }
 
 export interface RpcOutput {
@@ -195,11 +196,16 @@ export abstract class Rpc {
     public async loadTrustedFieldsForUtxos(utxo: Output): Promise<Output> {
         const vout: RpcVout | undefined = (await this.getRawTransaction(utxo.txid))
             .vout.find((value: RpcVout) => value.n === utxo.vout);
-        if (!vout) {
+        if (!vout
+            || !vout.valueSat
+            || !vout.scriptPubKey
+            || !vout.scriptPubKey.hex
+            || !vout.scriptPubKey.addresses || vout.scriptPubKey.addresses.length !== 1) {
             throw new Error('Transaction does not contain matching Output.');
         }
         utxo._satoshis = vout.valueSat;
         utxo._scriptPubKey = vout.scriptPubKey.hex;
+        utxo._address = vout.scriptPubKey.addresses[0];
         return utxo;
     }
 
