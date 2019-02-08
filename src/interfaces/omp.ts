@@ -16,6 +16,7 @@ import { KVS } from './common';
 export interface MPM {
     version: string;
     action: MPA;
+    _rawtx?: string;
 }
 
 export interface MPA {

@@ -251,7 +251,6 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         // retrieve multisig output from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
-        console.log('(release) rebuilt accept txid', lockTx.txid);
 
         let publicKeyToSignFor: string;
         if (isArray(mpa_release.seller.payment.signatures)) {
@@ -306,12 +305,11 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         return required;
     }
 
-    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund: MPM): Promise<MPM> {
+    public async refund(listing: MPM, bid: MPM, accept: MPM, refund: MPM): Promise<MPM> {
 
         const mpa_listing = (<MPA_EXT_LISTING_ADD> listing.action);
         const mpa_bid = (<MPA_BID> bid.action);
         const mpa_accept = (<MPA_ACCEPT> accept.action);
-        const mpa_lock = (<MPA_LOCK> lock.action);
         const mpa_refund = (<MPA_REFUND> refund.action);
 
         // Get the right transaction library for the right currency.
@@ -322,7 +320,6 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const acceptTx = rebuilt['_tx'];
         // retrieve multisig output from lock tx.
         const lockTx: TransactionBuilder = acceptTx;
-        console.log('(refund) rebuilt accept txid', lockTx.txid);
 
         let publicKeyToSignFor: string;
         if (isArray(mpa_refund.buyer.payment.signatures)) {

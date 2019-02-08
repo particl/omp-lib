@@ -55,11 +55,11 @@ export class Sequence {
                     break;
                 }
                 case 3: { // must be an MPA_LOCK or MPA_RELEASE
-                    const action = <MPA_LOCK | MPA_RELEASE> mpm.action;
+                    const action = <MPA_LOCK | MPA_RELEASE | MPA_REFUND> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
                     Sequence.validatePreviousAction(prevType, MPAction.MPA_ACCEPT);
                     Sequence.validateHash(type, action.bid, bidHash);
-                    if (action.type === MPAction.MPA_LOCK) {
+                    if (action.type === MPAction.MPA_LOCK || action.type === MPAction.MPA_REFUND) {
                         Sequence.validateEscrow(type, action.buyer.payment.escrow, listing.item.payment.escrow.type);
                     } else {
                         Sequence.validateEscrow(type, action.seller.payment.escrow, listing.item.payment.escrow.type);
@@ -104,13 +104,13 @@ export class Sequence {
                 }
                 break;
             case 3: // must be an MPA_LOCK or eager release of seller!
-                if ([MPAction.MPA_LOCK, MPAction.MPA_RELEASE].indexOf(type) === -1) {
+                if ([MPAction.MPA_LOCK, MPAction.MPA_RELEASE, MPAction.MPA_REFUND].indexOf(type) === -1) {
                     throw new Error('Sequence: fourth action in the sequence must be a MPA_LOCK, MPA_RELEASE or MPA_REFUND, got=' + type);
                 }
                 break;
             case 4: // must be an MPA_RELEASE or MPA_REFUND  OR a MPA_LOCK in the case of an eager release
                 if ([MPAction.MPA_RELEASE, MPAction.MPA_REFUND, MPAction.MPA_LOCK].indexOf(type) === -1) {
-                    throw new Error('Sequence: fifth action in the sequence must be a MPA_RELEASE or a MPA_REFUND.');
+                    throw new Error('Sequence: fifth action in the sequence must be a MPA_LOCK, MPA_RELEASE or a MPA_REFUND.');
                 }
                 break;
             case 5: // Can potentially be a MPA_REFUND if eagerly requesting refund.

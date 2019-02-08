@@ -215,7 +215,7 @@ export class Bid {
      * @param bid the bid message.
      * @param accept the accept message for which to produce an lock message.
      */
-    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM> {
+    public async refund(listing: MPM, bid: MPM, accept: MPM, refund?: MPM): Promise<MPM> {
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
@@ -228,8 +228,7 @@ export class Bid {
                     bid: hash(bid), // item hash
                     buyer: {
                         payment: {
-                            escrow: payment.escrow,
-                            signatures: []
+                            escrow: payment.escrow
                         }
                     }
                 }
@@ -238,7 +237,7 @@ export class Bid {
 
         switch (payment.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.refund(listing, bid, accept, lock, refund);
+                await this._msb.refund(listing, bid, accept, refund);
                 break;
             case EscrowType.FE:
             case EscrowType.MAD:

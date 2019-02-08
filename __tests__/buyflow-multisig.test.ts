@@ -150,9 +150,9 @@ describe('Multisig Buy Flow', () => {
             FV_MPA_LOCK.validate(lock);
             console.log('lock tx', await node0.sendRawTransaction(lock['_rawtx']));
 
-            refund = await buyer.refund(ok, bid, accept, lock);
+            refund = await buyer.refund(ok, bid, accept);
             FV_MPA_REFUND.validate(refund);
-            complete = await seller.refund(ok, bid, accept, lock, refund);
+            complete = await seller.refund(ok, bid, accept, refund);
             await delay(5000);
             console.log('refund tx', await node0.sendRawTransaction(complete['_rawtx']));
 

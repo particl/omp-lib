@@ -53,10 +53,11 @@ export class OpenMarketProtocol implements OMP {
     public async accept(listing: MPM, bid: MPM): Promise<MPM> {
         Format.validate(listing);
         Format.validate(bid);
-        Sequence.validate([listing, bid]);
 
         const cloned_listing = strip(listing);
         const cloned_bid = strip(bid);
+
+        Sequence.validate([cloned_listing, cloned_bid]);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
         return await action.accept(cloned_listing, cloned_bid);
@@ -66,11 +67,12 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(listing);
         Format.validate(bid);
         Format.validate(accept);
-        Sequence.validate([listing, bid, accept]);
 
         const cloned_listing = strip(listing);
         const cloned_bid = strip(bid);
         const cloned_accept = strip(accept);
+
+        Sequence.validate([cloned_listing, cloned_bid, cloned_accept]);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
         return await action.lock(cloned_listing, cloned_bid, cloned_accept);
@@ -94,7 +96,7 @@ export class OpenMarketProtocol implements OMP {
         return await action.release(chain[0], chain[1], chain[2], chain[3]);
     }
 
-    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM> {
+    public async refund(listing: MPM, bid: MPM, accept: MPM, refund?: MPM): Promise<MPM> {
         Format.validate(listing);
         Format.validate(bid);
         Format.validate(accept);
