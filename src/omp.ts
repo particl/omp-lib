@@ -81,20 +81,17 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Format.validate(accept);
 
-        const cloned_listing = strip(listing);
-        const cloned_bid = strip(bid);
-        const cloned_accept = strip(accept);
-        const cloned_release = strip(release);
+        let chain: MPM[] = [strip(listing), strip(bid), strip(accept)]
 
         if (release) {
             Format.validate(release);
+            chain.push(strip(release));
         }
-
-        const chain = release ? [cloned_listing, cloned_bid, cloned_accept, cloned_release ] : [cloned_listing, cloned_bid, cloned_accept];
+        
         Sequence.validate(chain);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.release(cloned_listing, cloned_bid, cloned_accept, cloned_release);
+        return await action.release(chain[0], chain[1], chain[2], chain[3]);
     }
 
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM> {
@@ -102,21 +99,17 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Format.validate(accept);
 
+        let chain: MPM[] = [strip(listing), strip(bid), strip(accept)]
+
         if (refund) {
             Format.validate(refund);
+            chain.push(strip(refund));
         }
 
-        const cloned_listing = strip(listing);
-        const cloned_bid = strip(bid);
-        const cloned_accept = strip(accept);
-        const cloned_lock = strip(lock);
-        const cloned_refund = strip(refund);
-
-        const chain = refund ? [cloned_listing, cloned_bid, cloned_accept, cloned_lock, refund ] : [cloned_listing, cloned_bid, cloned_accept, cloned_lock];
         Sequence.validate(chain);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.refund(cloned_listing, cloned_bid, cloned_accept, cloned_lock, cloned_refund);
+        return await action.refund(chain[0], chain[1], chain[2], chain[3]);
     }
 
     public static strip(msg: MPM): MPM {
