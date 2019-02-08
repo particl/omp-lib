@@ -17,7 +17,4 @@ export interface OMP {
     release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM>;
     lock(listing: MPM, bid: MPM, lock: MPM): Promise<MPM>;
     refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM>;
-
-    verify(chain: MPM[]): boolean;
-    strip(msg: MPM): MPM;
 }

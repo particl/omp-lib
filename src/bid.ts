@@ -85,7 +85,7 @@ export class Bid {
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
-        console.log(bid);
+
         const accept = {
             version: '0.1.0.0',
             action: {
