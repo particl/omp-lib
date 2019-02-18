@@ -18,7 +18,7 @@ import { Format } from './format-validators/validate';
 import { Sequence } from './sequence-verifier/verify';
 import { EscrowType } from './interfaces/omp-enums';
 
-export { node0, node1, node2, Cryptocurrency, BidConfiguration, EscrowType, MPM};
+export { node0, node1, node2, Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
 
 // @injectable()
 export class OpenMarketProtocol implements OMP {

@@ -56,15 +56,15 @@ export abstract class Rpc {
 
     public abstract async call(method: string, params: any[]): Promise<any>;
 
-    public abstract async getNewAddress(): Promise<string>;
+    public abstract async getNewAddress(): Promise<string>; // returns address
     public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
-    public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>;
+    public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>; // returns txid
     public abstract async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx>;
-    public abstract async sendRawTransaction(rawtx: string): Promise<string>;
+    public abstract async sendRawTransaction(rawtx: string): Promise<string>; // returns txid
     public abstract async listUnspent(minconf: number): Promise<RpcUnspentOutput[]>;
-    public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>;
-    public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>;
-    public abstract async createSignatureWithWallet(hex: string, prevtx: Output, address: string): Promise<string>;
+    public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>; // successful
+    public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>; // returns nothing
+    public abstract async createSignatureWithWallet(hex: string, prevtx: Output, address: string): Promise<string>; // signature
 
     public async getNewPubkey(): Promise<string> {
         const address = await this.getNewAddress();
