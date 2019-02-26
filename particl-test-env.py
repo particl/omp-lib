@@ -28,7 +28,7 @@ import signal
 def toBool(s):
     return s.lower() in ["1", "true"]
 
-PARTICL_BINDIR = os.path.expanduser(os.getenv("PARTICL_BINDIR", "./bins/particl-core/particl-0.17.1.2/bin"))
+PARTICL_BINDIR = os.path.expanduser(os.getenv("PARTICL_BINDIR", "./bins/particl-core"))
 PARTICLD = os.getenv("PARTICLD", "particld")
 PARTICL_CLI = os.getenv("PARTICL_CLI", "particl-cli")
 PARTICL_TX = os.getenv("PARTICL_TX", "particl-tx")
@@ -259,10 +259,10 @@ def startNodes(fp, resetData):
             except:
                 continue
             break
-        
+
         callrpc(i, fp, 'walletsettings stakingoptions "{\\"stakecombinethreshold\\":\\"100\\",\\"stakesplitthreshold\\":200}"')
         callrpc(i, fp, 'reservebalance true 1000')
-        
+
 
     callrpc(0, fp, 'extkeygenesisimport "abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb"')
     callrpc(1, fp, 'extkeygenesisimport "pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic" "" true')
