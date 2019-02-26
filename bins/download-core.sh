@@ -4,7 +4,7 @@ if [ -z "$1" ]
   then
     echo "Error!"
     echo ""
-    echo "Usage: ./download-core.sh <VERSION>"
+    echo "Usage: ./download-particl-core.sh <VERSION>"
     exit 1
 fi
 
