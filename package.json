@@ -11,7 +11,7 @@
         "build": "tsc",
         "prestart": "npm run build",
         "pretest": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish '__tests__/**/*.{ts,tsx}'",
-        "test": "npm-run-all -s test:setup test:sleep test:run",
+        "test": "npm-run-all -s lint test:setup test:sleep test:run",
         "test:setup": "python3 particl-test-env.py &",
         "test:sleep": "sleep 5",
         "test:run": "jest",
