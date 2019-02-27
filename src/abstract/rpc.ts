@@ -75,7 +75,7 @@ export abstract class Rpc {
     // tslint:disable:cognitive-complexity
     public async getNormalOutputs(reqSatoshis: number): Promise<Output[]> {
         const chosen: Output[] = [];
-        const utxoLessThanReq: number[] = [];
+        // const utxoLessThanReq: number[] = [];
         let exactMatchIdx = -1;
         let maxOutputIdx = -1;
         let chosenSatoshis = 0;
@@ -89,9 +89,9 @@ export abstract class Rpc {
                     if ((exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
                         // Found a utxo with amount that is an exact match for the requested value.
                         exactMatchIdx = outIdx;
-                    } else if (toSatoshis(output.amount) < reqSatoshis) {
-                        // utxo is less than the amount requested, so may be summable with others to get to the exact value (or within a close threshold).
-                        utxoLessThanReq.push(outIdx);
+                    // } else if (toSatoshis(output.amount) < reqSatoshis) {
+                    //     // utxo is less than the amount requested, so may be summable with others to get to the exact value (or within a close threshold).
+                    //     utxoLessThanReq.push(outIdx);
                     }
 
                     // Get the max utxo amount in case an output needs to be split
@@ -118,24 +118,24 @@ export abstract class Rpc {
         if (exactMatchIdx === -1) {
             // No exact match found, so...
             //  ... Step 2: Sum utxos to find a summed group that matches exactly or is greater than the requried amount by no more than 1%.
-            for (let ii = 0; ii < Math.pow(2, utxoLessThanReq.length); ii++) {
-                const selectedIdxs: number[] = utxoLessThanReq.filter((_: number, index: number) => {
-                    return ii & (1 << index);
-                });
-                const summed: number = toSatoshis(selectedIdxs.reduce((acc: number, idx: number) => acc + unspent[idx].amount, 0));
+            // for (let ii = 0; ii < Math.pow(2, utxoLessThanReq.length); ii++) {
+            //     const selectedIdxs: number[] = utxoLessThanReq.filter((_: number, index: number) => {
+            //         return ii & (1 << index);
+            //     });
+            //     const summed: number = toSatoshis(selectedIdxs.reduce((acc: number, idx: number) => acc + unspent[idx].amount, 0));
 
-                if ((summed >= reqSatoshis) && ((summed - reqSatoshis) < (reqSatoshis / 100))) {
-                    // Sum of utxos is within a 1 percent upper margin of the requested amount.
-                    if (summed === reqSatoshis) {
-                        // Found the exact required amount.
-                        utxoIdxs = selectedIdxs;
-                        break;
-                    } else if (!utxoIdxs.length) {
-                        utxoIdxs.length = 0;
-                        utxoIdxs = selectedIdxs;
-                    }
-                }
-            }
+            //     if ((summed >= reqSatoshis) && ((summed - reqSatoshis) < (reqSatoshis / 100))) {
+            //         // Sum of utxos is within a 1 percent upper margin of the requested amount.
+            //         if (summed === reqSatoshis) {
+            //             // Found the exact required amount.
+            //             utxoIdxs = selectedIdxs;
+            //             break;
+            //         } else if (!utxoIdxs.length) {
+            //             utxoIdxs.length = 0;
+            //             utxoIdxs = selectedIdxs;
+            //         }
+            //     }
+            // }
 
             // ... Step 3: If no summed values found, attempt to split a large enough output.
             if (utxoIdxs.length === 0 && maxOutputIdx !== -1 && toSatoshis(unspent[maxOutputIdx].amount) > reqSatoshis) {
