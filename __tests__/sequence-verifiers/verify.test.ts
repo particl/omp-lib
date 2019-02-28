@@ -136,6 +136,10 @@ describe('SequenceValidator', () => {
                 }
             }`);
 
+    beforeAll(async () => {
+        //
+    });
+
     test('seqver complete good cycle', () => {
         let fail = false;
         try {

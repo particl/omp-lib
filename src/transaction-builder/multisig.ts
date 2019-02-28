@@ -39,6 +39,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Get the right transaction library for the right currency.
         const lib = this._libs(mpa_bid.buyer.payment.cryptocurrency);
 
+        // console.log('mpa_bid:' + JSON.stringify(mpa_bid, null, 2));
+        // console.log('lib:', lib);
         mpa_bid.buyer.payment.pubKey = await lib.getNewPubkey();
         mpa_bid.buyer.payment.changeAddress = {
             type: CryptoAddressType.NORMAL,
