@@ -1,6 +1,6 @@
 {
     "name": "omp-lib",
-    "version": "0.1.28",
+    "version": "0.1.29",
     "description": "Particl OMP-library",
     "main": "dist/omp.js",
     "types": "dist/omp.d.js",
@@ -43,14 +43,14 @@
         "jest-cli": "^23.6.0",
         "jest-sonar-reporter": "^2.0.0",
         "nodemon": "^1.11.0",
+        "npm-run-all": "^4.1.5",
         "sonarqube-scanner": "^2.1.2",
         "ts-jest": "^23.10.4",
         "ts-node": "^7.0.1",
         "tslint": "5.11.0",
         "tslint-clean-code": "^0.2.7",
         "tslint-sonarts": "^1.8.0",
-        "typescript": "^2.4.1",
-        "npm-run-all": "^4.1.5"
+        "typescript": "^2.4.1"
     },
     "jest": {
         "transform": {
