@@ -2,6 +2,6 @@
  * Key-Value Store.
  */
 export interface KVS {
-    id: string;
+    key: string;
     value: string | number;
 }

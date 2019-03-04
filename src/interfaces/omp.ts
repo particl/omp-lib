@@ -59,7 +59,7 @@ export interface MPA_LISTING_ADD extends MPA {
             protocol: string,
             publicKey: string
         }],
-        objects?: any[]
+        objects?: KVS[]
     };
 }
 
