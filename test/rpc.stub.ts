@@ -2,8 +2,9 @@ import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 
-import { Rpc, RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from './abstract/rpc';
-import { Output } from './interfaces/crypto';
+import { Rpc } from '../src/abstract/rpc';
+import { Output } from '../src/interfaces/crypto';
+import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from '../src/interfaces/rpc';
 
 // tslint:disable cognitive-complexity
 @injectable()

@@ -35,6 +35,7 @@ export interface MPA_LISTING_ADD extends MPA {
         // created: number, // timestamp // add?
         // item doesn't need created or any other timestamps, those come from the smsgmessage
         // hash: string, //item hash // TODO: remove
+        // TODO: these should be separate classes
         information: {
             title: string,
             shortDescription: string,

@@ -1,5 +1,5 @@
 import * from 'jest';
-import { CoreRpcService } from '../src/rpc.stub';
+import { CoreRpcService } from '../test/rpc.stub';
 import { OpenMarketProtocol } from '../src/omp';
 import { Cryptocurrency } from '../src/interfaces/crypto';
 

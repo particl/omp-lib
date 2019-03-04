@@ -3,7 +3,7 @@ import { OpenMarketProtocol } from '../src/omp';
 import { Cryptocurrency } from '../src/interfaces/crypto';
 import { BidConfiguration } from '../src/interfaces/configs';
 import { EscrowType } from '../src/interfaces/omp-enums';
-import { CoreRpcService } from '../src/rpc.stub';
+import { CoreRpcService } from '../test/rpc.stub';
 
 describe('Bid', () => {
 
