@@ -10,14 +10,19 @@ import { Cryptocurrency } from './interfaces/crypto';
 import { IMultiSigBuilder } from './abstract/transactions';
 import { MultiSigBuilder } from './transaction-builder/multisig';
 
-import { strip, clone } from './util';
+import { strip, clone, Util as OMPUtil} from './util';
 
 import { FV_MPM } from './format-validators/mpm';
 import { Format } from './format-validators/validate';
 import { Sequence } from './sequence-verifier/verify';
 import { EscrowType } from './interfaces/omp-enums';
 
-export { Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
+export { Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc, OMPUtil};
+
+export function getVersion(): string {
+    const pjson = require('pjson');
+    return pjson.version;
+}
 
 // @injectable()
 export class OpenMarketProtocol implements OMP {
