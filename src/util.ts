@@ -1,7 +1,10 @@
 
-export function getVersion(): string {
-    const pjson = require('pjson');
-    return pjson.version;
+export class Util {
+
+    public static getVersion(): string {
+        const pjson = require('pjson');
+        return pjson.version;
+    }
 }
 
 export function isObject(v: any): boolean {
