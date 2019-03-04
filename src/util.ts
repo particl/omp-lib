@@ -1,3 +1,9 @@
+
+export function getVersion(): string {
+    const pjson = require('pjson');
+    return pjson.version;
+}
+
 export function isObject(v: any): boolean {
     return v && typeof v === 'object';
 }
