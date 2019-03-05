@@ -6,7 +6,7 @@
 
 import { Output, CryptoAddress, Cryptocurrency, ISignature } from './crypto';
 import { DSN, ContentReference } from './dsn';
-import { MPAction, PaymentType, EscrowType } from './omp-enums';
+import { MPAction, SaleType, EscrowType } from './omp-enums';
 import { KVS } from './common';
 
 
@@ -43,7 +43,7 @@ export interface MPA_LISTING_ADD extends MPA {
             category: string[]
         },
         payment: {
-            type: PaymentType,
+            type: SaleType,
             escrow: {
                 type: EscrowType,
                 ratio: { // Missing from spec
@@ -93,7 +93,7 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
             images: ContentReference[]
         },
         payment: {
-            type: PaymentType,
+            type: SaleType,
             escrow: {
                 type: EscrowType,
                 ratio: {

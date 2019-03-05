@@ -1,5 +1,5 @@
 import { MPA, MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp';
-import { PaymentType, MPAction, EscrowType } from '../interfaces/omp-enums';
+import { SaleType, MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry } from '../util';
 import { FV_MPM } from './mpm';
 import { FV_CRYPTO } from './crypto';
@@ -130,7 +130,7 @@ export class FV_MPA_LISTING {
             const payment = item.payment;
 
             if (isString(payment.type)) {
-                if (!(payment.type in PaymentType)) {
+                if (!(payment.type in SaleType)) {
                     throw new Error('action.item.payment.type: unknown value');
                 }
             } else {

@@ -14,10 +14,15 @@ export enum MPAction {
     MPA_REFUND = 'MPA_REFUND'
 }
 
-export enum PaymentType {
-    FREE = 'FREE',
+/*
+    Represents the types of sales that are possible
+ */
+export enum SaleType {
+    FREE = 'FREE',          // not implemented, yet
     SALE = 'SALE',
-    RENT = 'RENT'
+    AUCTION = 'AUCTION',    // not implemented, yet
+    WANTED = 'WANTED',      // not implemented, yet
+    RENT = 'RENT'           // not implemented, yet
 }
 
 export enum EscrowType {
