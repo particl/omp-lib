@@ -33,6 +33,11 @@ export enum Cryptocurrency {
     ZCASH = 'ZEC'
 }
 
+export enum Fiatcurrency {
+    EUR = 'EUR',
+    USD = 'USD'
+}
+
 export enum CryptoAddressType {
     NORMAL = 'NORMAL',
     STEALTH = 'STEALTH'
