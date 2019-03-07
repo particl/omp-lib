@@ -1,7 +1,7 @@
 import * from 'jest';
 import { FV_MPM } from '../../src/format-validators/mpm';
 
-describe('MPA', () => {
+describe('format-validator: MPA', () => {
 
     const validate = FV_MPM.validate;
 

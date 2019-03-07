@@ -29,19 +29,19 @@ describe('SequenceValidator', () => {
                         "seller": 100
                       }
                     },
-                    "cryptocurrency": [
+                    "options": [
                       {
                         "currency": "PART",
                         "basePrice": 10
                       }
                     ]
                   },
-                  "messaging": [
-                    {
-                      "protocol": "TODO",
-                      "publicKey": "TODO"
-                    }
-                  ]
+                  "messaging": {
+                      "options": [{
+                          "protocol": "TODO",
+                          "publicKey": "TODO"
+                      }]
+                  }
                 }
             }
         }`);

@@ -1,3 +1,5 @@
+import { Cryptocurrency } from './crypto';
+
 /**
  * Data Storage Network Refence.
  */
@@ -26,3 +28,4 @@ export enum ProtocolDSN {
     URL = 'URL',
     IPFS = 'IPFS'
 }
+Object.freeze(ProtocolDSN);

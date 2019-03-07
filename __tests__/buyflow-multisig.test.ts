@@ -44,19 +44,17 @@ describe('Multisig Buy Flow', () => {
                         "seller": 100
                       }
                     },
-                    "cryptocurrency": [
-                      {
+                    "options": [{
                         "currency": "PART",
                         "basePrice": ${toSatoshis(20)}
-                      }
-                    ]
+                    }]
                   },
-                  "messaging": [
-                    {
+                  "messaging": {
+                    "options": [{
                       "protocol": "TODO",
                       "publicKey": "TODO"
-                    }
-                  ]
+                    }]
+                  }
                 }
             }
         }`);

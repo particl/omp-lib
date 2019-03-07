@@ -2,7 +2,7 @@ import * from 'jest';
 import { FV_CRYPTO } from '../../src/format-validators/crypto';
 import { hash } from '../../src/hasher/hash';
 
-describe('Crypto', () => {
+describe('format-validator: Crypto', () => {
 
     beforeAll(async () => {
         //

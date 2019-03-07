@@ -13,7 +13,8 @@
         "pretest": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish '__tests__/**/*.{ts,tsx}'",
         "test": "npm-run-all -s lint test:run",
         "test:setup": "python3 particl-test-env.py",
-        "test:run": "jest",
+        "test:run": "jest --verbose",
+        "test:single": "npm run test:run -- --testPathPattern=$TEST -i",
         "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
     },
     "contributors": [

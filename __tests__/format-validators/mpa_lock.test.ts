@@ -3,7 +3,7 @@ import { FV_MPA_LOCK } from '../../src/format-validators/mpa_lock';
 import { hash } from '../../src/hasher/hash';
 import { clone } from '../../src/util';
 
-describe('MPA_LOCK', () => {
+describe('format-validator: MPA_LOCK', () => {
 
     const validate = FV_MPA_LOCK.validate;
     const ok = JSON.parse(

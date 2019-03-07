@@ -154,9 +154,10 @@ export interface ParticipantData {
 
 /**
  * PaymentData holds the information related to payment and the payment negotiation flow between buyer and seller
- *
- * MPA_BID
  */
+export type PaymentData = PaymentDataBid | PaymentDataAccept | PaymentDataSign;
+
+/*
 export interface PaymentData {
     escrow: EscrowType;                 // MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND
     cryptocurrency?: Cryptocurrency;    // MPA_BID
@@ -165,6 +166,29 @@ export interface PaymentData {
     outputs?: Output[];                 // MPA_BID, MPA_ACCEPT
     fee?: number;                       // MPA_ACCEPT
     signatures?: ISignature[];          // MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND
+}
+*/
+
+export interface PaymentDataBid {
+    escrow: EscrowType;
+    cryptocurrency: Cryptocurrency;
+    pubKey: string;
+    changeAddress: CryptoAddress;
+    outputs: Output[];
+}
+
+export interface PaymentDataAccept {
+    escrow: EscrowType;
+    pubKey: string;
+    changeAddress: CryptoAddress;
+    outputs: Output[];
+    fee: number;
+    signatures: ISignature[];
+}
+
+export interface PaymentDataSign {
+    escrow: EscrowType;
+    signatures: ISignature[];
 }
 
 /**
@@ -249,9 +273,18 @@ export interface MessagingInfo {
  *
  * MPA_LISTING_ADD
  */
-export interface PaymentInfo {
+export type PaymentInfo = PaymentInfoEscrow | PaymentInfoFree;
+
+export interface PaymentInfoEscrow {
     type: SaleType;
-    escrow?: EscrowConfig;       // SaleType.FREE does not require escrow
+    escrow: EscrowConfig;
+    pegging?: PricePegging;
+    options: PaymentOption[];
+}
+
+export interface PaymentInfoFree {
+    type: SaleType;
+    escrow?: EscrowConfig;      // SaleType.FREE does not require escrow
     pegging?: PricePegging;     // pegging is optional
     options?: PaymentOption[];  // SaleType.FREE might not require this
 }

@@ -3,7 +3,7 @@ import { FV_MPA_REFUND } from '../../src/format-validators/mpa_refund';
 import { hash } from '../../src/hasher/hash';
 import { clone } from '../../src/util';
 
-describe('MPA_BID', () => {
+describe('format-validator: MPA_BID', () => {
 
     const validate = FV_MPA_REFUND.validate;
     const ok = JSON.parse(

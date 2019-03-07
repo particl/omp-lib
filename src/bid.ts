@@ -1,4 +1,4 @@
-import { MPA_EXT_LISTING_ADD, MPA_BID, MPM } from './interfaces/omp';
+import { MPA_LISTING_ADD, MPA_BID, MPM } from './interfaces/omp';
 import { Cryptocurrency, CryptoAddressType } from './interfaces/crypto';
 import { MPAction, EscrowType } from './interfaces/omp-enums';
 import { hash } from './hasher/hash';
@@ -8,6 +8,7 @@ import { BidConfiguration } from './interfaces/configs';
 import { injectable, inject } from 'inversify';
 import { IMultiSigBuilder } from './abstract/transactions';
 import { TYPES } from './types';
+import { ompVersion } from './omp';
 
 /**
  * todo: should we sequence verify before bidding and accepting
@@ -33,11 +34,16 @@ export class Bid {
      * @param listing the listing for which to produce a bid
      */
     public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
-        config.escrow = mpa_listing.item.payment.escrow.type;
+        const mpa_listing = <MPA_LISTING_ADD> listing.action;
+
+        if (mpa_listing.item.payment.escrow) {
+            config.escrow = mpa_listing.item.payment.escrow.type;
+        } else {
+            throw new Error('escrow: missing');
+        }
 
         const bid = {
-            version: '0.1.0.0',
+            version: ompVersion(),
             action: {
                 type: MPAction.MPA_BID,
                 generated: +new Date().getTime(), // timestamp
@@ -87,7 +93,7 @@ export class Bid {
         const payment = mpa_bid.buyer.payment;
 
         const accept = {
-            version: '0.1.0.0',
+            version: ompVersion(),
             action: {
                 type: MPAction.MPA_ACCEPT,
                 bid: hash(bid), // item hash
@@ -130,13 +136,13 @@ export class Bid {
      * @param accept the accept message for which to produce an lock message.
      */
     public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
+        const mpa_listing = <MPA_LISTING_ADD> listing.action;
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
 
         const lock = {
-            version: '0.1.0.0',
+            version: ompVersion(),
             action: {
                 type: MPAction.MPA_LOCK,
                 bid: hash(bid), // item hash
@@ -179,7 +185,7 @@ export class Bid {
 
         if (!release) {
             release = <MPM> {
-                version: '0.1.0.0',
+                version: ompVersion(),
                 action: {
                     type: MPAction.MPA_RELEASE,
                     bid: hash(bid), // item hash
@@ -222,7 +228,7 @@ export class Bid {
 
         if (!refund) {
             refund = <MPM> {
-                version: '0.1.0.0',
+                version: ompVersion(),
                 action: {
                     type: MPAction.MPA_REFUND,
                     bid: hash(bid), // item hash
