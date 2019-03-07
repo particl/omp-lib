@@ -11,7 +11,9 @@ export enum MPAction {
 
     MPA_LOCK = 'MPA_LOCK',
     MPA_RELEASE = 'MPA_RELEASE',
-    MPA_REFUND = 'MPA_REFUND'
+    MPA_REFUND = 'MPA_REFUND',
+
+    UNKNOWN = 'UNKNOWN'     // used in case we receive an unknown message type and want to log it
 }
 
 /*
