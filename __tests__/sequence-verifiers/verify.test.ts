@@ -51,7 +51,7 @@ describe('SequenceValidator', () => {
                 "version": "0.1.0.0",
                 "action": {
                     "type": "MPA_BID",
-                    "created": ${+new Date()},
+                    "generated": ${+new Date().getTime()},
                     "item": "${hash(listing_ok)}",
                     "buyer": {
                       "payment": {

@@ -40,7 +40,7 @@ export class Bid {
             version: '0.1.0.0',
             action: {
                 type: MPAction.MPA_BID,
-                created: +new Date(), // timestamp
+                generated: +new Date().getTime(), // timestamp
                 item: hash(listing), // item hash
                 buyer: {
                     payment: {

@@ -27,8 +27,8 @@ export class FV_MPA_BID {
             throw new Error('action.type: expecting MPA_BID got ' + action.type);
         }
 
-        if (!isTimestamp(action.created)) {
-            throw new Error('action.created: missing or not a valid timestamp');
+        if (!isTimestamp(action.generated)) {
+            throw new Error('action.generated: missing or not a valid timestamp');
         }
 
         if (!isSHA256Hash(action.item)) {

@@ -11,7 +11,7 @@ describe('MPA_BID', () => {
             "version": "0.1.0.0",
             "action": {
                 "type": "MPA_BID",
-                "created": ${+ new Date()},
+                "generated": ${+ new Date().getTime()},
                 "item": "${hash('listing')}",
                 "buyer": {
                   "payment": {
