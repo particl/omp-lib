@@ -30,14 +30,22 @@ const ok = JSON.parse(
                         "signature": "signature1",
                         "pubKey": "pubkey1"
                     }
-                ]
+                ],
+                "release": {
+                    "signatures": [
+                        {
+                            "signature": "signature1",
+                            "pubKey": "pubkey1"
+                        }
+                    ]
+                }
               }
             }
         }
     }`);
 
 test('validate ok MPA_ACCEPT', () => {
-    let fail: boolean;
+    let fail: boolean = false;
     try {
         fail = !validate(ok);
     } catch (e) {

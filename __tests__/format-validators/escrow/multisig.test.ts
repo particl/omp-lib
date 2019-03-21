@@ -2,9 +2,7 @@ import * from 'jest';
 import { FV_MPA_BID } from '../../../src/format-validators/mpa_bid';
 import { hash } from '../../../src/hasher/hash';
 import { FV_MPA_ACCEPT } from '../../../src/format-validators/mpa_accept';
-import { FV_MPA_RELEASE } from '../../../src/format-validators/mpa_release';
 import { FV_MPA_LOCK } from '../../../src/format-validators/mpa_lock';
-import { FV_MPA_REFUND } from '../../../src/format-validators/mpa_refund';
 import { clone } from '../../../src/util';
 
 const validate = FV_MPA_BID.validate;
@@ -118,6 +116,7 @@ const ok_accept = JSON.parse(
               "payment": {
                 "escrow": "MULTISIG",
                 "pubKey": "somepublickey",
+                "fee": 50000,
                 "changeAddress": {
                     "type": "NORMAL",
                     "address": "someaddress"
@@ -133,7 +132,15 @@ const ok_accept = JSON.parse(
                         "signature": "signature1",
                         "pubKey": "pubkey1"
                     }
-                ]
+                ],
+                "release": {
+                    "signatures": [
+                        {
+                            "signature": "signature1",
+                            "pubKey": "pubkey1"
+                        }
+                    ]
+                }
               }
             }
         }
@@ -227,6 +234,19 @@ test('validate missing signatures MPA_ACCEPT', () => {
 });
 
 
+const release_missing_signatures = clone(ok_accept);
+delete release_missing_signatures.action.seller.payment.release.signatures;
+test('validate missing release signatures MPA_ACCEPT', () => {
+    let error = '';
+    try {
+        validateAccept(release_missing_signatures);
+    } catch (e) {
+        error = e.toString();
+    }
+    expect(error).toEqual(expect.stringContaining('release.signatures: missing or not an array'));
+});
+
+
 const validateLock = FV_MPA_LOCK.validate;
 const ok_lock = JSON.parse(
     `{
@@ -238,8 +258,19 @@ const ok_lock = JSON.parse(
               "payment": {
                 "escrow": "MULTISIG",
                 "signatures": [
-                    "signature1"
-                ]
+                    {
+                        "signature": "signature1",
+                        "pubKey": "pubkey1"
+                    }
+                ],
+                "refund": {
+                    "signatures": [
+                        {
+                            "signature": "signature1",
+                            "pubKey": "pubkey1"
+                        }
+                    ]
+                }
               }
             }
         }
@@ -257,64 +288,14 @@ test('validate missing signatures MPA_LOCK', () => {
     expect(error).toEqual(expect.stringContaining('signatures: missing or not an array'));
 });
 
-
-const validateRelease = FV_MPA_RELEASE.validate;
-const ok_release = JSON.parse(
-    `{
-        "version": "0.1.0.0",
-        "action": {
-            "type": "MPA_RELEASE",
-            "bid": "${hash('bid')}",
-            "seller": {
-              "payment": {
-                "escrow": "MULTISIG",
-                "signatures": [
-                    "signature1"
-                ]
-              }
-            }
-        }
-    }`);
-
-const release_missing_signatures = clone(ok_release);
-delete release_missing_signatures.action.seller.payment.signatures;
-test('validate missing signatures MPA_RELEASE', () => {
+const refund_missing_signatures = clone(ok_lock);
+delete refund_missing_signatures.action.buyer.payment.refund.signatures;
+test('validate missing refund signatures MPA_LOCK', () => {
     let error = '';
     try {
-        validateRelease(release_missing_signatures);
+        validateLock(refund_missing_signatures);
     } catch (e) {
         error = e.toString();
     }
-    expect(error).toEqual(expect.stringContaining('signatures: missing or not an array'));
-});
-
-
-const validateRefund = FV_MPA_REFUND.validate;
-const ok_refund = JSON.parse(
-    `{
-        "version": "0.1.0.0",
-        "action": {
-            "type": "MPA_REFUND",
-            "bid": "${hash('bid')}",
-            "buyer": {
-              "payment": {
-                "escrow": "MULTISIG",
-                "signatures": [
-                    "signature1"
-                ]
-              }
-            }
-        }
-    }`);
-
-const refund_missing_signatures = clone(ok_refund);
-delete refund_missing_signatures.action.buyer.payment.signatures;
-test('validate missing signatures MPA_REFUND', () => {
-    let error = '';
-    try {
-        validateRefund(refund_missing_signatures);
-    } catch (e) {
-        error = e.toString();
-    }
-    expect(error).toEqual(expect.stringContaining('signatures: missing or not an array'));
+    expect(error).toEqual(expect.stringContaining('refund.signatures: missing or not an array'));
 });

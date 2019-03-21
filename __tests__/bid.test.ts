@@ -1,12 +1,12 @@
 import * from 'jest';
-import { node0, node1, node2 } from '../test/rpc.stub';
+import { node0, node1, node2 } from '../src/rpc.stub';
 import { OpenMarketProtocol } from '../src/omp';
-import { CryptoType } from '../src/interfaces/crypto';
+import { Cryptocurrency } from '../src/interfaces/crypto';
 import { BidConfiguration } from '../src/interfaces/configs';
 import { EscrowType } from '../src/interfaces/omp-enums';
 
 const omp0 = new OpenMarketProtocol();
-omp0.inject(CryptoType.PART, node0);
+omp0.inject(Cryptocurrency.PART, node0);
 
 const ok = JSON.parse(
     `{
@@ -49,7 +49,7 @@ const ok = JSON.parse(
     }`);
 
 const config: BidConfiguration = {
-    cryptocurrency: CryptoType.PART,
+    cryptocurrency: Cryptocurrency.PART,
     escrow: EscrowType.MULTISIG,
     shippingAddress: {
         firstName: 'string',

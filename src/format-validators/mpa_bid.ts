@@ -5,7 +5,8 @@ import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash, isCou
 import { FV_MPM } from './mpm';
 import { FV_OBJECTS } from './objects';
 import { FV_MPA_BID_ESCROW_MULTISIG } from './escrow/multisig';
-import { CryptoType } from '../interfaces/crypto';
+import { Cryptocurrency } from '../interfaces/crypto';
+import { FV_MPA_BID_ESCROW_MAD_CT } from './escrow/madct';
 
 // TODO: cognitive-complexity 22, should be less than 20
 // tslint:disable:cognitive-complexity
@@ -24,7 +25,7 @@ export class FV_MPA_BID {
         }
 
         if (action.type !== MPAction.MPA_BID) {
-            throw new Error('action.type: expecting MPA_BID got ' + action.type);
+            throw new Error('action.type: expecting MPA_BID received=' + action.type);
         }
 
         if (!isTimestamp(action.created)) {
@@ -42,12 +43,12 @@ export class FV_MPA_BID {
         if (isObject(buyer.payment)) {
             const payment = buyer.payment;
 
-            if (!(payment.cryptocurrency in CryptoType)) {
-                throw new Error('action.buyer.payment.cryptocurrency: expecting cryptocurrency type, unknown value, got ' + payment.cryptocurrency);
+            if (!(payment.cryptocurrency in Cryptocurrency)) {
+                throw new Error('action.buyer.payment.cryptocurrency: expecting cryptocurrency type, unknown value, received=' + payment.cryptocurrency);
             }
 
             if (!(payment.escrow in EscrowType)) {
-                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + payment.escrow);
+                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, received=' + payment.escrow);
             }
 
             // TODO: implement all validators
@@ -60,9 +61,10 @@ export class FV_MPA_BID {
                 case EscrowType.MAD:
                     // TODO: not implemented
                 case EscrowType.MAD_CT:
-                    // TODO: not implemented
+                    FV_MPA_BID_ESCROW_MAD_CT.validate(payment);
+                    break;
                 default:
-                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
+                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, received=' + payment.escrow);
             }
 
         } else {

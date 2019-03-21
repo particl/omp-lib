@@ -1,13 +1,9 @@
 import { injectable, inject, named } from 'inversify';
 import 'reflect-metadata';
-import { TYPES } from '../types';
 import * as bitcore from 'particl-bitcore-lib';
-import { Rpc, ILibrary } from '../abstract/rpc';
 import { Prevout, ToBeOutput, ToBeNormalOutput, ISignature } from '../interfaces/crypto';
-
-import { deepSortObject } from '../hasher/hash';
 import { CryptoAddress } from '../interfaces/crypto';
-import { clone, fromSatoshis } from '../util';
+import { clone } from '../util';
 
 export class TransactionBuilder {
     // TODO: dynamic currency support
@@ -110,11 +106,11 @@ export class TransactionBuilder {
 
     /**
      * Creates a multisignature redeem script, combined with the amount it forms
-     * and prevout and it adds it to this.prevouts array.
+     * an output and it adds it to this.output array.
      * @param satoshis the amount of satoshis this prevout should consume.
      * @param publicKeys the participating public keys.
      */
-    public newMultisigPrevout(sathosis: number, publicKeys: string[]): ToBeNormalOutput {
+    public newMultisigOutput(sathosis: number, publicKeys: string[]): ToBeNormalOutput {
 
         publicKeys.sort();
         publicKeys = publicKeys.map(pk => new bitcore.PublicKey(pk));
@@ -125,7 +121,7 @@ export class TransactionBuilder {
         const p2shScript = redeemScript.toScriptHashOut();
 
         /*
-        console.log('newMultisigPrevout()');
+        console.log('newMultisigOutput()');
         console.log(redeemScript.toString());
         console.log(redeemScript.toHex());
         console.log(script.toString());
@@ -149,7 +145,7 @@ export class TransactionBuilder {
      * @param changeAddress
      * @param inputsOfSingleParty
      */
-    public newChangeOutputFor(requiredSatoshis: number, changeAddress: CryptoAddress, inputsOfSingleParty: Prevout[]): ToBeNormalOutput {
+    public newChangeOutputFor(requiredSatoshis: number, changeAddress: CryptoAddress, inputsOfSingleParty: Prevout[]): (ToBeNormalOutput | undefined) {
         let input = 0;
 
         for (const utxo of inputsOfSingleParty) {
@@ -208,6 +204,9 @@ export class TransactionBuilder {
                 utxo._satoshis = out.satoshis;
                 // required for signing
                 utxo._scriptPubKey = out.script.toHex();
+                // TODO: technically this should be the address of the multisig
+                // but for signing purposes we're putting in the address to sign for.
+                // should refactor this!
                 utxo._address = publicKeyToAddress(publicKeyToSignFor);
                 return true;
             }
@@ -261,9 +260,9 @@ export function getSerializedInteger(n: number): Buffer {
     if(n === undefined) {
         throw "Number to serialize is undefined."
     }
-
+    
     const hex = n.toString(16)
-        .match(/../g)   // TODO: fix, object is possibly null
+        .match(/../g)!
         .reverse()
         .join('');
 

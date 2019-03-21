@@ -70,19 +70,22 @@ const deepNestTwo = {
 };
 
 test('normalize and hash', () => {
-    let prevout = 'one';
-    let two = 'two';
+    let output;
+    let two ;
+    let three;
     try {
         // console.log(JSON.stringify(deepSortObject(deepNestOne), null, 4));
         // console.log(JSON.stringify(deepSortObject(deepNestTwo), null, 4));
 
-        prevout = hash(deepNestOne);
+        output = hash(deepNestOne);
         two = hash(deepNestTwo);
+        three = hash(deepNestTwo);
         // console.log(output + " === " + two);
     } catch (e) {
         console.log(e);
     }
-    expect(prevout).toBe(two);
+    expect(output).toBe(two);
+    expect(output).toBe(three);
 });
 
 

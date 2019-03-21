@@ -52,6 +52,10 @@ export function isPublicKey(pk: string): boolean {
     return isString(pk);
 }
 
+export function isPrivateKey(pk: string): boolean {
+    return isString(pk);
+}
+
 export function isTimestamp(t: any): boolean {
     return isNonNegativeNaturalNumber(t);
 }

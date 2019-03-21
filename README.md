@@ -15,6 +15,7 @@ Note: the documentation is very outdated for the private message format.
     * lock(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT): make this also create the release tx. returns MPA_LOCK. (signed destruction tx, partially signed bix txn)
     * complete(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns a fully signed bid rawtx for the seller.
     * release(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns a fully signed release rawtx for the buyer.
+    * refund(MPA_LISTING_ADD, MPA_BID, MPA_ACCEPT, MPA_LOCK): returns a fully signed refund rawtx for the seller.
 
 ## Format validators
 The format validators can be found in the `src/format-validators` directory.

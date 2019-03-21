@@ -1,6 +1,6 @@
 import { node0, node1, node2 } from '../test/rpc-ct.stub';
 import { OpenMarketProtocol } from "../src/omp";
-import { CryptoType } from "../src/interfaces/crypto";
+import { Cryptocurrency } from "../src/interfaces/crypto";
 import { clone } from '../src/util';
 
 

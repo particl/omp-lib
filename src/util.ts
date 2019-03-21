@@ -47,6 +47,10 @@ export function isTxid(txid: any): boolean {
     return isSHA256Hash(txid);
 }
 
+export function isBlindFactor(txid: any): boolean {
+    return isSHA256Hash(txid);
+}
+
 export function isTimestamp(t: any): boolean {
     return isNonNegativeNaturalNumber(t);
 }

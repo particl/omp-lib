@@ -4,7 +4,7 @@ import { isString, isObject, isArray, isNumber } from '../format-validators/util
 import { MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp';
 import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
 
-export function hash(v: any): (object | Buffer | string) {
+export function hash(v: any): string {
     if (typeof v === 'undefined') {
         throw new Error('hash(): value is undefined');
     }

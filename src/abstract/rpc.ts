@@ -1,8 +1,9 @@
+import { Cryptocurrency, ISignature, Prevout, BlindPrevout, ToBeBlindOutput, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { ConfidentialTransactionBuilder } from '../transaction-builder/confidential-transaction';
 
 import { toSatoshis, fromSatoshis, clone, log } from '../util';
-import { Prevout, CryptoType, ISignature, ToBeNormalOutput, CryptoAddress, BlindPrevout, ToBeBlindOutput, EphemeralKey } from '../interfaces/crypto';
+import { triggerAsyncId } from 'async_hooks';
 
 // TODO: allowing multiple classes per file for now
 // tslint:disable:max-classes-per-file
@@ -53,7 +54,11 @@ export interface RpcBlindInput extends RpcOutput {
     sequence?: number;
 }
 
-export interface RpcBlindOutput {
+export interface RpcBlindOrFeeBase {
+
+}
+
+export interface RpcBlindOutput extends RpcBlindOrFeeBase {
     rangeproof_params: any;
     pubkey?: string;
     ephemeral_key?: string;
@@ -65,7 +70,7 @@ export interface RpcBlindOutput {
     data_ct_fee?: number;
 }
 
-export interface RpcCtFeeOutput {
+export interface RpcCtFeeOutput extends RpcBlindOrFeeBase {
     type: string;
     amount: number;
     data_ct_fee: number;
@@ -98,15 +103,15 @@ export abstract class Rpc {
     // to add support for another coin, the abstract methods below need to be implemented
     // example implementations in test/rpc.stub.ts and rpc-ct.stub.ts
     public abstract async call(method: string, params: any[]): Promise<any>;
-    public abstract async getNewAddress(): Promise<string>; // todo: return CryptoAddress like getNewStealthAddress()?
+    public abstract async getNewAddress(): Promise<string>; // returns address
     public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
-    public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>;
+    public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>; // returns txid
     public abstract async listUnspent(minconf: number): Promise<RpcUnspentOutput[]>;
-    public abstract async lockUnspent(prevouts: Prevout[]): Promise<boolean>;
-    public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>;
-    public abstract async createSignatureWithWallet(hex: string, prevtx: Prevout, address: string): Promise<string>;
-    public abstract async getRawTransaction(txid: string): Promise<RpcRawTx>;
-    public abstract async sendRawTransaction(rawtx: string): Promise<string>;
+    public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>; // successful
+    public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>; // returns nothing
+    public abstract async createSignatureWithWallet(hex: string, prevtx: RpcUnspentOutput, address: string): Promise<string>; // signature
+    public abstract async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx>;
+    public abstract async sendRawTransaction(rawtx: string): Promise<string>; // returns txid
 
     public async getNewPubkey(): Promise<string> {
         const address = await this.getNewAddress();
@@ -117,7 +122,7 @@ export abstract class Rpc {
     // tslint:disable:cognitive-complexity
     public async getNormalPrevouts(reqSatoshis: number): Promise<Prevout[]> {
         const chosen: Prevout[] = [];
-        const utxoLessThanReq: number[] = [];
+        // const utxoLessThanReq: number[] = [];
         let exactMatchIdx = -1;
         let maxOutputIdx = -1;
         let chosenSatoshis = 0;
@@ -125,15 +130,15 @@ export abstract class Rpc {
 
         const unspent: RpcUnspentOutput[] = await this.listUnspent(0);
 
-        const result = unspent.filter(
+        const filtered = unspent.filter(
             (output: RpcUnspentOutput, outIdx: number) => {
                 if (output.spendable && output.safe && (output.scriptPubKey.substring(0, 2) === '76')) {
                     if ((exactMatchIdx === -1) && ((toSatoshis(output.amount) - reqSatoshis) === 0)) {
                         // Found a utxo with amount that is an exact match for the requested value.
                         exactMatchIdx = outIdx;
-                    } else if (toSatoshis(output.amount) < reqSatoshis) {
-                        // utxo is less than the amount requested, so may be summable with others to get to the exact value (or within a close threshold).
-                        utxoLessThanReq.push(outIdx);
+                    // } else if (toSatoshis(output.amount) < reqSatoshis) {
+                    //     // utxo is less than the amount requested, so may be summable with others to get to the exact value (or within a close threshold).
+                    //     utxoLessThanReq.push(outIdx);
                     }
 
                     // Get the max utxo amount in case an output needs to be split
@@ -160,24 +165,24 @@ export abstract class Rpc {
         if (exactMatchIdx === -1) {
             // No exact match found, so...
             //  ... Step 2: Sum utxos to find a summed group that matches exactly or is greater than the requried amount by no more than 1%.
-            for (let ii = 0; ii < Math.pow(2, utxoLessThanReq.length); ii++) {
-                const selectedIdxs: number[] = utxoLessThanReq.filter((_: number, index: number) => {
-                    return ii & (1 << index);
-                });
-                const summed: number = toSatoshis(selectedIdxs.reduce((acc: number, idx: number) => acc + unspent[idx].amount, 0));
+            // for (let ii = 0; ii < Math.pow(2, utxoLessThanReq.length); ii++) {
+            //     const selectedIdxs: number[] = utxoLessThanReq.filter((_: number, index: number) => {
+            //         return ii & (1 << index);
+            //     });
+            //     const summed: number = toSatoshis(selectedIdxs.reduce((acc: number, idx: number) => acc + unspent[idx].amount, 0));
 
-                if ((summed >= reqSatoshis) && ((summed - reqSatoshis) < (reqSatoshis / 100))) {
-                    // Sum of utxos is within a 1 percent upper margin of the requested amount.
-                    if (summed === reqSatoshis) {
-                        // Found the exact required amount.
-                        utxoIdxs = selectedIdxs;
-                        break;
-                    } else if (!utxoIdxs.length) {
-                        utxoIdxs.length = 0;
-                        utxoIdxs = selectedIdxs;
-                    }
-                }
-            }
+            //     if ((summed >= reqSatoshis) && ((summed - reqSatoshis) < (reqSatoshis / 100))) {
+            //         // Sum of utxos is within a 1 percent upper margin of the requested amount.
+            //         if (summed === reqSatoshis) {
+            //             // Found the exact required amount.
+            //             utxoIdxs = selectedIdxs;
+            //             break;
+            //         } else if (!utxoIdxs.length) {
+            //             utxoIdxs.length = 0;
+            //             utxoIdxs = selectedIdxs;
+            //         }
+            //     }
+            // }
 
             // ... Step 3: If no summed values found, attempt to split a large enough output.
             if (utxoIdxs.length === 0 && maxOutputIdx !== -1 && toSatoshis(unspent[maxOutputIdx].amount) > reqSatoshis) {
@@ -223,7 +228,7 @@ export abstract class Rpc {
         });
         // tslint:enable:no-for-each-push
 
-        const success: boolean = await this.lockUnspent(chosen);
+        const success: boolean = await this.lockUnspent(false, chosen, true);
         if (!success) {
             throw new Error('Locking of unspent Outputs failed.');
         }
@@ -231,17 +236,23 @@ export abstract class Rpc {
     }
 
     /**
-     * Fetch the rawtx and set the utxo._satoshis to the tx's matching vout's valueSat
+     * Fetch the rawtx and set the utxo._satoshis and utxo._scriptPubKey to the tx's matching vout's valueSat
      *
      * @param utxo
      */
-    public async getSatoshisForUtxo(utxo: Prevout): Promise<Prevout> {
+    public async loadTrustedFieldsForUtxos(utxo: Prevout): Promise<Prevout> {
         const vout: RpcVout | undefined = (await this.getRawTransaction(utxo.txid))
             .vout.find((value: RpcVout) => value.n === utxo.vout);
-        if (!vout) {
+        if (!vout
+            || !vout.valueSat
+            || !vout.scriptPubKey
+            || !vout.scriptPubKey.hex
+            || !vout.scriptPubKey.addresses || vout.scriptPubKey.addresses.length !== 1) {
             throw new Error('Transaction does not contain matching Output.');
         }
         utxo._satoshis = vout.valueSat;
+        utxo._scriptPubKey = vout.scriptPubKey.hex;
+        utxo._address = vout.scriptPubKey.addresses[0];
         return utxo;
     }
 
@@ -266,6 +277,9 @@ export abstract class Rpc {
             if (!input._address) {
                 throw new Error('Output missing _address.');
             }
+            if (!input._scriptPubKey) {
+                throw new Error('Output missing _scriptPubKey.');
+            }
 
             const hex: string = tx.build();
             const amount: number = fromSatoshis(input._satoshis);
@@ -273,7 +287,9 @@ export abstract class Rpc {
                 txid: input.txid,
                 vout: input.vout,
                 scriptPubKey: input._scriptPubKey,
-                amount
+                amount,
+                spendable: true, // ts lint
+                safe: true,      // ts lint
             };
 
             const signature: string = await this.createSignatureWithWallet(hex, prevtx, input._address);
@@ -354,7 +370,7 @@ export abstract class CtRpc extends Rpc {
         } as BlindPrevout;
 
         // Permanently lock the unspent output
-        await this.lockUnspent([prevout]);
+        await this.lockUnspent(false, [prevout], true);
 
         return prevout;
     }
@@ -430,7 +446,7 @@ export abstract class CtRpc extends Rpc {
             return i;
         });
 
-        let outs: Array<RpcBlindOutput|RpcCtFeeOutput> = outputs.map((out: ToBeBlindOutput) => {
+        let outs: Array<RpcBlindOrFeeBase> = outputs.map((out: ToBeBlindOutput) => {
 
             const o = {
                 type: out._type || 'blind',
@@ -477,7 +493,7 @@ export abstract class CtRpc extends Rpc {
             type: 'data',
             data_ct_fee: fromSatoshis(feeSatoshis),
             amount: 0
-        } as RpcBlindOutput|RpcCtFeeOutput].concat(outs);
+        } as RpcBlindOrFeeBase].concat(outs);
 
         const tx = (await this.call('createrawparttransaction', [inps, outs]));
         const rawtx = tx.hex;
@@ -511,7 +527,7 @@ export abstract class CtRpc extends Rpc {
         return sx;
     }
 
-    public async getLastMatchingBlindFactor(inputs: (BlindPrevout[] | ToBeBlindOutput[]), outputs: ToBeBlindOutput[]): Promise<string> {
+    public async getLastMatchingBlindFactor(inputs: ({ blindFactor: string; }[]), outputs: ToBeBlindOutput[]): Promise<string> {
         const inp = inputs.map(i => i.blindFactor);
         let out = outputs.map(i => i.blindFactor);
 
@@ -532,7 +548,7 @@ export abstract class CtRpc extends Rpc {
     public async signRawTransactionForBlindInputs(tx: ConfidentialTransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]> {
         const r: ISignature[] = [];
 
-        log("signing for rawtx with blind innputs" + tx.txid)
+        //log("signing for rawtx with blind innputs" + tx.txid)
         // needs to synchronize, because the order needs to match
         // the inputs order.
         for (const input of inputs) {
@@ -558,6 +574,9 @@ export abstract class CtRpc extends Rpc {
             } else {
                 // If it's a stealth address, derive the key and sign for it.
                 // TODO: verify sx type
+                if (!sx.ephem || !sx.ephem.public) {
+                    throw new Error('Missing ephemeral (public key) for stealth address.')
+                }
                 const derived = (await this.call('derivefromstealthaddress', [sx.address, sx.ephem.public]));
                 const params = [
                     tx.build(),
@@ -594,6 +613,6 @@ export abstract class CtRpc extends Rpc {
 
 }
 
-export type ILibrary = (parent: CryptoType, isCt?: boolean) => (Rpc | CtRpc);
+export type ILibrary = (parent: Cryptocurrency, isCt?: boolean) => (Rpc | CtRpc);
 
 
