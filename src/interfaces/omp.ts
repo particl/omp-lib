@@ -28,7 +28,7 @@ export interface MPA {
  * This is the marketplace listing.
  */
 export interface MPA_LISTING_ADD extends MPA {
-    type: MPAction.MPA_LISTING_ADD;
+    // type: MPAction.MPA_LISTING_ADD;
     item: Item;
     hash: string;               // item hash, used to verify on the receiving end
 }
@@ -57,7 +57,7 @@ export interface MPA_BID extends MPA {
     // completely refactored, !implementation !protocol
     // created renamed to generated, as the naming would conflict with the db default fields
     // generated is needed for bid differentiation, so we can have multiple bids. and we can't use the db.created !implementation !protocol
-    type: MPAction.MPA_BID;
+    // type: MPAction.MPA_BID;
     generated: number;          // timestamp, when the bidder generated this bid !implementation !protocol
     hash: string;               // bid hash, used to verify on the receiving end
     item: string;               // item hash
@@ -70,7 +70,7 @@ export interface MPA_BID extends MPA {
  *  Seller rejected the buyers bid.
  */
 export interface MPA_REJECT extends MPA {
-    type: MPAction.MPA_REJECT;
+    // type: MPAction.MPA_REJECT;
     bid: string;                // hash of MPA_BID
 }
 
@@ -79,7 +79,7 @@ export interface MPA_REJECT extends MPA {
  *  Seller added his payment data.
  */
 export interface MPA_ACCEPT extends MPA {
-    type: MPAction.MPA_ACCEPT;
+    // type: MPAction.MPA_ACCEPT;
     bid: string;                // hash of MPA_BID
     seller: SellerData;
 }
@@ -89,7 +89,7 @@ export interface MPA_ACCEPT extends MPA {
  *  Buyer cancelled his bid.
  */
 export interface MPA_CANCEL extends MPA { // !implementation !protocol
-    type: MPAction.MPA_CANCEL;
+    // type: MPAction.MPA_CANCEL;
     bid: string;                // hash of MPA_BID
 }
 
@@ -98,7 +98,7 @@ export interface MPA_CANCEL extends MPA { // !implementation !protocol
  *  Buyer signed the tx too.
  */
 export interface MPA_LOCK extends MPA {
-    type: MPAction.MPA_LOCK;
+    // type: MPAction.MPA_LOCK;
     bid: string;                // hash of MPA_BID
     buyer: BuyerData;
     info: LockInfo;
@@ -109,13 +109,13 @@ export interface MPA_LOCK extends MPA {
  *  Seller automatically requests the release of the escrow.
  */
 export interface MPA_RELEASE extends MPA { // !implementation !protocol
-    type: MPAction.MPA_RELEASE;
+    // type: MPAction.MPA_RELEASE;
     bid: string;                // hash of MPA_BID
     seller: SellerData;
 }
 
 export interface MPA_REFUND extends MPA {
-    type: MPAction.MPA_REFUND;
+    // type: MPAction.MPA_REFUND;
     bid: string;                // hash of MPA_BID
     buyer: BuyerData;
 }
@@ -267,10 +267,11 @@ export interface MessagingInfo {
     options: MessagingOption[];
 }
 
+// TODO: needs refactoring
 export interface ItemObject {
-    type: string;
+    type: string;           // create separate enum
     description: string;
-    table?: string;
+    table?: KVS[];          // is this really needed? if it is, split this interface in two
     order?: number;
     forceInput?: boolean;
     objectId?: string;

@@ -85,9 +85,9 @@ export class Sequence {
                     Sequence.validatePreviousAction(prevType, MPAction.MPA_ACCEPT);
                     Sequence.validateHash(type, action.bid, bidHash);
                     if (action.type === MPAction.MPA_LOCK || action.type === MPAction.MPA_REFUND) {
-                        Sequence.validateEscrow(type, action.buyer.payment.escrow, paymentInfo.escrow.type);
+                        Sequence.validateEscrow(type, (action as MPA_LOCK | MPA_REFUND).buyer.payment.escrow, paymentInfo.escrow.type);
                     } else {
-                        Sequence.validateEscrow(type, action.seller.payment.escrow, paymentInfo.escrow.type);
+                        Sequence.validateEscrow(type, (action as MPA_RELEASE).seller.payment.escrow, paymentInfo.escrow.type);
                     }
 
                     break;

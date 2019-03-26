@@ -5,7 +5,7 @@ import { Cryptocurrency } from './crypto';
  */
 export interface DSN {
     protocol: ProtocolDSN;  // LOCAL |
-    id: string;             // e.g http://EXTERNALHOST.com/img.jpg
+    dataId: string;         // e.g http://EXTERNALHOST.com/img.jpg
     encoding: string;       // BASE64
     data: string;
 }
@@ -16,7 +16,7 @@ export interface DSN {
  */
 export interface ContentReference {
     hash: string;
-    data: DSN[];            // multiple DSN reference may point to a single piece of content.
+    datas: DSN[];           // multiple DSN reference may point to a single piece of content.
     featured: boolean;      // featured image
 }
 
