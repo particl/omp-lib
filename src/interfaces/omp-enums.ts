@@ -24,7 +24,8 @@ export enum SaleType {
     SALE = 'SALE',
     AUCTION = 'AUCTION',    // not implemented, yet
     WANTED = 'WANTED',      // not implemented, yet
-    RENT = 'RENT'           // not implemented, yet
+    RENT = 'RENT',          // not implemented, yet
+    BARGAIN = 'BARGAIN'     // not implemented, yet
 }
 
 export enum EscrowType {

@@ -216,7 +216,7 @@ export interface Item {
     information: ItemInfo;
     payment: PaymentInfo;
     messaging: MessagingInfo;
-    objects?: KVS[];
+    objects?: ItemObject[];
 }
 
 /**
@@ -265,6 +265,16 @@ export interface LocationMarker {
  */
 export interface MessagingInfo {
     options: MessagingOption[];
+}
+
+export interface ItemObject {
+    type: string;
+    description: string;
+    table?: string;
+    order?: number;
+    forceInput?: boolean;
+    objectId?: string;
+    options?: KVS[];
 }
 
 /**
