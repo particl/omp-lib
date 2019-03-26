@@ -1,6 +1,6 @@
 {
     "name": "omp-lib",
-    "version": "0.1.40",
+    "version": "0.1.41",
     "description": "Particl OMP-library",
     "main": "dist/omp.js",
     "types": "dist/omp.d.js",
@@ -32,6 +32,7 @@
     "dependencies": {
         "inversify": "^4.13.0",
         "js-sha256": "^0.9.0",
+        "omp-lib": "^0.1.40",
         "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
         "pjson": "^1.0.9",
         "reflect-metadata": "^0.1.12",
