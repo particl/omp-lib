@@ -16,7 +16,7 @@ cache:
 
 before_script:
   - cd ./bins/particl-core
-  - wget https://github.com/particl/particl-core/releases/download/v0.18.0.5/particl-0.18.0.5-x86_64-linux-gnu.tar.gz
+  - wget https://github.com/particl/particl-core/releases/download/v0.18.0.5rc1/particl-0.18.0.5-x86_64-linux-gnu.tar.gz
   - tar -xvf particl-0.18.0.5-x86_64-linux-gnu.tar.gz
   - cd ../..
   - yarn install
