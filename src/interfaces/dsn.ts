@@ -16,7 +16,7 @@ export interface DSN {
  */
 export interface ContentReference {
     hash: string;
-    datas: DSN[];           // multiple DSN reference may point to a single piece of content.
+    data: DSN[];            // multiple DSN reference may point to a single piece of content.
     featured: boolean;      // featured image
 }
 

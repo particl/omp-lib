@@ -37,7 +37,7 @@ export function hashListing(l: MPM): string {
     const listing: MPA_LISTING_ADD = <MPA_LISTING_ADD> (l.action);
     if (listing.item.information.images) {
         listing.item.information.images.forEach((img: ContentReference) => {
-            img.datas.forEach((dsn) => {
+            img.data.forEach((dsn) => {
                 if (dsn.protocol === ProtocolDSN.LOCAL) {
                     delete dsn.data;
                 }

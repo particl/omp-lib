@@ -13,11 +13,11 @@ export class FV_CONTENT {
             throw new Error('content.hash: not a SHA256 hash!');
         }
 
-        if (!isArray(content.datas)) {
+        if (!isArray(content.data)) {
             throw new Error('content.data: not an array!');
         }
 
-        content.datas.forEach((elem) => {
+        content.data.forEach((elem) => {
             this.validateDSN(elem);
         });
 

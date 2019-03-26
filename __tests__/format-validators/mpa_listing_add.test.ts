@@ -232,12 +232,10 @@ describe('format-validator: MPA_BID', () => {
         listing_with_images.action.item.information.images = [];
         listing_with_images.action.item.information.images.push({
             hash: hash('image1'),
-            datas: [
-                {
-                    protocol: 'URL',
-                    dataId: 'https://somefunnygoat/.com/oy.png'
-                }
-            ]
+            data: [{
+                protocol: 'URL',
+                dataId: 'https://somefunnygoat/.com/oy.png'
+            }]
         });
         let fail = false;
         try {
@@ -254,14 +252,12 @@ describe('format-validator: MPA_BID', () => {
         listing_with_local_images.action.item.information.images = [];
         listing_with_local_images.action.item.information.images.push({
             hash: hash('image1'),
-            datas: [
-                {
-                    protocol: 'LOCAL',
-                    dataId: 'somename.png',
-                    encoding: 'BASE64',
-                    data: 'muchdata'
-                }
-            ]
+            data: [{
+                protocol: 'LOCAL',
+                dataId: 'somename.png',
+                encoding: 'BASE64',
+                data: 'muchdata'
+            }]
         });
         let fail = false;
         try {
@@ -278,12 +274,10 @@ describe('format-validator: MPA_BID', () => {
         listing_with_local_images_fail.action.item.information.images = [];
         listing_with_local_images_fail.action.item.information.images.push({
             hash: hash('image1'),
-            datas: [
-                {
-                    protocol: 'LOCAL',
-                    dataId: 'somename.png'
-                }
-            ]
+            data: [{
+                protocol: 'LOCAL',
+                dataId: 'somename.png'
+            }]
         });
         let error = '';
         try {
