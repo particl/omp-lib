@@ -13,11 +13,11 @@ export class FV_CONTENT {
             throw new Error('content.hash: not a SHA256 hash!');
         }
 
-        if (!isArray(content.data)) {
+        if (!isArray(content.datas)) {
             throw new Error('content.data: not an array!');
         }
 
-        content.data.forEach((elem) => {
+        content.datas.forEach((elem) => {
             this.validateDSN(elem);
         });
 
@@ -33,8 +33,8 @@ export class FV_CONTENT {
             throw new Error('dsn: unknown protocol');
         }
 
-        if (!isString(dsn.id)) {
-            throw new Error('dsn.id: not a string!');
+        if (!isString(dsn.dataId)) {
+            throw new Error('dsn.dataId: not a string!');
         }
 
         if (dsn.protocol === ProtocolDSN.LOCAL) {

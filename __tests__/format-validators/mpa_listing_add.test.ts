@@ -232,10 +232,10 @@ describe('format-validator: MPA_BID', () => {
         listing_with_images.action.item.information.images = [];
         listing_with_images.action.item.information.images.push({
             hash: hash('image1'),
-            data: [
+            datas: [
                 {
                     protocol: 'URL',
-                    id: 'https://somefunnygoat/.com/oy.png'
+                    dataId: 'https://somefunnygoat/.com/oy.png'
                 }
             ]
         });
@@ -254,10 +254,10 @@ describe('format-validator: MPA_BID', () => {
         listing_with_local_images.action.item.information.images = [];
         listing_with_local_images.action.item.information.images.push({
             hash: hash('image1'),
-            data: [
+            datas: [
                 {
                     protocol: 'LOCAL',
-                    id: 'somename.png',
+                    dataId: 'somename.png',
                     encoding: 'BASE64',
                     data: 'muchdata'
                 }
@@ -278,10 +278,10 @@ describe('format-validator: MPA_BID', () => {
         listing_with_local_images_fail.action.item.information.images = [];
         listing_with_local_images_fail.action.item.information.images.push({
             hash: hash('image1'),
-            data: [
+            datas: [
                 {
                     protocol: 'LOCAL',
-                    id: 'somename.png'
+                    dataId: 'somename.png'
                 }
             ]
         });
