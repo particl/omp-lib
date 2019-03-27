@@ -29,4 +29,3 @@ export enum ProtocolDSN {
     URL = 'URL',
     IPFS = 'IPFS'
 }
-Object.freeze(ProtocolDSN);

@@ -32,7 +32,6 @@
     "dependencies": {
         "inversify": "^4.13.0",
         "js-sha256": "^0.9.0",
-        "omp-lib": "^0.1.43",
         "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
         "pjson": "^1.0.9",
         "reflect-metadata": "^0.1.12",

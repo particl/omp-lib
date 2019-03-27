@@ -37,3 +37,10 @@ export enum EscrowType {
     MAD = 'MAD',                // Mutual assured destruction
     MAD_CT = 'MAD_CT'           // Mutual assured destruction with Confidential Tx
 }
+
+/**
+ * Protocols supported by the protocol.
+ */
+export enum MesssagingProtocol {
+    SMSG = 'SMSG'
+}
