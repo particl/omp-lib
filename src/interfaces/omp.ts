@@ -6,7 +6,7 @@
 
 import { Output, CryptoAddress, Cryptocurrency, ISignature, Fiatcurrency } from './crypto';
 import { DSN, ContentReference } from './dsn';
-import { MPAction, SaleType, EscrowType } from './omp-enums';
+import { MPAction, SaleType, EscrowType, MesssagingProtocol } from './omp-enums';
 import { KVS } from './common';
 
 
@@ -364,7 +364,7 @@ export interface ShippingPrice {
  * MPA_LISTING_ADD
  */
 export interface MessagingOption {
-    protocol: string;
+    protocol: MesssagingProtocol;
     publicKey: string;
 }
 

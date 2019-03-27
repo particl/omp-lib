@@ -51,7 +51,7 @@ describe('Multisig Buy Flow', () => {
                   },
                   "messaging": {
                     "options": [{
-                      "protocol": "TODO",
+                      "protocol": "SMSG",
                       "publicKey": "TODO"
                     }]
                   }

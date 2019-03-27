@@ -39,7 +39,7 @@ describe('Bid', () => {
               },
               "messaging": [
                 {
-                  "protocol": "TODO",
+                  "protocol": "SMSG",
                   "publicKey": "TODO"
                 }
               ]
