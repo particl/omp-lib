@@ -6,7 +6,7 @@
 
 import { Output, CryptoAddress, Cryptocurrency, ISignature, Fiatcurrency } from './crypto';
 import { DSN, ContentReference } from './dsn';
-import { MPAction, SaleType, EscrowType, MesssagingProtocol } from './omp-enums';
+import { MPAction, SaleType, EscrowType, MessagingProtocol } from './omp-enums';
 import { KVS } from './common';
 
 
@@ -21,6 +21,17 @@ export interface MPM {
 
 export interface MPA {
     type: MPAction;
+
+    // other SaleTypes might require generated field in other messages, so we might need to move this to MPA later.
+    // adding generated+hash to all messages so they'll all have has if needed
+    // created renamed to generated, as the naming would conflict with the db default fields.
+    // generated is needed for bid differentiation, so we can have multiple bids. and we can't use the db.created !implementation !protocol
+    generated: number;          // timestamp, when the bidder generated this bid !implementation !protocol
+    hash: string;               // accept hash, used to verify on the receiving end
+
+    // at least two messages need this, so we might as well add an optional extra objects field here,
+    // so we can easily expand the messages when needed without modifying the omp interfaces right away, !implementation !protocol
+    objects?: KVS[];
 }
 
 
@@ -30,7 +41,7 @@ export interface MPA {
 export interface MPA_LISTING_ADD extends MPA {
     // type: MPAction.MPA_LISTING_ADD;
     item: Item;
-    hash: string;               // item hash, used to verify on the receiving end
+    // hash: string;               // item hash, used to verify on the receiving end
 }
 
 
@@ -55,14 +66,10 @@ export interface MPA_LISTING_ADD extends MPA {
  */
 export interface MPA_BID extends MPA {
     // completely refactored, !implementation !protocol
-    // created renamed to generated, as the naming would conflict with the db default fields
-    // generated is needed for bid differentiation, so we can have multiple bids. and we can't use the db.created !implementation !protocol
     // type: MPAction.MPA_BID;
-    generated: number;          // timestamp, when the bidder generated this bid !implementation !protocol
-    hash: string;               // bid hash, used to verify on the receiving end
+    // hash: string;               // bid hash, used to verify on the receiving end
     item: string;               // item hash
     buyer: BuyerData;           // buyer payment and other purchase details like shipping address
-    objects?: KVS[];
 }
 
 /**
@@ -364,7 +371,7 @@ export interface ShippingPrice {
  * MPA_LISTING_ADD
  */
 export interface MessagingOption {
-    protocol: MesssagingProtocol;
+    protocol: MessagingProtocol;
     publicKey: string;
 }
 

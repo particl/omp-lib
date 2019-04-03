@@ -41,8 +41,7 @@ export class OpenMarketProtocol implements OMP {
      * @param service Rpc service
      */
     public inject(cryptocurrency: Cryptocurrency, service: any): void {
-        // Bind an _instance_ (constant value)
-        // to the container.
+        // Bind an _instance_ (constant value) to the container.
         // and give it the name of the cryptocurrency.
         this.container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
     }

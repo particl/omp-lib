@@ -41,6 +41,6 @@ export enum EscrowType {
 /**
  * Protocols supported by the protocol.
  */
-export enum MesssagingProtocol {
+export enum MessagingProtocol {
     SMSG = 'SMSG'
 }

@@ -39,8 +39,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * Adds:
      *  pubKey, changeAddress & inputs.
      *
-     * @param config a configuration, storing the shipping details, cryptocurrency to be used etc.
-     * @param listing the marketplace mostong message, used to retrieve the payment amounts.
+     * @param listing the marketplace listing message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
     public async bid(listing: MPM, bid: MPM): Promise<MPM> {
@@ -77,6 +76,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      *
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
+     * @param accept
      */
     public async accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
@@ -174,6 +174,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      *
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
+     * @param accept
+     * @param lock
      */
     public async lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
@@ -206,6 +208,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         return lock;
     }
 
+    /**
+     *
+     * @param mpa_listing
+     * @param mpa_bid
+     * @param seller
+     */
     public bid_calculateRequiredSatoshis(mpa_listing: MPA_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean): number {
         const basePrice = this.bid_valueToTransferSatoshis(mpa_listing, mpa_bid);
         const paymentInfo = mpa_listing.item.payment as PaymentInfoEscrow;
@@ -253,6 +261,11 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      *
      *  if seller.signatures is present, it will complete the transaction
      *  and return a fully signed under _rawtx
+     *
+     * @param listing
+     * @param bid
+     * @param accept
+     * @param release
      */
     public async release(listing: MPM, bid: MPM, accept: MPM, release: MPM): Promise<MPM> {
         // TODO(security): strip the bid, to make sure buyer hasn't add _satoshis.
@@ -319,6 +332,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         return release;
     }
 
+    /**
+     *
+     * @param mpa_listing
+     * @param mpa_bid
+     * @param seller
+     * @param refund
+     */
     public release_calculateRequiredSatoshis(mpa_listing: MPA_LISTING_ADD, mpa_bid: MPA_BID, seller: boolean, refund: boolean = false): number {
         const paymentInfo = mpa_listing.item.payment as PaymentInfoEscrow;
 
@@ -335,6 +355,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         return required;
     }
 
+    /**
+     *
+     * @param listing
+     * @param bid
+     * @param accept
+     * @param refund
+     */
     public async refund(listing: MPM, bid: MPM, accept: MPM, refund: MPM): Promise<MPM> {
 
         const mpa_listing = (<MPA_LISTING_ADD> listing.action);
