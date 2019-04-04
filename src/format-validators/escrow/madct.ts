@@ -7,6 +7,47 @@ import { isPublicKey, isPrivateKey } from '../util';
 // TODO: max one class per file
 // tslint:disable max-classes-per-file
 
+function validateBasic(payment): boolean {
+
+    if (!isObject(payment)) {
+        throw ('missing or not an object!');
+    }
+
+    if (payment.escrow !== EscrowType.MAD_CT) {
+        throw ('escrow: expected MAD_CT, received=' + payment.escrow);
+    }
+
+    if (!isArray(payment.prevouts)) {
+        throw ('prevouts: not an array');
+    }
+
+    if (payment.prevouts.length !== 1) {
+        throw ('prevouts: expecting 1 prevout, not ' + payment.prevouts.length);
+    }
+
+    payment.prevouts.forEach((elem, i) => {
+        try {
+            FV_CRYPTO.validateBlindPrevout(elem);
+        } catch (e) {
+            throw ('prevouts[' + i + ']: ' + e);
+        }
+    });
+
+    if (!isArray(payment.outputs)) {
+        throw ('outputs: not an array');
+    }
+
+    payment.outputs.forEach((elem: ToBeBlindOutput, i) => {
+        try {
+            FV_CRYPTO.validateBlindOutput(elem);
+        } catch (e) {
+            throw ('outputs[' + i + ']: ' + e);
+        }
+    });
+
+    return true;
+}
+
 /**
  * Validates release/refund/destroy objects in the protocol messages.
  * @param exit either a release, refund or destroy object.
@@ -16,41 +57,41 @@ import { isPublicKey, isPrivateKey } from '../util';
 function validateReleaseRefundDestroy(exit, expectEphem = true, expectSignatures = true): boolean {
 
     if (!isObject(exit)) {
-        throw new Error('missing or not an object');
+        throw ('missing or not an object');
     }
 
     if (expectSignatures) {
         if (!isArray(exit.signatures)) {
-            throw new Error('signatures: missing or not an array');
+            throw ('signatures: missing or not an array');
         }
 
         exit.signatures.forEach((elem, i) => {
             try {
                 FV_CRYPTO.validateSignatureObject(elem);
             } catch (e) {
-                throw new Error('action.buyer.payment.release.signatures[' + i + ']: ' + e);
+                throw ('signatures[' + i + ']: ' + e);
             }
         });
 
         if (exit.signatures.length !== 2) {
-            throw new Error('signatures: amount of signatures does not equal 2');
+            throw ('signatures: amount of signatures does not equal 2');
         }
     }
 
     if (expectEphem) {
         if (!isObject(exit.ephem)) {
-            throw new Error('ephem: missing or not an object');
+            throw ('ephem: missing or not an object');
         }
         if (!isPublicKey(exit.ephem.public)) {
-            throw new Error('ephem.public: missing or not a public key');
+            throw ('ephem.public: missing or not a public key');
         }
         if (!isPrivateKey(exit.ephem.private)) {
-            throw new Error('ephem.private: missing or not a private key');
+            throw ('ephem.private: missing or not a private key');
         }
     }
 
     if (exit.blindFactor && !isBlindFactor(exit.blindFactor)) {
-        throw new Error('blindFactor: missing or not a private key');
+        throw ('blindFactor: missing or not a private key');
     }
 
     return true;
@@ -60,38 +101,11 @@ export class FV_MPA_BID_ESCROW_MAD_CT {
 
     public static validate(payment: any): boolean {
 
-        if (!isObject(payment)) {
-            throw new Error('action.buyer.payment: missing or not an object!');
+        try {
+            validateBasic(payment)
+        } catch (e) {
+            throw new Error('action.buyer.payment: ' + e);
         }
-
-        if (payment.escrow !== EscrowType.MAD_CT) {
-            throw new Error('action.buyer.payment.escrow: expected MAD_CT, received=' + payment.escrow);
-        }
-
-        if (!isArray(payment.prevouts)) {
-            throw new Error('action.buyer.payment.prevouts: not an array');
-        }
-
-        payment.prevouts.forEach((elem, i) => {
-            try {
-                FV_CRYPTO.validateBlindPrevout(elem);
-            } catch (e) {
-                throw new Error('action.buyer.payment.prevouts[' + i + ']: ' + e);
-            }
-        });
-
-        if (!isArray(payment.outputs)) {
-            throw new Error('action.buyer.payment.outputs: not an array');
-        }
-
-        payment.outputs.forEach((elem: ToBeBlindOutput, i) => {
-            try {
-                FV_CRYPTO.validateBlindOutput(elem);
-            } catch (e) {
-                throw new Error('action.buyer.payment.outputs[' + i + ']: ' + e);
-            }
-        });
-
 
         try {
             validateReleaseRefundDestroy(payment.release, true, false)
@@ -112,7 +126,12 @@ export class FV_MPA_BID_ESCROW_MAD_CT {
 export class FV_MPA_ACCEPT_ESCROW_MAD_CT {
 
     public static validate(payment: any): boolean {
-        FV_MPA_BID_ESCROW_MAD_CT.validate(payment);
+
+        try {
+            validateBasic(payment)
+        } catch (e) {
+            throw new Error('action.seller.payment: ' + e);
+        }
 
         if (!isNonNegativeNaturalNumber(payment.fee) && payment.fee > 0) {
             throw new Error('action.seller.payment.fee: not a non negative number or > 0');
@@ -125,6 +144,7 @@ export class FV_MPA_ACCEPT_ESCROW_MAD_CT {
             throw new Error('action.seller.payment.release: ' + e);
         }
 
+        // Validate that all fields are present in the destroy object.
         try {
             validateReleaseRefundDestroy(payment.destroy, false)
         } catch (e) {

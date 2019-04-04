@@ -76,14 +76,14 @@ const config: BidConfiguration = {
     }
 };
 
-it('determinstic transaction generation', async () => {
+it('buyflow release', async () => {
     let bool = false;
     let bid;
     let accept;
     let lock;
     let release;
     try {
-        jest.setTimeout(30000);
+        jest.setTimeout(40000);
         // Step 1: Buyer does bid
         bid = strip(await buyer.bid(config, ok));
         FV_MPA_BID.validate(bid);
@@ -117,14 +117,14 @@ it('determinstic transaction generation', async () => {
     expect(release).toBeDefined();
 });
 
-it('determinstic transaction generation refund', async () => {
+it('buyflow refund', async () => {
     let bool = false;
     let accept;
     let lock;
     let refund;
     let complete;
     try {
-        jest.setTimeout(30000);
+        jest.setTimeout(40000);
         const bid = await buyer.bid(config, ok);
         FV_MPA_BID.validate(bid);
 

@@ -136,50 +136,6 @@ const config: BidConfiguration = {
     }
 };
 
-it('buyflow', async () => {
-    jest.setTimeout(40000);
-    let end = false;
-
-    try {
-
-        ok.action.item.payment.cryptocurrency.address = await node0.getNewStealthAddress();
-        // Step1: Buyer does bid
-        const bid = await buyer.bid(config, ok);
-        const bid_stripped = strip(bid);
-
-        await delay(7000);
-        // Step 2: seller accepts
-        const accept = await seller.accept(ok, bid_stripped);
-        const accept_stripped = strip(accept);
-
-        // Destroy tx should not be minable due to missing inputs (bid not submitted yet).
-        expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
-
-        // Step 3: buyer locks and submits
-        await delay(7000);
-        const lock = await buyer.lock(ok, bid_stripped, accept_stripped);
-
-        // Bid tx should not be fully signed.
-        expect(lock.action['_rawbidtx']).not.toBeCompletedTransaction();
-
-        const lock_stripped = strip(lock);
-        const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-        expect(complete).toBeCompletedTransaction();
-
-        // Submit the bid
-        const completeTxid = await node0.sendRawTransaction(complete);
-        expect(completeTxid).toBeDefined();
-
-        // Now the destruction tx should complete fine..
-        expect(lock.action['_rawdesttx']).toBeCompletedTransaction();
-
-        end = true;
-    } catch (e) {
-        log(e)
-    }
-    expect(end).toEqual(true);
-});
-
 it('buyflow release', async () => {
     jest.setTimeout(400000);
     let end = false;
@@ -294,7 +250,7 @@ it('buyflow refund', async () => {
     expect(end).toEqual(true);
 });
 
-it('destroy prevent early mining', async () => {
+it('buyflow destroy (& prevent early mining)', async () => {
     jest.setTimeout(400000);
     let end = false;
 
