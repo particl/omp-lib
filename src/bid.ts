@@ -1,4 +1,4 @@
-import { MPA_EXT_LISTING_ADD, MPA_BID, MPM } from './interfaces/omp';
+import { MPA_LISTING_ADD, MPA_BID, MPM } from './interfaces/omp';
 import { Cryptocurrency, CryptoAddressType } from './interfaces/crypto';
 import { MPAction, EscrowType } from './interfaces/omp-enums';
 import { hash } from './hasher/hash';
@@ -8,6 +8,7 @@ import { BidConfiguration } from './interfaces/configs';
 import { injectable, inject } from 'inversify';
 import { IMultiSigBuilder } from './abstract/transactions';
 import { TYPES } from './types';
+import { ompVersion } from './omp';
 
 /**
  * todo: should we sequence verify before bidding and accepting
@@ -33,16 +34,22 @@ export class Bid {
      * @param listing the listing for which to produce a bid
      */
     public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
-        config.escrow = mpa_listing.item.payment.escrow.type;
+        const mpa_listing = <MPA_LISTING_ADD> listing.action;
 
-        const bid = {
-            version: '0.1.0.0',
+        if (mpa_listing.item.payment.escrow) {
+            config.escrow = mpa_listing.item.payment.escrow.type;
+        } else {
+            throw new Error('escrow: missing');
+        }
+
+        // todo: use factory to generate this
+        let bid = {
+            version: ompVersion(),
             action: {
                 type: MPAction.MPA_BID,
-                created: +new Date(), // timestamp
+                generated: +new Date().getTime(), // timestamp
                 item: hash(listing), // item hash
-                buyer: {
+                buyer: { // buyer payment details will be added by the multisigbuilder
                     payment: {
                         cryptocurrency: config.cryptocurrency,
                         escrow: config.escrow,
@@ -56,19 +63,20 @@ export class Bid {
                     shippingAddress: config.shippingAddress
                 },
                 objects: config.objects
-            }
-        };
+            } // as MPA_BID;
+        } as MPM;
 
         // Pick correct route for configuration
         // add the data to the bid object.
         switch (config.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.bid(listing, bid);
+                bid = await this._msb.bid(listing, bid);
                 break;
             case EscrowType.FE:
             case EscrowType.MAD:
             case EscrowType.MAD_CT:
             default:
+                break;
         }
 
         return bid;
@@ -86,8 +94,8 @@ export class Bid {
 
         const payment = mpa_bid.buyer.payment;
 
-        const accept = {
-            version: '0.1.0.0',
+        let accept = {
+            version: ompVersion(),
             action: {
                 type: MPAction.MPA_ACCEPT,
                 bid: hash(bid), // item hash
@@ -105,17 +113,18 @@ export class Bid {
                 }
                 // objects: KVS[]
             }
-        };
+        } as MPM;
 
 
         switch (payment.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.accept(listing, bid, accept);
+                accept = await this._msb.accept(listing, bid, accept);
                 break;
             case EscrowType.FE:
             case EscrowType.MAD:
             case EscrowType.MAD_CT:
             default:
+                break;
         }
 
         return accept;
@@ -130,13 +139,13 @@ export class Bid {
      * @param accept the accept message for which to produce an lock message.
      */
     public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
+        const mpa_listing = <MPA_LISTING_ADD> listing.action;
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
 
-        const lock = {
-            version: '0.1.0.0',
+        let lock = {
+            version: ompVersion(),
             action: {
                 type: MPAction.MPA_LOCK,
                 bid: hash(bid), // item hash
@@ -148,17 +157,17 @@ export class Bid {
                 }
                 // objects: KVS[]
             }
-        };
-
+        } as MPM;
 
         switch (payment.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.lock(listing, bid, accept, lock);
+                lock = await this._msb.lock(listing, bid, accept, lock);
                 break;
             case EscrowType.FE:
             case EscrowType.MAD:
             case EscrowType.MAD_CT:
             default:
+                break;
         }
 
         return lock;
@@ -171,6 +180,7 @@ export class Bid {
      * @param listing the listing message.
      * @param bid the bid message.
      * @param accept the accept message.
+     * @param release
      */
     public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM> {
         const mpa_bid = <MPA_BID> bid.action;
@@ -178,8 +188,8 @@ export class Bid {
         const payment = mpa_bid.buyer.payment;
 
         if (!release) {
-            release = <MPM> {
-                version: '0.1.0.0',
+            release = {
+                version: ompVersion(),
                 action: {
                     type: MPAction.MPA_RELEASE,
                     bid: hash(bid), // item hash
@@ -191,17 +201,18 @@ export class Bid {
                     }
                     // objects: KVS[]
                 }
-            };
+            } as MPM;
         }
 
         switch (payment.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.release(listing, bid, accept, release);
+                release = await this._msb.release(listing, bid, accept, release);
                 break;
             case EscrowType.FE:
             case EscrowType.MAD:
             case EscrowType.MAD_CT:
             default:
+                break;
         }
 
         return release;
@@ -214,6 +225,7 @@ export class Bid {
      * @param listing the listing message.
      * @param bid the bid message.
      * @param accept the accept message for which to produce an lock message.
+     * @param refund
      */
     public async refund(listing: MPM, bid: MPM, accept: MPM, refund?: MPM): Promise<MPM> {
         const mpa_bid = <MPA_BID> bid.action;
@@ -221,8 +233,8 @@ export class Bid {
         const payment = mpa_bid.buyer.payment;
 
         if (!refund) {
-            refund = <MPM> {
-                version: '0.1.0.0',
+            refund = {
+                version: ompVersion(),
                 action: {
                     type: MPAction.MPA_REFUND,
                     bid: hash(bid), // item hash
@@ -232,7 +244,7 @@ export class Bid {
                         }
                     }
                 }
-            };
+            } as MPM;
         }
 
         switch (payment.escrow) {
@@ -243,6 +255,7 @@ export class Bid {
             case EscrowType.MAD:
             case EscrowType.MAD_CT:
             default:
+                break;
         }
 
         return refund;

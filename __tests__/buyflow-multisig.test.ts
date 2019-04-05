@@ -1,5 +1,5 @@
 import * from 'jest';
-import { node0, node1 } from '../src/rpc.stub';
+import { CoreRpcService } from '../test/rpc.stub';
 import { OpenMarketProtocol } from '../src/omp';
 import { Cryptocurrency } from '../src/interfaces/crypto';
 import { BidConfiguration } from '../src/interfaces/configs';
@@ -14,17 +14,12 @@ import { MPM } from '../src/interfaces/omp';
 
 describe('Multisig Buy Flow', () => {
 
+    // todo: create testutils and move this there
     const delay = ms => {
         return new Promise(resolve => {
             return setTimeout(resolve, ms);
         });
     };
-
-    const buyer = new OpenMarketProtocol();
-    buyer.inject(Cryptocurrency.PART, node0);
-
-    const seller = new OpenMarketProtocol();
-    seller.inject(Cryptocurrency.PART, node1);
 
     const ok = JSON.parse(
         `{
@@ -49,19 +44,17 @@ describe('Multisig Buy Flow', () => {
                         "seller": 100
                       }
                     },
-                    "cryptocurrency": [
-                      {
+                    "options": [{
                         "currency": "PART",
                         "basePrice": ${toSatoshis(20)}
-                      }
-                    ]
+                    }]
                   },
-                  "messaging": [
-                    {
-                      "protocol": "TODO",
+                  "messaging": {
+                    "options": [{
+                      "protocol": "SMSG",
                       "publicKey": "TODO"
-                    }
-                  ]
+                    }]
+                  }
                 }
             }
         }`);
@@ -79,6 +72,28 @@ describe('Multisig Buy Flow', () => {
             country: 'string'
         }
     };
+
+    let buyer: OpenMarketProtocol;
+    let seller: OpenMarketProtocol;
+
+    let node0: CoreRpcService;
+    let node1: CoreRpcService;
+
+    beforeAll(async () => {
+
+        node0 = new CoreRpcService();
+        node0.setup('localhost', 19792, 'rpcuser0', 'rpcpass0');
+
+        node1 = new CoreRpcService();
+        node1.setup('localhost', 19793, 'rpcuser1', 'rpcpass1');
+
+        buyer = new OpenMarketProtocol();
+        buyer.inject(Cryptocurrency.PART, node0);
+
+        seller = new OpenMarketProtocol();
+        seller.inject(Cryptocurrency.PART, node1);
+
+    });
 
     it('determinstic transaction generation', async () => {
 
@@ -114,14 +129,16 @@ describe('Multisig Buy Flow', () => {
             console.log('release tx', await node0.sendRawTransaction(complete['_rawtx']));
 
             success = true;
+
+            expect(lock).toBeDefined();
+            expect(accept).toBeDefined();
+
+            expect(accept['_rawtx']).toEqual(release['_rawtx_accept']);
+
         } catch (e) {
             console.log(e);
         }
         expect(success).toBe(true);
-        expect(lock).toBeDefined();
-        expect(accept).toBeDefined();
-
-        expect(accept['_rawtx']).toEqual(release['_rawtx_accept']);
     });
 
     it('determinstic transaction generation refund', async () => {
@@ -157,12 +174,16 @@ describe('Multisig Buy Flow', () => {
             console.log('refund tx', await node0.sendRawTransaction(complete['_rawtx']));
 
             success = true;
+
+            expect(lock).toBeDefined();
+            expect(accept).toBeDefined();
+
         } catch (e) {
             console.log(e);
         }
+
         expect(success).toBe(true);
-        expect(lock).toBeDefined();
-        expect(accept).toBeDefined();
+
     });
 
 });

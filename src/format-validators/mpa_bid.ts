@@ -1,4 +1,4 @@
-import { MPA, MPA_LISTING_ADD, MPA_BID, MPM } from '../interfaces/omp';
+import { MPA, MPA_LISTING_ADD, MPA_BID, MPM, ShippingAddress, PaymentDataBid } from '../interfaces/omp';
 import { MPAction, EscrowType } from '../interfaces/omp-enums';
 import { FV_CRYPTO } from './crypto';
 import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash, isCountry } from '../util';
@@ -17,7 +17,6 @@ export class FV_MPA_BID {
         FV_MPM.validate(msg);
 
         const action = <MPA_BID> msg.action;
-        const buyer = action.buyer;
 
         if (!isString(action.type)) {
             throw new Error('action.type: missing');
@@ -27,33 +26,37 @@ export class FV_MPA_BID {
             throw new Error('action.type: expecting MPA_BID got ' + action.type);
         }
 
-        if (!isTimestamp(action.created)) {
-            throw new Error('action.created: missing or not a valid timestamp');
+        if (!isTimestamp(action.generated)) {
+            throw new Error('action.generated: missing or not a valid timestamp');
         }
 
         if (!isSHA256Hash(action.item)) {
             throw new Error('action.item: missing or not a valid hash');
         }
 
-        if (!isObject(buyer)) {
+        if (!isObject(action.buyer)) {
             throw new Error('action.buyer: missing or not an object');
         }
 
-        if (isObject(buyer.payment)) {
-            const payment = buyer.payment;
+        const paymentDataBid = action.buyer.payment as PaymentDataBid;
 
-            if (!(payment.cryptocurrency in Cryptocurrency)) {
-                throw new Error('action.buyer.payment.cryptocurrency: expecting cryptocurrency type, unknown value, got ' + payment.cryptocurrency);
+        if (isObject(paymentDataBid)) {
+            if (!paymentDataBid.cryptocurrency) {
+                throw new Error('action.buyer.payment.cryptocurrency: missing cryptocurrency type');
             }
 
-            if (!(payment.escrow in EscrowType)) {
-                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + payment.escrow);
+            if (!(paymentDataBid.cryptocurrency in Cryptocurrency)) {
+                throw new Error('action.buyer.payment.cryptocurrency: expecting cryptocurrency type, unknown value, got ' + paymentDataBid.cryptocurrency);
+            }
+
+            if (!(paymentDataBid.escrow in EscrowType)) {
+                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + paymentDataBid.escrow);
             }
 
             // TODO: implement all validators
-            switch (payment.escrow) {
+            switch (paymentDataBid.escrow) {
                 case EscrowType.MULTISIG:
-                    FV_MPA_BID_ESCROW_MULTISIG.validate(payment);
+                    FV_MPA_BID_ESCROW_MULTISIG.validate(paymentDataBid);
                     break;
                 case EscrowType.FE:
                     // TODO: not implemented
@@ -62,7 +65,7 @@ export class FV_MPA_BID {
                 case EscrowType.MAD_CT:
                     // TODO: not implemented
                 default:
-                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
+                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, got ' + paymentDataBid.escrow);
             }
 
         } else {
@@ -70,11 +73,11 @@ export class FV_MPA_BID {
         }
 
 
-        if (!isObject(buyer.shippingAddress)) {
+        if (!isObject(action.buyer.shippingAddress)) {
             throw new Error('action.buyer.shippingAddress: missing or not an object');
         }
 
-        const shipping = buyer.shippingAddress;
+        const shipping: ShippingAddress = action.buyer.shippingAddress;
         if (!isString(shipping.firstName)) {
             throw new Error('action.buyer.shippingAddress.firstName: missing');
         }

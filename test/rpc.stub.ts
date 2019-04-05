@@ -2,17 +2,30 @@ import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 
-import { Rpc, RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from './abstract/rpc';
-import { Output } from './interfaces/crypto';
+import { Rpc } from '../src/abstract/rpc';
+import { Output } from '../src/interfaces/crypto';
+import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from '../src/interfaces/rpc';
 
 // tslint:disable cognitive-complexity
 @injectable()
-class CoreRpcService extends Rpc {
+export class CoreRpcService extends Rpc {
 
     private RPC_REQUEST_ID = 1;
 
-    constructor(host: string, port: number, user: string, password: string) {
-        super(host, port, user, password);
+    private _host = '';
+    private _port = 0;
+    private _user = '';
+    private _password = '';
+
+    constructor() {
+        super();
+    }
+
+    public setup(host: string, port: number, user: string, password: string): void {
+        this._host = host;
+        this._port = port;
+        this._user = user;
+        this._password = password;
     }
 
     public async call(method: string, params: any[] = []): Promise<any> {
@@ -110,10 +123,3 @@ class CoreRpcService extends Rpc {
     }
 
 }
-
-export { CoreRpcService };
-export const node0 = new CoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');
-export const node1 = new CoreRpcService('localhost', 19793, 'rpcuser1', 'rpcpass1');
-export const node2 = new CoreRpcService('localhost', 19794, 'rpcuser2', 'rpcpass2');
-
-

@@ -1,9 +1,23 @@
-import { MPA_LISTING_ADD, MPA_ACCEPT, MPA_REJECT, MPA_CANCEL, MPA_BID, MPM, MPA, MPA_LOCK, MPA_REFUND, MPA_RELEASE } from '../interfaces/omp';
+import {
+    MPA_LISTING_ADD,
+    MPA_ACCEPT,
+    MPA_REJECT,
+    MPA_CANCEL,
+    MPA_BID,
+    MPM,
+    MPA,
+    MPA_LOCK,
+    MPA_REFUND,
+    MPA_RELEASE,
+    PaymentOption,
+    PaymentDataBid, PaymentData, PaymentInfoEscrow
+} from '../interfaces/omp';
 import { isObject, isArray, isString, isSHA256Hash } from '../util';
 import { Format } from '../format-validators/validate';
 import { EscrowType, MPAction } from '../interfaces/omp-enums';
 import { hash } from '../hasher/hash';
 import { Cryptocurrency } from '../interfaces/crypto';
+
 
 export class Sequence {
 
@@ -30,26 +44,34 @@ export class Sequence {
                     break;
 
                 case 1: { // must be an MPA_BID
-                    const bid: MPA_BID = <MPA_BID> mpm.action;
+                    const action: MPA_BID = <MPA_BID> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
+
+                    const paymentDataBid = action.buyer.payment as PaymentDataBid;
+                    const options: PaymentOption[] = listing.item.payment.options || [];
+                    const paymentInfo = listing.item.payment as PaymentInfoEscrow;
+
                     Sequence.validatePreviousAction(prevType, MPAction.MPA_LISTING_ADD);
-                    Sequence.validateHash(type, bid.item, listingHash);
-                    Sequence.validateCurrency(type, bid.buyer.payment.cryptocurrency, listing.item.payment.cryptocurrency);
-                    Sequence.validateEscrow(type, bid.buyer.payment.escrow, listing.item.payment.escrow.type);
+                    Sequence.validateHash(type, action.item, listingHash);
+                    Sequence.validateCurrency(type, paymentDataBid.cryptocurrency, options);
+                    Sequence.validateEscrow(type, action.buyer.payment.escrow, paymentInfo.escrow.type);
                     bidHash = hash(mpm);
                     break;
                 }
                 case 2: { // must be an MPA_ACCEPT, MPA_REJECT, MPA_CANCEL
                     const action = <MPA_ACCEPT | MPA_REJECT | MPA_CANCEL> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
+
+                    const paymentInfo = listing.item.payment as PaymentInfoEscrow;
+
                     Sequence.validatePreviousAction(prevType, MPAction.MPA_BID);
                     Sequence.validateHash(type, action.bid, bidHash);
                     if (type === MPAction.MPA_ACCEPT) {
-                        Sequence.validateEscrow(type, (<MPA_ACCEPT> action).seller.payment.escrow, listing.item.payment.escrow.type);
+                        Sequence.validateEscrow(type, (<MPA_ACCEPT> action).seller.payment.escrow, paymentInfo.escrow.type);
                     }
 
                     if (mpm.action.type !== MPAction.MPA_ACCEPT && index !== sequence.length) {
-                        throw new Error('Sequence: there should not be any more messages after MPA_REJCT or MPA_CANCEL!.');
+                        throw new Error('Sequence: there should not be any more messages after MPA_REJECT or MPA_CANCEL!.');
                     }
 
                     break;
@@ -57,12 +79,15 @@ export class Sequence {
                 case 3: { // must be an MPA_LOCK or MPA_RELEASE
                     const action = <MPA_LOCK | MPA_RELEASE | MPA_REFUND> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
+
+                    const paymentInfo = listing.item.payment as PaymentInfoEscrow;
+
                     Sequence.validatePreviousAction(prevType, MPAction.MPA_ACCEPT);
                     Sequence.validateHash(type, action.bid, bidHash);
                     if (action.type === MPAction.MPA_LOCK || action.type === MPAction.MPA_REFUND) {
-                        Sequence.validateEscrow(type, action.buyer.payment.escrow, listing.item.payment.escrow.type);
+                        Sequence.validateEscrow(type, (action as MPA_LOCK | MPA_REFUND).buyer.payment.escrow, paymentInfo.escrow.type);
                     } else {
-                        Sequence.validateEscrow(type, action.seller.payment.escrow, listing.item.payment.escrow.type);
+                        Sequence.validateEscrow(type, (action as MPA_RELEASE).seller.payment.escrow, paymentInfo.escrow.type);
                     }
 
                     break;
@@ -141,9 +166,9 @@ export class Sequence {
      * @param bidderCurrency
      * @param listingCurrencies
      */
-    private static validateCurrency(type: MPAction, bidderCurrency: Cryptocurrency, listingCurrencies: any[]): void {
-        const isRightCurrency = listingCurrencies.find(elem => elem.currency === bidderCurrency);
-        if (!isObject(isRightCurrency)) {
+    private static validateCurrency(type: MPAction, bidderCurrency: Cryptocurrency, listingCurrencies: PaymentOption[]): void {
+        const isRightCurrency: PaymentOption | undefined = listingCurrencies.find(elem => elem.currency === bidderCurrency);
+        if (!isRightCurrency || !isObject(isRightCurrency)) {
             throw new Error('Sequence: currency provided by ' + type + ' not accepted by the listing.');
         }
     }

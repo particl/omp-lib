@@ -1,58 +1,12 @@
 import { Output, Cryptocurrency, ISignature } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { toSatoshis, fromSatoshis } from '../util';
-
-/*
- * Interfaces which the Rpc class needs to implement
- */
-export interface RpcAddressInfo {
-    pubkey: string;
-}
-
-export interface RpcRawTx {
-    txid: string;
-    vout: RpcVout[];
-}
-
-export interface RpcVout {
-    valueSat: number;
-    n: number;
-    scriptPubKey: RpcScriptPubKey;
-}
-
-export interface RpcScriptPubKey {
-    hex: string;
-    addresses: string[];
-}
-
-export interface RpcOutput {
-    txid: string;
-    vout: number;
-}
-
-export interface RpcUnspentOutput extends RpcOutput {
-    spendable: boolean;
-    safe: boolean;
-    scriptPubKey: string;
-    amount: number;
-}
+import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout } from '../interfaces/rpc';
 
 /**
  * The abstract class for the Rpc class.
  */
 export abstract class Rpc {
-
-    protected _host: string;
-    protected _port: number;
-    protected _user: string;
-    protected _password: string;
-
-    protected constructor(host: string, port: number, user: string, password: string) {
-        this._host = host;
-        this._port = port;
-        this._user = user;
-        this._password = password;
-    }
 
     public abstract async call(method: string, params: any[]): Promise<any>;
 

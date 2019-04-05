@@ -29,19 +29,19 @@ describe('SequenceValidator', () => {
                         "seller": 100
                       }
                     },
-                    "cryptocurrency": [
+                    "options": [
                       {
                         "currency": "PART",
                         "basePrice": 10
                       }
                     ]
                   },
-                  "messaging": [
-                    {
-                      "protocol": "TODO",
-                      "publicKey": "TODO"
-                    }
-                  ]
+                  "messaging": {
+                      "options": [{
+                          "protocol": "TODO",
+                          "publicKey": "TODO"
+                      }]
+                  }
                 }
             }
         }`);
@@ -51,7 +51,7 @@ describe('SequenceValidator', () => {
                 "version": "0.1.0.0",
                 "action": {
                     "type": "MPA_BID",
-                    "created": ${+new Date()},
+                    "generated": ${+new Date().getTime()},
                     "item": "${hash(listing_ok)}",
                     "buyer": {
                       "payment": {
@@ -135,6 +135,10 @@ describe('SequenceValidator', () => {
                     }
                 }
             }`);
+
+    beforeAll(async () => {
+        //
+    });
 
     test('seqver complete good cycle', () => {
         let fail = false;

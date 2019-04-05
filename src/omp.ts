@@ -10,15 +10,19 @@ import { Cryptocurrency } from './interfaces/crypto';
 import { IMultiSigBuilder } from './abstract/transactions';
 import { MultiSigBuilder } from './transaction-builder/multisig';
 
-import { strip, clone } from './util';
+import { strip, clone} from './util';
 
-import { node0, node1, node2 } from './rpc.stub';
 import { FV_MPM } from './format-validators/mpm';
 import { Format } from './format-validators/validate';
 import { Sequence } from './sequence-verifier/verify';
 import { EscrowType } from './interfaces/omp-enums';
 
-export { node0, node1, node2, Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
+export { Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
+
+export function ompVersion(): string {
+    const pjson = require('pjson');
+    return pjson.version;
+}
 
 // @injectable()
 export class OpenMarketProtocol implements OMP {
@@ -37,8 +41,7 @@ export class OpenMarketProtocol implements OMP {
      * @param service Rpc service
      */
     public inject(cryptocurrency: Cryptocurrency, service: any): void {
-        // Bind an _instance_ (constant value)
-        // to the container.
+        // Bind an _instance_ (constant value) to the container.
         // and give it the name of the cryptocurrency.
         this.container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
     }
@@ -83,13 +86,13 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Format.validate(accept);
 
-        let chain: MPM[] = [strip(listing), strip(bid), strip(accept)]
+        const chain: MPM[] = [strip(listing), strip(bid), strip(accept)];
 
         if (release) {
             Format.validate(release);
             chain.push(strip(release));
         }
-        
+
         Sequence.validate(chain);
 
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
@@ -101,7 +104,7 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Format.validate(accept);
 
-        let chain: MPM[] = [strip(listing), strip(bid), strip(accept)]
+        const chain: MPM[] = [strip(listing), strip(bid), strip(accept)];
 
         if (refund) {
             Format.validate(refund);
@@ -113,6 +116,9 @@ export class OpenMarketProtocol implements OMP {
         const action = this.container.get<DirtyOMP>(TYPES.Bid);
         return await action.refund(chain[0], chain[1], chain[2], chain[3]);
     }
+
+    /*
+    TODO: unused code, are these supposed to be used or can we remove these?
 
     public static strip(msg: MPM): MPM {
         return strip(msg);
@@ -127,6 +133,7 @@ export class OpenMarketProtocol implements OMP {
 
         return true;
     }
+    */
 
     public rpc(cryptocurrency: Cryptocurrency): Rpc {
         return this.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);

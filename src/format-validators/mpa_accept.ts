@@ -1,4 +1,4 @@
-import { MPA_ACCEPT, MPM } from '../interfaces/omp';
+import { MPA_ACCEPT, MPA_REFUND, MPM, PaymentDataAccept, PaymentDataBid } from '../interfaces/omp';
 import { MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isNumber, isObject, isArray, isString, isSHA256Hash, isValidPrice, clone } from '../util';
 
@@ -14,7 +14,6 @@ export class FV_MPA_ACCEPT {
         FV_MPM.validate(msg);
 
         const action = <MPA_ACCEPT> msg.action;
-        const seller = action.seller;
 
         if (!isString(action.type)) {
             throw new Error('action.type: missing');
@@ -28,20 +27,21 @@ export class FV_MPA_ACCEPT {
             throw new Error('action.bid: missing or not a valid hash');
         }
 
-        if (!isObject(seller)) {
+        if (!isObject(action.seller)) {
             throw new Error('action.seller: missing or not an object');
         }
 
-        if (isObject(seller.payment)) {
-            const payment = seller.payment;
-            if (!(payment.escrow in EscrowType)) {
-                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + payment.escrow);
+        if (isObject(action.seller.payment)) {
+            const paymentDataAccept = action.seller.payment as PaymentDataAccept;
+
+            if (!(paymentDataAccept.escrow in EscrowType)) {
+                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + paymentDataAccept.escrow);
             }
 
             // TODO: implement all validators
-            switch (payment.escrow) {
+            switch (paymentDataAccept.escrow) {
                 case EscrowType.MULTISIG:
-                    FV_MPA_ACCEPT_ESCROW_MULTISIG.validate(payment);
+                    FV_MPA_ACCEPT_ESCROW_MULTISIG.validate(paymentDataAccept);
                     break;
                 case EscrowType.FE:
                     // TODO: not implemented
@@ -50,10 +50,10 @@ export class FV_MPA_ACCEPT {
                 case EscrowType.MAD_CT:
                     // TODO: not implemented
                 default:
-                    throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
+                    throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, got ' + paymentDataAccept.escrow);
             }
 
-            if (!isValidPrice(payment.fee)) {
+            if (!isValidPrice(paymentDataAccept.fee)) {
                 throw new Error('action.seller.payment.fee: not a valid fee');
             }
 

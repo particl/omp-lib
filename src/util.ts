@@ -1,3 +1,4 @@
+
 export function isObject(v: any): boolean {
     return v && typeof v === 'object';
 }

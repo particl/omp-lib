@@ -1,9 +1,10 @@
 // tslint:disable:no-for-each-push
 import { sha256 } from 'js-sha256';
 import { isString, isObject, isArray, isNumber } from '../format-validators/util';
-import { MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp';
+import { MPA_LISTING_ADD, MPM } from '../interfaces/omp';
 import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
 
+// TODO: should has only HashableObject, not any
 export function hash(v: any): string {
     if (typeof v === 'undefined') {
         throw new Error('hash(): value is undefined');
@@ -33,7 +34,7 @@ export function hashListing(l: MPM): string {
     // remove the local image data from the hashing
     // the ContentReference hash already provides us
     // with authentication for the data
-    const listing: MPA_EXT_LISTING_ADD = <MPA_EXT_LISTING_ADD> (l.action);
+    const listing: MPA_LISTING_ADD = <MPA_LISTING_ADD> (l.action);
     if (listing.item.information.images) {
         listing.item.information.images.forEach((img: ContentReference) => {
             img.data.forEach((dsn) => {
@@ -47,9 +48,7 @@ export function hashListing(l: MPM): string {
     // console.log(JSON.stringify(l, null, 4));
 
     return hash(l);
-
 }
-
 
 export function deepSortObject(unordered: any): any {
     // order the keys alphabetically!

@@ -33,8 +33,8 @@ export class FV_CONTENT {
             throw new Error('dsn: unknown protocol');
         }
 
-        if (!isString(dsn.id)) {
-            throw new Error('dsn.id: not a string!');
+        if (!isString(dsn.dataId)) {
+            throw new Error('dsn.dataId: not a string!');
         }
 
         if (dsn.protocol === ProtocolDSN.LOCAL) {

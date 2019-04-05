@@ -1,5 +1,5 @@
-import { MPA, MPA_EXT_LISTING_ADD, MPM } from '../interfaces/omp';
-import { PaymentType, MPAction, EscrowType } from '../interfaces/omp-enums';
+import { Item, ItemInfo, MPA, MPA_BID, MPA_LISTING_ADD, MPM, PaymentDataBid, PaymentInfoEscrow, PaymentOption } from '../interfaces/omp';
+import { SaleType, MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry } from '../util';
 import { FV_MPM } from './mpm';
 import { FV_CRYPTO } from './crypto';
@@ -18,8 +18,8 @@ export class FV_MPA_LISTING {
         // validate base class
         FV_MPM.validate(msg);
 
-        const action = <MPA_EXT_LISTING_ADD> msg.action;
-        const item = action.item;
+        const action = <MPA_LISTING_ADD> msg.action;
+        const item: Item = action.item;
 
         if (!isString(action.type) || action.type !== MPAction.MPA_LISTING_ADD) {
             throw new Error('action.type: wrong or missing');
@@ -29,9 +29,11 @@ export class FV_MPA_LISTING {
             throw new Error('action.item: missing or not an object');
         }
 
+        // TODO: to simplify this, split the validation of separate types into separate functions
+        // TODO: create and replace Error's with more exact Exceptions, like MissingParamException('param')
         // Validate information
         if (isObject(item.information)) {
-            const information = item.information;
+            const information: ItemInfo = item.information;
 
             // TODO check length?
             if (!isString(information.title)) {
@@ -66,15 +68,15 @@ export class FV_MPA_LISTING {
             if (isObject(information.location)) {
                 const location = information.location;
 
-                if (!isCountry(location.country)) {
+                if (location && !isCountry(location.country)) {
                     throw new Error('action.item.information.location.country: not a country');
                 }
 
-                if (location.address && !isString(location.address)) {
+                if (location && location.address && !isString(location.address)) {
                     throw new Error('action.item.information.location.address: not a string');
                 }
 
-                if (location.gps) {
+                if (location && location.gps) {
                     if (!isObject(location.gps)) {
                         throw new Error('action.item.information.location.gps: not an object');
                     }
@@ -87,12 +89,12 @@ export class FV_MPA_LISTING {
                         throw new Error('action.item.information.location.gps.lng: not a number');
                     }
 
-                    if (!isString(location.gps.markerText)) {
-                        throw new Error('action.item.information.location.gps.markerText: not a string');
+                    if (!isString(location.gps.title)) {
+                        throw new Error('action.item.information.location.gps.markerTitle: not a string');
                     }
 
-                    if (!isString(location.gps.markerTitle)) {
-                        throw new Error('action.item.information.location.gps.markerTitle: not a string');
+                    if (!isString(location.gps.description)) {
+                        throw new Error('action.item.information.location.gps.markerText: not a string');
                     }
                 }
             }
@@ -127,10 +129,10 @@ export class FV_MPA_LISTING {
 
         // Validate Payment
         if (isObject(item.payment)) {
-            const payment = item.payment;
+            const payment = item.payment as PaymentInfoEscrow;
 
             if (isString(payment.type)) {
-                if (!(payment.type in PaymentType)) {
+                if (!(payment.type in SaleType)) {
                     throw new Error('action.item.payment.type: unknown value');
                 }
             } else {
@@ -147,95 +149,104 @@ export class FV_MPA_LISTING {
                     throw new Error('action.item.payment.escrow: missing');
                 }
 
-                if (!isString(payment.escrow.type)) {
+                if (payment.escrow && !isString(payment.escrow.type)) {
                     throw new Error('action.item.payment.escrow.type: missing or not a string');
                 }
 
-                if (!(payment.escrow.type in EscrowType)) {
+                if (payment.escrow && !(payment.escrow.type in EscrowType)) {
                     throw new Error('action.item.payment.escrow.type: unknown value');
                 }
 
-                if (!isObject(payment.escrow.ratio)) {
+                if (payment.escrow && !isObject(payment.escrow.ratio)) {
                     throw new Error('action.item.payment.escrow: missing or not an object');
                 }
 
-                if (!isValidPercentage(payment.escrow.ratio.buyer) || !isValidPercentage(payment.escrow.ratio.seller)) {
+                if ((payment.escrow && !isValidPercentage(payment.escrow.ratio.buyer))
+                    || (payment.escrow && !isValidPercentage(payment.escrow.ratio.seller))) {
                     throw new Error('action.item.payment.escrow.ratio: missing or invalid percentages');
                 }
 
-                if (!isArray(payment.cryptocurrency)) {
-                    throw new Error('action.item.payment.cryptocurrency: not an array');
+                if (!isArray(payment.options)) {
+                    throw new Error('action.item.payment.options: not an array');
                 }
 
-                if (payment.cryptocurrency.length <= 0) {
-                    throw new Error('action.item.payment.cryptocurrency: length of array is 0, missing?');
+                if (payment.options && payment.options.length <= 0) {
+                    throw new Error('action.item.payment.options: length of array is 0, missing?');
                 }
 
-                payment.cryptocurrency.forEach((elem, i) => {
 
-                    if (!isObject(elem)) {
-                        throw new Error('action.item.payment.cryptocurrency: not an object element=' + i);
+                for (const paymentOption of payment.options) {
+
+                    if (!isObject(paymentOption)) {
+                        throw new Error('action.item.payment.options: not an object element');
                     }
 
-                    if (!isString(elem.currency)) {
-                        throw new Error('action.item.payment.cryptocurrency.currency: missing or not a string, fault in element=' + i);
+                    if (!isString(paymentOption.currency)) {
+                        throw new Error('action.item.payment.options.currency: missing or not a string, fault in element');
                     }
 
-                    if (!(elem.currency in Cryptocurrency)) {
-                        throw new Error('action.item.payment.cryptocurrency.currency: unknown value, fault in element=' + i);
+                    if (!(paymentOption.currency in Cryptocurrency)) {
+                        throw new Error('action.item.payment.options.currency: unknown value, fault in element');
                     }
 
-                    if (!isValidPrice(elem.basePrice)) {
-                        throw new Error('action.item.payment.cryptocurrency: faulty basePrice (< 0, fractional or overflow), fault in element=' + i);
+                    if (!isValidPrice(paymentOption.basePrice)) {
+                        throw new Error('action.item.payment.options: faulty basePrice (< 0, fractional or overflow), fault in element');
                     }
 
-                    if (elem.shippingPrice) {
-                        if (!isObject(elem.shippingPrice)) {
-                            throw new Error('action.item.payment.cryptocurrency.shippingPrice: not an object, fault in element=' + i);
+                    if (paymentOption.shippingPrice) {
+                        if (!isObject(paymentOption.shippingPrice)) {
+                            throw new Error('action.item.payment.options.shippingPrice: not an object, fault in element');
                         }
 
-                        const s = elem.shippingPrice;
+                        const s = paymentOption.shippingPrice;
                         if (!isValidPrice(s.domestic)) {
-                            throw new Error('action.item.payment.cryptocurrency.shippingPrice.domestic: faulty domestic shipping price (< 0, fractional '
-                                + 'or overflow), fault in element=' + i);
+                            throw new Error('action.item.payment.options.shippingPrice.domestic: faulty domestic shipping price (< 0, fractional '
+                                + 'or overflow), fault in element');
                         }
 
                         if (!isValidPrice(s.international)) {
-                            throw new Error('action.item.payment.cryptocurrency.shippingPrice.international: faulty international shipping price (< 0,'
-                                + ' fractional or overflow), fault in element=' + i);
+                            throw new Error('action.item.payment.options.shippingPrice.international: faulty international shipping price (< 0,'
+                                + ' fractional or overflow), fault in element');
                         }
                     }
 
-                    if (elem.address) {
-                        FV_CRYPTO.validateCryptoAddress(elem.address);
+                    if (paymentOption.address) {
+                        FV_CRYPTO.validateCryptoAddress(paymentOption.address);
                     }
-                });
-
+                }
             }
 
         } else {
             throw new Error('action.item.payment: missing');
         }
 
-
-        if (!isArray(item.messaging)) {
-            throw new Error('action.item.messaging: not an array');
-        }
-
-        if (item.messaging.length <= 0) {
-            throw new Error('action.item.messaging: length of array is 0, missing?');
-        }
-
-        item.messaging.forEach((elem, i) => {
-            if (!isObject(elem)) {
-                throw new Error('action.item.messaging: not an object element=' + i);
+        if (item.messaging) {
+            if (!isObject(item.messaging)) {
+                throw new Error('action.item.messaging: not an object');
             }
 
-            if (!isString(elem.protocol) || !isString(elem.publicKey)) {
-                throw new Error('action.item.messaging: missing elements in element=' + i);
+            if (!isArray(item.messaging.options)) {
+                throw new Error('action.item.options: not an array');
             }
-        });
 
+            if (item.messaging.options.length === 0) {
+                throw new Error('action.item.messaging.options: length of array is 0, missing?');
+            }
+
+            item.messaging.options.forEach((elem, i) => {
+                if (!isObject(elem)) {
+                    throw new Error('action.item.messaging: not an object element=' + i);
+                }
+
+                if (!isString(elem.protocol) || !isString(elem.publicKey)) {
+                    throw new Error('action.item.messaging: missing elements in element=' + i);
+                }
+            });
+
+
+        } else {
+            throw new Error('action.item.messaging: missing');
+        }
 
         if (item.objects) {
             FV_OBJECTS.validate(item.objects);
