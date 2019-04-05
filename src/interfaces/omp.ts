@@ -142,10 +142,10 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
         payment: {
             cryptocurrency: Cryptocurrency,
             escrow: EscrowType,
-            pubKey: string,
-            address?: CryptoAddress,        // CT
-            changeAddress: CryptoAddress,
-            prevouts: Prevout[],
+            pubKey: string,                 // MULTISIG
+            address?: CryptoAddress,        // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
+            changeAddress: CryptoAddress,   // MULTISIG
+            prevouts: Prevout[],            // MULTISIG & CT
             outputs?: ToBeOutput[],         // CT
             release?: {                     // CT
                 blindFactor: string,
@@ -181,18 +181,18 @@ export interface MPA_ACCEPT extends MPA {
     seller: {
         payment: {
             escrow: EscrowType,
-            pubKey: string,
-            changeAddress: CryptoAddress,
+            pubKey: string,                     // MULTISIG
+            changeAddress: CryptoAddress,       // MULTISIG
             fee: number,
-            prevouts: Prevout[],
-            outputs?: ToBeOutput[],
-            signatures: ISignature[],
-            release: {
-                blindFactor?: string,
-                ephem?: EphemeralKey,
-                signatures: ISignature[]
+            prevouts: Prevout[],                // MULTISIG & CT
+            outputs?: ToBeOutput[],             // CT
+            signatures: ISignature[],           // MULTISIG
+            release: {                          // MULTISIG & CT
+                blindFactor?: string,           // CT
+                ephem?: EphemeralKey,           // CT
+                signatures: ISignature[]        // MULTISIG & CT
             },
-            destroy?: {
+            destroy?: {                         // CT
                 signatures: ISignature[]
             }
         }
@@ -214,11 +214,11 @@ export interface MPA_LOCK extends MPA {
     buyer: {
         payment: {
             escrow: EscrowType,
-            signatures: ISignature[],
-            destroy?: {
+            signatures: ISignature[],       // MULTISIG & CT
+            destroy?: {                     // CT
                 signatures: ISignature[]
             },
-            refund: {
+            refund: {                       // MULTISIG & CT
                 signatures: ISignature[]
             }
         }
