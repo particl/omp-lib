@@ -1,11 +1,9 @@
 import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
-import { Rpc, RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from '../src/abstract/rpc';
-import { CryptoAddress } from '../src/interfaces/crypto';
-import { Prevout, ISignature } from '../src/interfaces/crypto';
-import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone } from '../src/util';
-import { TransactionBuilder } from '../src/transaction-builder/transaction';
+
+import { Rpc, RpcAddressInfo, RpcRawTx, RpcUnspentOutput, RpcOutput } from './abstract/rpc';
+import { Prevout } from './interfaces/crypto';
 
 @injectable()
 class CoreRpcService extends Rpc {
@@ -33,7 +31,7 @@ class CoreRpcService extends Rpc {
         return await this.call('sendtoaddress', [address, amount, comment]);
     }
 
-    public async createSignatureWithWallet(hex: string, prevtx: Output, address: string): Promise<string> {
+    public async createSignatureWithWallet(hex: string, prevtx: RpcUnspentOutput, address: string): Promise<string> {
         return await this.call('createsignaturewithwallet', [hex, prevtx, address]);
     }
 
@@ -49,8 +47,8 @@ class CoreRpcService extends Rpc {
      * Get a raw transaction, always in verbose mode
      * @param txid
      */
-    public async getRawTransaction(txid: string): Promise<RpcRawTx> {
-        return await this.call('getrawtransaction', [txid, true]);
+    public async getRawTransaction(txid: string, verbose: boolean = true): Promise<RpcRawTx> {
+        return await this.call('getrawtransaction', [txid, verbose]);
     }
 
     public async listUnspent(minconf: number): Promise<RpcUnspentOutput[]> {
@@ -61,8 +59,8 @@ class CoreRpcService extends Rpc {
      * Permanently locks outputs until unlocked or spent.
      * @param prevout an array of outputs to lock
      */
-    public async lockUnspent(prevouts: Prevout[]): Promise<boolean> {
-        return await this.call('lockunspent', [false, prevouts, true]);
+    public async lockUnspent(unlock: boolean = false, prevouts: RpcOutput[], permanent: boolean = true): Promise<boolean> {
+        return await this.call('lockunspent', [unlock, prevouts, permanent]);
     }
 
     public async call(method: string, params: any[] = []): Promise<any> {
@@ -117,8 +115,9 @@ class CoreRpcService extends Rpc {
     }
 }
 
+export { CoreRpcService };
 export const node0 = new CoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');
 export const node1 = new CoreRpcService('localhost', 19793, 'rpcuser1', 'rpcpass1');
 export const node2 = new CoreRpcService('localhost', 19794, 'rpcuser2', 'rpcpass2');
 
-export { CoreRpcService };
+

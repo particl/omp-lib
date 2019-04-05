@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Prevout, CryptoAddress, CryptoType, ISignature, ToBeNormalOutput, ToBeOutput, EphemeralKey } from './crypto';
+import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey } from './crypto';
 import { DSN, ContentReference } from './dsn';
 import { MPAction, PaymentType, EscrowType } from './omp-enums';
 import { KVS } from './common';
@@ -16,6 +16,7 @@ import { KVS } from './common';
 export interface MPM {
     version: string;
     action: MPA;
+    _rawtx?: string;
 }
 
 export interface MPA {
@@ -38,7 +39,11 @@ export interface MPA_LISTING_ADD extends MPA {
             title: string,
             shortDescription: string,
             longDescription: string,
-            category: string[]
+            category: string[],
+            location: {
+                country: string,
+            },
+            shippingDestinations: string[],
         },
         payment: {
             type: PaymentType,
@@ -50,8 +55,13 @@ export interface MPA_LISTING_ADD extends MPA {
                 }
             },
             cryptocurrency: [{
-                currency: CryptoType,
-                basePrice: number
+                currency: Cryptocurrency,
+                basePrice: number,
+                shippingPrice: {
+                    domestic: number,
+                    international: number
+                },
+                address: CryptoAddress
             }]
         },
         messaging: [{
@@ -100,15 +110,17 @@ export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
                     seller: number
                 }
             },
-            cryptocurrency: [{
-                currency: CryptoType,
-                basePrice: number,
-                shippingPrice: {
-                    domestic: number,
-                    international: number
-                },
-                address: CryptoAddress
-            }]
+            cryptocurrency: [
+                {
+                    currency: Cryptocurrency,
+                    basePrice: number,
+                    shippingPrice: {
+                        domestic: number,
+                        international: number
+                    },
+                    address: CryptoAddress
+                }
+                ]
         },
         messaging: [{
             protocol: string,
@@ -128,12 +140,12 @@ export interface MPA_BID extends MPA { // completely refactored, !implementation
     item: string;       // item hash
     buyer: {
         payment: {
-            cryptocurrency: CryptoType,
+            cryptocurrency: Cryptocurrency,
             escrow: EscrowType,
-            pubKey: string,
-            address?: CryptoAddress,        // CT
-            changeAddress: CryptoAddress,
-            prevouts: Prevout[],
+            pubKey: string,                 // MULTISIG
+            address?: CryptoAddress,        // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
+            changeAddress: CryptoAddress,   // MULTISIG
+            prevouts: Prevout[],            // MULTISIG & CT
             outputs?: ToBeOutput[],         // CT
             release?: {                     // CT
                 blindFactor: string,
@@ -164,24 +176,23 @@ export interface MPA_REJECT extends MPA {
  *  Seller added his payment data.
  */
 export interface MPA_ACCEPT extends MPA {
-
     type: MPAction.MPA_ACCEPT;
     bid: string; // hash of MPA_BID
     seller: {
         payment: {
             escrow: EscrowType,
-            pubKey: string,
-            changeAddress: CryptoAddress,
+            pubKey: string,                     // MULTISIG
+            changeAddress: CryptoAddress,       // MULTISIG
             fee: number,
-            prevouts: Prevout[],
-            outputs?: ToBeOutput[],
-            signatures: ISignature[],
-            release?: {
-                blindFactor: string,
-                ephem: EphemeralKey,
-                signatures: ISignature[]
+            prevouts: Prevout[],                // MULTISIG & CT
+            outputs?: ToBeOutput[],             // CT
+            signatures: ISignature[],           // MULTISIG
+            release: {                          // MULTISIG & CT
+                blindFactor?: string,           // CT
+                ephem?: EphemeralKey,           // CT
+                signatures: ISignature[]        // MULTISIG & CT
             },
-            destroy?: {
+            destroy?: {                         // CT
                 signatures: ISignature[]
             }
         }
@@ -203,43 +214,16 @@ export interface MPA_LOCK extends MPA {
     buyer: {
         payment: {
             escrow: EscrowType,
-            signatures: ISignature[],
-            destroy?: {
-                signatures?: ISignature[]
+            signatures: ISignature[],       // MULTISIG & CT
+            destroy?: {                     // CT
+                signatures: ISignature[]
             },
-            refund?: {
-                signatures?: ISignature[]
+            refund: {                       // MULTISIG & CT
+                signatures: ISignature[]
             }
         }
     };
-    info: {
+    info?: {
         memo: string // is  this useful?
-    };
-}
-
-/**
- *  MPA_RELEASE (seller -> buyer)
- *  Seller automatically requests the release of the escrow.
- */
-export interface MPA_RELEASE extends MPA { // !implementation !protocol
-
-    type: MPAction.MPA_RELEASE;
-    bid: string; // hash of MPA_BID
-    seller: {
-        payment: {
-            escrow: EscrowType,
-            signatures: ISignature[]
-        }
-    };
-}
-
-export interface MPA_REFUND extends MPA {
-    type: MPAction.MPA_REFUND;
-    bid: string; // hash of MPA_BID
-    buyer: {
-        payment: {
-            escrow: EscrowType,
-            signatures: ISignature[]
-        }
     };
 }

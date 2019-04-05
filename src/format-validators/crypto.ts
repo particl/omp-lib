@@ -1,25 +1,51 @@
-import { Prevout, CryptoAddress, CryptoAddressType, ISignature } from '../interfaces/crypto';
-import { isObject, isNumber, isString, isTxid, isArray } from '../util';
-import { isPublicKey } from './util';
+import { Prevout, CryptoAddress, CryptoAddressType, ISignature, BlindPrevout, ToBeBlindOutput } from '../interfaces/crypto';
+import { isObject, isNumber, isString, isTxid, isArray, isBlindFactor } from '../util';
+import { isPublicKey, isPrivateKey } from './util';
 
 export class FV_CRYPTO {
 
     public static validatePrevout(out: Prevout): boolean {
 
         if (!isObject(out)) {
-            throw new Error('prevout: missing or not an object!');
+            throw new Error('missing or not an object!');
         }
 
         if (!isTxid(out.txid)) {
-            throw new Error('prevout: txid missing');
+            throw new Error('txid missing');
         }
 
         if (!isNumber(out.vout)) {
-            throw new Error('prevout: vout is of the wrong type, expecting number');
+            throw new Error('vout is of the wrong type, expecting number');
         }
 
         if (out.vout < 0) {
-            throw new Error('prevout: vout can not be negative');
+            throw new Error('vout can not be negative');
+        }
+
+        return true;
+    }
+
+    public static validateBlindPrevout(out: BlindPrevout): boolean {
+        this.validatePrevout(out);
+
+        if (!isBlindFactor(out.blindFactor)) {
+            throw new Error('blindFactor is missing or wrong type, expecting string');
+        }
+
+        return true;
+    }
+
+    public static validateBlindOutput(out: ToBeBlindOutput): boolean {
+
+        if (!isObject(out)) {
+            throw new Error('missing or not an object!');
+        }
+
+        FV_CRYPTO.validateStealthAddress(out.address, true);
+       
+
+        if (!isBlindFactor(out.blindFactor)) {
+            throw new Error('missing blind factor');
         }
 
         return true;
@@ -48,7 +74,35 @@ export class FV_CRYPTO {
         return true;
     }
 
-    public static validateSignature(signature: ISignature): boolean {
+    public static validateStealthAddress(address: CryptoAddress, expectedPrivateKey = false): boolean {
+        this.validateCryptoAddress(address)
+
+        if (address.type !== CryptoAddressType.STEALTH) {
+            throw new Error('CryptoAddress.type: expecting STEALTH, received=' + address.type);
+        }
+
+        if (!address.ephem || !isObject(address.ephem)) {
+            throw new Error('CryptoAddress.ephem: ephem is missing or wrong type');
+        }
+
+        // TODO: this should be removeable?
+        if (!isPublicKey(address.pubKey!)) {
+            throw new Error('CryptoAddress: missing public key');
+        }
+
+        if (!isPublicKey(address.ephem.public)) {
+            throw new Error('CryptoAddress.ephem: ephem is missing public key');
+        }
+
+        // Ephem private key is only required for shared addresses.
+        if (expectedPrivateKey && (!address.ephem.private || !isPrivateKey(address.ephem.private))) {
+            throw new Error('CryptoAddress.ephem: ephem is missing private key');
+        }
+
+        return true;
+    }
+
+    public static validateSignatureObject(signature: ISignature): boolean {
 
         if (!isObject(signature)) {
             throw new Error('Signature: missing or not an object');
@@ -64,6 +118,7 @@ export class FV_CRYPTO {
 
         return true;
     }
+    
 
     constructor() {
         //

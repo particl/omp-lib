@@ -13,7 +13,7 @@ export interface Prevout {
 }
 
 export interface BlindPrevout extends Prevout {  // TODO: FV
-    blindFactor?: string;
+    blindFactor: string;
     _commitment: string;
 }
 
@@ -30,7 +30,7 @@ export interface ToBeNormalOutput extends ToBeOutput {
 }
 
 /**
- * A "new" Blind Prevout, that does not exist yet.
+ * A "new" Blind output, that does not exist yet.
  */
 export interface ToBeBlindOutput extends ToBeOutput {  // TODO: FV
     // Stealth address
@@ -55,7 +55,7 @@ export interface ISignature {
     pubKey: string;
 }
 
-export enum CryptoType {
+export enum Cryptocurrency {
     BTC = 'BTC',
     PART = 'PART',
     ZCASH = 'ZEC'
@@ -88,6 +88,6 @@ export interface EphemeralKey {
  * An amount of cryptocurrency.
  */
 export interface CryptoAmount {
-    type: CryptoType;
+    type: Cryptocurrency;
     basePrice: number;
 }

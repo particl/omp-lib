@@ -1,6 +1,6 @@
-import { MPA_BID, MPA_EXT_LISTING_ADD, MPM } from './interfaces/omp';
+import { MPA_EXT_LISTING_ADD, MPA_BID, MPM, MPA_ACCEPT, MPA_LOCK } from './interfaces/omp';
 import { CryptoAddressType } from './interfaces/crypto';
-import { EscrowType, MPAction } from './interfaces/omp-enums';
+import { MPAction, EscrowType } from './interfaces/omp-enums';
 import { hash } from './hasher/hash';
 import { BidConfiguration } from './interfaces/configs';
 
@@ -8,10 +8,6 @@ import { inject, injectable } from 'inversify';
 import { IMadCTBuilder, IMultiSigBuilder } from './abstract/transactions';
 import { TYPES } from './types';
 
-/**
- * todo: should we sequence verify before bidding and accepting
- * as a failsafe against a faulty implementation?
- */
 @injectable()
 export class Bid {
 
@@ -35,46 +31,50 @@ export class Bid {
      * @param listing the listing for which to produce a bid
      */
     public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
+        const mpa_listing = <MPA_EXT_LISTING_ADD>listing.action;
         config.escrow = mpa_listing.item.payment.escrow.type;
 
-        const bid = {
-            version: '0.1.0.0',
-            action: {
-                type: MPAction.MPA_BID,
-                created: +new Date(), // timestamp
-                item: hash(listing), // item hash
-                buyer: {
-                    payment: {
-                        cryptocurrency: config.cryptocurrency,
-                        escrow: config.escrow,
-                        pubKey: '',
-                        changeAddress: {
-                            type: CryptoAddressType.NORMAL,
-                            address: ''
-                        },
-                        prevouts: []
+        const bid = <MPA_BID>{
+            type: MPAction.MPA_BID,
+            created: +new Date(), // timestamp
+            item: hash(listing), // item hash
+            buyer: {
+                payment: {
+                    cryptocurrency: config.cryptocurrency,
+                    escrow: config.escrow,
+                    pubKey: '',
+                    changeAddress: {
+                        type: CryptoAddressType.NORMAL,
+                        address: ''
                     },
-                    shippingAddress: config.shippingAddress
+                    prevouts: []
                 },
-                objects: config.objects
-            }
+                shippingAddress: config.shippingAddress
+            },
+            objects: config.objects
         };
 
         // Pick correct route for configuration
         // add the data to the bid object.
         switch (config.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.bid(listing, bid);
+                await this._msb.bid(listing.action, bid);
                 break;
             case EscrowType.MAD_CT:
-                delete bid.action.buyer.payment.pubKey;
-                delete bid.action.buyer.payment.changeAddress;
-                await this._madct.bid(listing, bid);
+                delete bid.buyer.payment.pubKey;
+                delete bid.buyer.payment.changeAddress;
+                await this._madct.bid(listing.action, bid);
                 break;
+            default:
+                throw new Error("payment.escrow type="+config.escrow+" does not have a valid escrow handling function for accept");
         }
 
-        return bid;
+        const msg: MPM = {
+            version: '0.1.0.0',
+            action: bid,
+        };
+
+        return msg;
     }
 
     /**
@@ -86,47 +86,52 @@ export class Bid {
      * @param bid the bid for which to produce an accept message.
      */
     public async accept(listing: MPM, bid: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
 
-        const accept = {
-            version: '0.1.0.0',
-            action: {
-                type: MPAction.MPA_ACCEPT,
-                bid: hash(bid), // item hash
-                seller: {
-                    payment: {
-                        escrow: payment.escrow,
-                        pubKey: '',
-                        changeAddress: {
-                            type: CryptoAddressType.NORMAL,
-                            address: ''
-                        },
-                        prevouts: [],
-                        signatures: []
-                    }
+        const accept = <MPA_ACCEPT>{
+            type: MPAction.MPA_ACCEPT,
+            bid: hash(bid), // item hash
+            seller: {
+                payment: {
+                    escrow: payment.escrow,
+                    pubKey: '',
+                    changeAddress: {
+                        type: CryptoAddressType.NORMAL,
+                        address: ''
+                    },
+                    fee: 0,
+                    prevouts: [],
+                    signatures: [],
+                    release: {
+                        signatures: [],
+                    },
                 }
-                // objects: KVS[]
             }
         };
 
 
         switch (payment.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.accept(listing, bid, accept);
+                await this._msb.accept(listing.action, bid.action, accept);
                 break;
             case EscrowType.MAD_CT:
-                delete accept.action.seller.payment.pubKey;
-                delete accept.action.seller.payment.changeAddress;
-                delete accept.action.seller.payment.signatures;
-                accept.action.seller.payment.destroy = {};
-                await this._madct.accept(listing, bid, accept);
+                delete accept.seller.payment.pubKey;
+                delete accept.seller.payment.changeAddress;
+                delete accept.seller.payment.signatures;
+                await this._madct.accept(listing.action, bid.action, accept);
                 break;
+            default:
+                throw new Error("payment.escrow type="+payment.escrow+" does not have a valid escrow handling function for accept");
         }
 
-        return accept;
+        const msg: MPM = {
+            version: '0.1.0.0',
+            action: accept,
+        };
+
+        return msg;
     }
 
     /**
@@ -138,30 +143,28 @@ export class Bid {
      * @param accept the accept message for which to produce an lock message.
      */
     public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
-        const mpa_bid = <MPA_BID> bid.action;
+        const mpa_bid = <MPA_BID>bid.action;
 
         const payment = mpa_bid.buyer.payment;
 
-        const lock = {
-            version: '0.1.0.0',
-            action: {
-                type: MPAction.MPA_LOCK,
-                bid: hash(bid), // item hash
-                buyer: {
-                    payment: {
-                        escrow: payment.escrow,
-                        signatures: []
+        const lock = <MPA_LOCK>{
+            type: MPAction.MPA_LOCK,
+            bid: hash(bid), // item hash
+            buyer: {
+                payment: {
+                    escrow: payment.escrow,
+                    signatures: [],
+                    refund: {
+                        signatures: [],
                     }
                 }
-                // objects: KVS[]
             }
         };
 
 
         switch (payment.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.lock(listing, bid, accept, lock);
+                await this._msb.lock(listing.action, bid.action, accept.action, lock);
                 break;
             case EscrowType.MAD_CT:
                 /**
@@ -170,13 +173,22 @@ export class Bid {
                  * Destroy txn: fully signed
                  * Bid txn: only signed by buyer.
                  */
-                lock.action.buyer.payment.destroy = {};
-                await this._madct.lock(listing, bid, accept, lock);
+                lock.buyer.payment.destroy = {
+                    signatures: [],
+                };
+                await this._madct.lock(listing.action, bid.action, accept.action, lock);
                 break;
+            default:
+                throw new Error("payment.escrow type="+payment.escrow+" does not have a valid escrow handling function for lock");
 
         }
 
-        return lock;
+        const msg: MPM = {
+            version: '0.1.0.0',
+            action: lock,
+        };
+
+        return msg;
     }
 
     /**
@@ -193,20 +205,16 @@ export class Bid {
      */
     public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
 
-        const mpa_bid = <MPA_BID> bid.action;
+        const mpa_bid = <MPA_BID>bid.action;
         const payment = mpa_bid.buyer.payment;
-        let complete;
 
         switch (payment.escrow) {
-            case EscrowType.MULTISIG:
-                throw new Error('Multisig does not have a complete stage.');
             case EscrowType.MAD_CT:
-                complete = await this._madct.complete(listing, bid, accept, lock);
-                break;
+                return this._madct.complete(listing.action, bid.action, accept.action, lock.action);
+            default:
+                throw new Error("payment.escrow type="+payment.escrow+" does not have a complete stage.");
 
         }
-
-        return complete;
     }
 
     /**
@@ -217,40 +225,22 @@ export class Bid {
      * @param bid the bid message.
      * @param accept the accept message.
      */
-    public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM | string> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
+    public async release(listing: MPM, bid: MPM, accept: MPM): Promise<string> {
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
 
-        if (!release) {
-            release = <MPM> {
-                version: '0.1.0.0',
-                action: {
-                    type: MPAction.MPA_RELEASE,
-                    bid: hash(bid), // item hash
-                    seller: {
-                        payment: {
-                            escrow: payment.escrow,
-                            signatures: []
-                        }
-                    }
-                    // objects: KVS[]
-                }
-            };
-        }
-
         switch (payment.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.release(listing, bid, accept, release);
-                break;
+                return this._msb.release(listing.action, bid.action, accept.action);
             case EscrowType.MAD_CT:
-                return (await this._madct.release(listing, bid, accept));
+                return this._madct.release(listing.action, bid.action, accept.action);
             case EscrowType.MAD:
             case EscrowType.FE:
+            default:
+                throw new Error("payment.escrow type="+payment.escrow+" does not have a valid escrow handling function for release");
         }
 
-        return release;
     }
 
     /**
@@ -261,38 +251,21 @@ export class Bid {
      * @param bid the bid message.
      * @param accept the accept message for which to produce an lock message.
      */
-    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM, refund?: MPM): Promise<MPM | string> {
-        const mpa_listing = <MPA_EXT_LISTING_ADD> listing.action;
+    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
         const mpa_bid = <MPA_BID> bid.action;
 
         const payment = mpa_bid.buyer.payment;
 
-        if (!refund) {
-            refund = <MPM> {
-                version: '0.1.0.0',
-                action: {
-                    type: MPAction.MPA_REFUND,
-                    bid: hash(bid), // item hash
-                    buyer: {
-                        payment: {
-                            escrow: payment.escrow,
-                            signatures: []
-                        }
-                    }
-                }
-            };
-        }
-
         switch (payment.escrow) {
             case EscrowType.MULTISIG:
-                await this._msb.refund(listing, bid, accept, lock, refund);
-                break;
-            case EscrowType.MAD:
+                return this._msb.refund(listing.action, bid.action, accept.action, lock.action);
             case EscrowType.MAD_CT:
-                return (await this._madct.refund(listing, bid, accept, lock));
+                return this._madct.refund(listing.action, bid.action, accept.action, lock.action);
+            case EscrowType.MAD:
             case EscrowType.FE:
+            default:
+                throw new Error("payment.escrow type="+payment.escrow+" does not have a valid escrow handling function for refund");
         }
 
-        return refund;
     }
 }

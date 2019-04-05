@@ -10,8 +10,7 @@ export enum MPAction {
     MPA_CANCEL = 'MPA_CANCEL',
 
     MPA_LOCK = 'MPA_LOCK',
-    MPA_RELEASE = 'MPA_RELEASE',
-    MPA_REFUND = 'MPA_REFUND'
+
 }
 
 export enum PaymentType {

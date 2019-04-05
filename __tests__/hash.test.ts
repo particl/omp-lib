@@ -1,7 +1,9 @@
 import * from 'jest';
 import { hash, hashListing, deepSortObject } from '../src/hasher/hash';
-import { clone, strip } from '../src/util';
+import { MPA_CANCEL } from '../src/interfaces/omp';
+import { clone, strip, log } from '../src/util';
 import { sha256 } from 'js-sha256';
+import { MPAction } from '../src/interfaces/omp-enums';
 
 const deepNestOne = {
     b: {
@@ -70,19 +72,22 @@ const deepNestTwo = {
 };
 
 test('normalize and hash', () => {
-    let prevout = 'one';
-    let two = 'two';
+    let output;
+    let two ;
+    let three;
     try {
         // console.log(JSON.stringify(deepSortObject(deepNestOne), null, 4));
         // console.log(JSON.stringify(deepSortObject(deepNestTwo), null, 4));
 
-        prevout = hash(deepNestOne);
+        output = hash(deepNestOne);
         two = hash(deepNestTwo);
+        three = hash(deepNestTwo);
         // console.log(output + " === " + two);
     } catch (e) {
         console.log(e);
     }
-    expect(prevout).toBe(two);
+    expect(output).toBe(two);
+    expect(output).toBe(three);
 });
 
 
@@ -260,4 +265,21 @@ test('sha256hex', () => {
 test('hash for particl-core', () => {
     const h = hash(new Buffer('76d02c17ce9999108a568fa9c192eee9580674e73a47c1e85c1bd335aa57082e', 'hex'));
     expect(h).toEqual('bee405d40383879ca57d4eb24b9153b356c85ee6f4bc810b8bb1b67c1112c0bd');
+});
+
+test.only('interface based reduction', () => {
+    const cancel: any = {
+        type: MPAction.MPA_CANCEL,
+        bid: hash("bid")
+    };
+
+    // small trick to get value inside the MPA_CANCEL.
+    cancel.removed = false;
+    type Keys = 'option1' | 'option2';
+    type m = keyof MPA_CANCEL;
+
+    const reduced = <MPA_CANCEL>cancel;
+    
+    
+    log(reduced extends MPA_CANCEL)
 });

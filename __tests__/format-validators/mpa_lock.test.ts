@@ -18,7 +18,15 @@ const ok = JSON.parse(
                         "signature": "signature1",
                         "pubKey": "pubkey1"
                     }
-                ]
+                ],
+                "refund": {
+                    "signatures": [
+                        {
+                            "signature": "signature1",
+                            "pubKey": "pubkey1"
+                        }
+                    ]
+                }
               }
             }
         }

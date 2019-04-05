@@ -8,7 +8,6 @@ import { Prevout, ISignature, BlindPrevout, CryptoAddressType, CryptoAddress, To
 import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone, log } from "../src/util";
 import { TransactionBuilder } from '../src/transaction-builder/transaction';
 import { ConfidentialTransactionBuilder } from '../src/transaction-builder/confidential-transaction';
-import { CoreRpcService } from './rpc.stub';
 
 
 @injectable()
@@ -73,8 +72,8 @@ class CtCoreRpcService extends CtRpc {
      * Permanently locks outputs until unlocked or spent.
      * @param prevout an array of outputs to lock
      */
-    public async lockUnspent(prevouts: Prevout[]): Promise<boolean> {
-        return await this.call('lockunspent', [false, prevouts, true]);
+    public async lockUnspent(unlock: boolean, prevouts: Prevout[], permanent: boolean): Promise<boolean> {
+        return await this.call('lockunspent', [unlock, prevouts, permanent]);
     }
 
     // CtRpc required implmentations below...

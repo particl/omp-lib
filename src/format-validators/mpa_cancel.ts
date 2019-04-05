@@ -16,7 +16,7 @@ export class FV_MPA_CANCEL {
         }
 
         if (action.type !== MPAction.MPA_CANCEL) {
-            throw new Error('action.type: expecting MPA_CANCEL got ' + action.type);
+            throw new Error('action.type: expecting MPA_CANCEL received=' + action.type);
         }
 
         if (!isSHA256Hash(action.bid)) {
