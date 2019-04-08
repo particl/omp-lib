@@ -28,7 +28,7 @@ import signal
 def toBool(s):
     return s.lower() in ["1", "true"]
 
-PARTICL_BINDIR = os.path.expanduser(os.getenv("PARTICL_BINDIR", "./bins/particl-core/particl-0.18.0.5/bin"))
+PARTICL_BINDIR = os.path.expanduser(os.getenv("PARTICL_BINDIR", "./bins/particl-core"))
 PARTICLD = os.getenv("PARTICLD", "particld")
 PARTICL_CLI = os.getenv("PARTICL_CLI", "particl-cli")
 PARTICL_TX = os.getenv("PARTICL_TX", "particl-tx")

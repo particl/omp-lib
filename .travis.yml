@@ -15,6 +15,7 @@ cache:
   - bins
 
 before_script:
+  # - ./bins/download-particl-core.sh 0.18.0.5
   - cd ./bins/particl-core
   - wget https://github.com/particl/particl-core/releases/download/v0.18.0.5rc1/particl-0.18.0.5-x86_64-linux-gnu.tar.gz
   - tar -xvf particl-0.18.0.5-x86_64-linux-gnu.tar.gz
@@ -23,6 +24,6 @@ before_script:
 
 script: 
   # download binaries
-  - PARTICL_BINDIR=./bins/particl-core/particl-0.18.0.5/bin/ python3 particl-test-env.py &
+  - PARTICL_BINDIR=./bins/particl-core/particl-0.18.0.5/bin/ yarn run test:setup &
   - sleep 20
   - yarn run test
