@@ -317,6 +317,7 @@ def main():
         logd(fp, os.path.basename(sys.argv[0]) + "\n\n")
         startNodes(fp, RESET_DATA)
         while 1:
+            """
             cmd = input("command> ")
             rpcCmd = cmd.split(' ', maxsplit=1)
             try:
@@ -324,6 +325,7 @@ def main():
                 logc(fp, prevout)
             except:
                 logc(fp, "Meh it broke :(")
+            """
         input("Press Ctrl+C to stop the nodes...")
 
     print('Done.')
