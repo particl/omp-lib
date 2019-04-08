@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { injectable, Container, interfaces } from 'inversify';
+import { Container, interfaces } from 'inversify';
 import { TYPES } from './types';
 import { Rpc, ILibrary, CtRpc } from './abstract/rpc';
 import { MPM } from './interfaces/omp';
@@ -13,18 +13,32 @@ import { IMultiSigBuilder, IMadCTBuilder } from './abstract/transactions';
 import { MultiSigBuilder } from './buyflow/multisig';
 import { MadCTBuilder } from './buyflow/madct';
 
-import { strip, clone } from './util';
+import { strip } from './util';
 
-import { node0, node1, node2 } from './rpc.stub';
-import { FV_MPM } from './format-validators/mpm';
 import { Format } from './format-validators/validate';
 import { Sequence } from './sequence-verifier/verify';
 import { EscrowType } from './interfaces/omp-enums';
 
-export { node0, node1, node2, Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
+export { Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
+
+// tslint:disable:bool-param-default
 
 // @injectable()
 export class OpenMarketProtocol implements OMP {
+
+    public static strip(msg: MPM): MPM {
+        return strip(msg);
+    }
+
+    public static verify(chain: MPM[]): boolean {
+        chain.forEach((msg: MPM) => {
+            Format.validate(msg);
+        });
+
+        Sequence.validate(chain);
+
+        return true;
+    }
 
     // public TxLibs: Object = {};
     private container: Container;
@@ -34,20 +48,23 @@ export class OpenMarketProtocol implements OMP {
         this.setup();
     }
 
+
     /**
      * Bind an Rpc service for a given cryptocurrency.
      * @param cryptocurrency The currency for which this service works.
      * @param service Rpc service
      */
-    public inject(cryptocurrency: Cryptocurrency, service: any, isCt?: boolean): void {
+    public inject(cryptocurrency: Cryptocurrency, service: any): void {
         // Bind an _instance_ (constant value)
         // to the container.
         // and give it the name of the cryptocurrency.
 
-        if (!isCt) {
+        if (service instanceof CtRpc) {
+            this.container.bind<CtRpc>(TYPES.CtRpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
+        } else if (service instanceof Rpc) {
             this.container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
         } else {
-            this.container.bind<CtRpc>(TYPES.CtRpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
+            throw new Error('The injected service did not comply to the abstracted Rpc class for which it was specified!');
         }
     }
 
@@ -96,8 +113,8 @@ export class OpenMarketProtocol implements OMP {
         Format.validate(bid);
         Format.validate(accept);
 
-        let chain: MPM[] = [strip(listing), strip(bid), strip(accept)]
-        
+        const chain: MPM[] = [strip(listing), strip(bid), strip(accept)];
+
         Sequence.validate(chain);
 
         const action = this.container.get<OMP>(TYPES.Bid);
@@ -108,10 +125,10 @@ export class OpenMarketProtocol implements OMP {
         // TODO: validate that there are no cancels/rejects in here!
         Format.validate(listing);
         Format.validate(bid);
-        Format.validate(accept); 
+        Format.validate(accept);
         Format.validate(lock);
 
-        let chain: MPM[] = [strip(listing), strip(bid), strip(accept), strip(lock)]
+        const chain: MPM[] = [strip(listing), strip(bid), strip(accept), strip(lock)];
 
         Sequence.validate(chain);
 
@@ -119,19 +136,6 @@ export class OpenMarketProtocol implements OMP {
         return await action.refund(chain[0], chain[1], chain[2], chain[3]);
     }
 
-    public static strip(msg: MPM): MPM {
-        return strip(msg);
-    }
-
-    public static verify(chain: MPM[]): boolean {
-        chain.forEach((msg: MPM) => {
-            Format.validate(msg);
-        });
-
-        Sequence.validate(chain);
-
-        return true;
-    }
 
     public rpc(cryptocurrency: Cryptocurrency): Rpc {
         return this.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);

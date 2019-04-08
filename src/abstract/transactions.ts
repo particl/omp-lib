@@ -14,6 +14,6 @@ export interface IMadCTBuilder {
     lock(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<MPA>;
     complete(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<string>; // rawtx
     release(listing: MPA, bid: MPA, accept: MPA): Promise<string>;
-    refund(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<string>
+    refund(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<string>;
 }
 

@@ -257,10 +257,10 @@ export function publicKeyToAddress(publicKey: string): string {
 }
 
 export function getSerializedInteger(n: number): Buffer {
-    if(n === undefined) {
-        throw "Number to serialize is undefined."
+    if (n === undefined) {
+        throw new Error('Number to serialize is undefined.');
     }
-    
+
     const hex = n.toString(16)
         .match(/../g)!
         .reverse()

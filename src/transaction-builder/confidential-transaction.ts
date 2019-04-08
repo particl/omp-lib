@@ -91,10 +91,10 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
  */
 export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAddress, secondsToLock: number): any {
     // commitment: string, ephem: EphemeralKey,
-    const publicKeyFrom =  bitcore.PublicKey.fromString(addressFrom.pubKey).toDER()
-    const publicKeyTo = bitcore.PublicKey.fromString(addressTo.pubKey).toDER()
+    const publicKeyFrom =  bitcore.PublicKey.fromString(addressFrom.pubKey).toDER();
+    const publicKeyTo = bitcore.PublicKey.fromString(addressTo.pubKey).toDER();
 
-    // create a multisig redeemScript 
+    // create a multisig redeemScript
     const redeemScript = bitcore.Script('OP_2')
         .add(publicKeyTo)
         .add(publicKeyFrom)

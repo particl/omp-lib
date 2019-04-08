@@ -1,15 +1,14 @@
 import * from 'jest';
-import { node0, node1, node2 } from '../src/rpc.stub';
 import { OpenMarketProtocol } from '../src/omp';
 import { Cryptocurrency } from '../src/interfaces/crypto';
 import { BidConfiguration } from '../src/interfaces/configs';
 import { EscrowType } from '../src/interfaces/omp-enums';
+import { CoreRpcService } from '../test/rpc.stub';
 
-const omp0 = new OpenMarketProtocol();
-omp0.inject(Cryptocurrency.PART, node0);
+describe('Bid', () => {
 
-const ok = JSON.parse(
-    `{
+    const ok = JSON.parse(
+        `{
         "version": "0.1.0.0",
         "action": {
             "type": "MPA_LISTING_ADD",
@@ -31,7 +30,7 @@ const ok = JSON.parse(
                     "seller": 100
                   }
                 },
-                "cryptocurrency": [
+                "options": [
                   {
                     "currency": "PART",
                     "basePrice": 100000000000
@@ -40,7 +39,7 @@ const ok = JSON.parse(
               },
               "messaging": [
                 {
-                  "protocol": "TODO",
+                  "protocol": "SMSG",
                   "publicKey": "TODO"
                 }
               ]
@@ -48,27 +47,58 @@ const ok = JSON.parse(
         }
     }`);
 
-const config: BidConfiguration = {
-    cryptocurrency: Cryptocurrency.PART,
-    escrow: EscrowType.MULTISIG,
-    shippingAddress: {
-        firstName: 'string',
-        lastName: 'string',
-        addressLine1: 'string',
-        city: 'string',
-        state: 'string',
-        zipCode: 'string',
-        country: 'string'
-    }
-};
+    const config: BidConfiguration = {
+        cryptocurrency: Cryptocurrency.PART,
+        escrow: EscrowType.MULTISIG,
+        shippingAddress: {
+            firstName: 'string',
+            lastName: 'string',
+            addressLine1: 'string',
+            city: 'string',
+            state: 'string',
+            zipCode: 'string',
+            country: 'string'
+        }
+    };
 
-test('perform multisig bid', () => {
-    const bool = false;
-    try {
-        // console.log(JSON.stringify(bid, null, 4))
-        // TODO: missing impl
+    let buyer: OpenMarketProtocol;
+    let seller: OpenMarketProtocol;
 
-    } catch (e) {
-        console.log(e);
-    }
+    let node0: CoreRpcService;
+    let node1: CoreRpcService;
+    let node2: CoreRpcService;
+
+    beforeAll(async () => {
+
+        node0 = new CoreRpcService();
+        node1 = new CoreRpcService();
+        node2 = new CoreRpcService();
+
+        node0.setup('localhost', 19792, 'rpcuser0', 'rpcpass0');
+        node1.setup('localhost', 19793, 'rpcuser1', 'rpcpass1');
+        node1.setup('localhost', 19794, 'rpcuser2', 'rpcpass2');
+
+        buyer = new OpenMarketProtocol();
+        buyer.inject(Cryptocurrency.PART, node0);
+
+        seller = new OpenMarketProtocol();
+        seller.inject(Cryptocurrency.PART, node1);
+
+    });
+
+    test('perform multisig bid', () => {
+        const success = false;
+        try {
+            // console.log(JSON.stringify(bid, null, 4))
+            // TODO: missing impl
+
+        } catch (e) {
+            console.log(e);
+        }
+
+        // allowing this to pass for now
+        expect(success).toBe(false);
+
+    });
+
 });

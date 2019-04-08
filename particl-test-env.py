@@ -3,9 +3,9 @@
 
 """
 Bootstrap the test environment by running:
-python3 test_cs_multisig.py
+python3 particl-test-env.py
 
-particld version 0.16.0.7 (if 0.17, re-enable [regtest] in writeConfig)
+particld version 0.17.x (if 0.17, re-enable [regtest] in writeConfig)
 
 Copyright & credits go to tecnovert.
 """
@@ -74,34 +74,32 @@ def writeConfig(datadir, nodeId, rpcPort, port):
         return
 
     with open(filePath, 'w+') as fp:
-        fp.write("regtest=1\n")
+        fp.write('regtest=1\n')
 
-        fp.write("[regtest]\n") # > 0.16 only
-        fp.write('port='+str(port)+"\n")
-        fp.write('rpcport='+str(rpcPort)+"\n")
-        fp.write('rpcuser=rpcuser'+str(nodeId)+"\n")
-        fp.write('rpcpassword=rpcpass'+str(nodeId)+"\n")
-        fp.write("daemon=1\n")
-        fp.write("server=1\n")
-        fp.write("discover=0\n")
-        fp.write("listenonion=0\n")
-        fp.write("bind=127.0.0.1\n")
-        fp.write("findpeers=0\n")
+        fp.write('[regtest]\n') # > 0.16 only
+        fp.write('port=' + str(port) + "\n")
+        fp.write('rpcport=' + str(rpcPort) + "\n")
+        fp.write('rpcuser=rpcuser' + str(nodeId) + "\n")
+        fp.write('rpcpassword=rpcpass' + str(nodeId) + "\n")
+        fp.write('daemon=1\n')
+        fp.write('server=1\n')
+        fp.write('discover=0\n')
+        fp.write('listenonion=0\n')
+        fp.write('bind=127.0.0.1\n')
+        fp.write('findpeers=0\n')
 
         if DEBUG_MODE:
-            fp.write("debug=1\n")
-        fp.write("debugexclude=libevent\n")
+            fp.write('debug=1\n')
 
-        fp.write("displaylocaltime=1\n")
-
-        fp.write("acceptnonstdtxn=0\n")
-
-        fp.write("minstakeinterval=10\n")
+        fp.write('debugexclude=libevent\n')
+        fp.write('displaylocaltime=1\n')
+        fp.write('acceptnonstdtxn=0\n')
+        fp.write('minstakeinterval=10\n')
 
         for i in range(0, NUM_NODES):
             if nodeId == i:
                 continue
-            fp.write("addnode=127.0.0.1:%d\n" % (BASE_PORT + i))
+            fp.write('addnode=127.0.0.1:%d\n' % (BASE_PORT + i))
 
 
 def prepareDir(datadir, nodeId):
@@ -259,10 +257,10 @@ def startNodes(fp, resetData):
             except:
                 continue
             break
-        
+
         callrpc(i, fp, 'walletsettings stakingoptions "{\\"stakecombinethreshold\\":\\"100\\",\\"stakesplitthreshold\\":200}"')
         callrpc(i, fp, 'reservebalance true 1000')
-        
+
 
     callrpc(0, fp, 'extkeygenesisimport "abandon baby cabbage dad eager fabric gadget habit ice kangaroo lab absorb"')
     callrpc(1, fp, 'extkeygenesisimport "pact mammal barrel matrix local final lecture chunk wasp survey bid various book strong spread fall ozone daring like topple door fatigue limb olympic" "" true')

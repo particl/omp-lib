@@ -11,7 +11,7 @@ const ok_bid = JSON.parse(
         "version": "0.1.0.0",
         "action": {
             "type": "MPA_BID",
-            "created": ${+new Date()},
+            "generated": ${+new Date().getTime()},
             "item": "${hash('listing')}",
             "buyer": {
               "payment": {
@@ -138,6 +138,7 @@ const ok_accept = JSON.parse(
         "version": "0.1.0.0",
         "action": {
             "type": "MPA_ACCEPT",
+            "generated": ${+new Date().getTime()},
             "bid": "${hash('bid')}",
             "seller": {
               "payment": {
@@ -341,6 +342,7 @@ const ok_lock = JSON.parse(
         "version": "0.1.0.0",
         "action": {
             "type": "MPA_LOCK",
+            "generated": ${+new Date().getTime()},
             "bid": "${hash('bid')}",
             "buyer": {
               "payment": {

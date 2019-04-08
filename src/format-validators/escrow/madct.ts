@@ -3,11 +3,12 @@ import { isObject, isNumber, isString, isTxid, isArray, isBlindFactor, isNonNega
 import { FV_CRYPTO } from '../crypto';
 import { EscrowType } from '../../interfaces/omp-enums';
 import { isPublicKey, isPrivateKey } from '../util';
+import { PaymentDataBid, PaymentDataAccept, PaymentDataLock } from '../../interfaces/omp';
 
 // TODO: max one class per file
-// tslint:disable max-classes-per-file
+// tslint:disable max-classes-per-file no-string-throw
 
-function validateBasic(payment): boolean {
+function validateBasic(payment: any): boolean {
 
     if (!isObject(payment)) {
         throw ('missing or not an object!');
@@ -33,7 +34,7 @@ function validateBasic(payment): boolean {
         }
     });
 
-    if (!isArray(payment.outputs)) {
+    if (!isArray(payment.outputs) || !payment.outputs) {
         throw ('outputs: not an array');
     }
 
@@ -54,7 +55,7 @@ function validateBasic(payment): boolean {
  * @param expectEphem sometimes an ephem is not expected.
  * @param expectSignatures sometimes a signature object is not expected.
  */
-function validateReleaseRefundDestroy(exit, expectEphem = true, expectSignatures = true): boolean {
+function validateReleaseRefundDestroy(exit: any, expectEphem: boolean = true, expectSignatures: boolean = true): boolean {
 
     if (!isObject(exit)) {
         throw ('missing or not an object');
@@ -99,18 +100,18 @@ function validateReleaseRefundDestroy(exit, expectEphem = true, expectSignatures
 
 export class FV_MPA_BID_ESCROW_MAD_CT {
 
-    public static validate(payment: any): boolean {
+    public static validate(payment: PaymentDataBid): boolean {
 
         try {
-            validateBasic(payment)
+            validateBasic(payment);
         } catch (e) {
-            throw new Error('action.buyer.payment: ' + e);
+            throw ('action.buyer.payment: ' + e);
         }
 
         try {
-            validateReleaseRefundDestroy(payment.release, true, false)
+            validateReleaseRefundDestroy(payment.release, true, false);
         } catch (e) {
-            throw new Error('action.buyer.payment.release: ' + e);
+            throw ('action.buyer.payment.release: ' + e);
         }
 
 
@@ -125,30 +126,30 @@ export class FV_MPA_BID_ESCROW_MAD_CT {
 
 export class FV_MPA_ACCEPT_ESCROW_MAD_CT {
 
-    public static validate(payment: any): boolean {
+    public static validate(payment: PaymentDataAccept): boolean {
 
         try {
-            validateBasic(payment)
+            validateBasic(payment);
         } catch (e) {
-            throw new Error('action.seller.payment: ' + e);
+            throw ('action.seller.payment: ' + e);
         }
 
         if (!isNonNegativeNaturalNumber(payment.fee) && payment.fee > 0) {
-            throw new Error('action.seller.payment.fee: not a non negative number or > 0');
+            throw ('action.seller.payment.fee: not a non negative number or > 0');
         }
 
         // Validate that all fields are present in the release object.
         try {
-            validateReleaseRefundDestroy(payment.release)
+            validateReleaseRefundDestroy(payment.release);
         } catch (e) {
-            throw new Error('action.seller.payment.release: ' + e);
+            throw ('action.seller.payment.release: ' + e);
         }
 
         // Validate that all fields are present in the destroy object.
         try {
-            validateReleaseRefundDestroy(payment.destroy, false)
+            validateReleaseRefundDestroy(payment.destroy, false);
         } catch (e) {
-            throw new Error('action.seller.payment.destroy: ' + e);
+            throw ('action.seller.payment.destroy: ' + e);
         }
 
         return true;
@@ -162,26 +163,26 @@ export class FV_MPA_ACCEPT_ESCROW_MAD_CT {
 
 export class FV_MPA_LOCK_ESCROW_MAD_CT {
 
-    public static validate(payment: any): boolean {
+    public static validate(payment: PaymentDataLock): boolean {
 
         if (!isArray(payment.signatures)) {
-            throw new Error('action.buyer.payment.signatures: missing or not an array');
+            throw ('action.buyer.payment.signatures: missing or not an array');
         }
 
         payment.signatures.forEach((elem, i) => {
             try {
                 FV_CRYPTO.validateSignatureObject(elem);
             } catch (e) {
-                throw new Error('action.buyer.payment.signatures[' + i + ']: ' + e);
+                throw ('action.buyer.payment.signatures[' + i + ']: ' + e);
             }
         });
 
 
         // payment.refund
         try {
-            validateReleaseRefundDestroy(payment.refund, false)
+            validateReleaseRefundDestroy(payment.refund, false);
         } catch (e) {
-            throw new Error('action.buyer.payment.refund: ' + e);
+            throw ('action.buyer.payment.refund: ' + e);
         }
 
         return true;

@@ -42,7 +42,7 @@ export class FV_CRYPTO {
         }
 
         FV_CRYPTO.validateStealthAddress(out.address, true);
-       
+
 
         if (!isBlindFactor(out.blindFactor)) {
             throw new Error('missing blind factor');
@@ -74,8 +74,8 @@ export class FV_CRYPTO {
         return true;
     }
 
-    public static validateStealthAddress(address: CryptoAddress, expectedPrivateKey = false): boolean {
-        this.validateCryptoAddress(address)
+    public static validateStealthAddress(address: CryptoAddress, expectedPrivateKey: boolean = false): boolean {
+        this.validateCryptoAddress(address);
 
         if (address.type !== CryptoAddressType.STEALTH) {
             throw new Error('CryptoAddress.type: expecting STEALTH, received=' + address.type);
@@ -118,7 +118,7 @@ export class FV_CRYPTO {
 
         return true;
     }
-    
+
 
     constructor() {
         //

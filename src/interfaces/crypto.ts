@@ -17,7 +17,9 @@ export interface BlindPrevout extends Prevout {  // TODO: FV
     _commitment: string;
 }
 
-// Base class
+/**
+ * Base class
+ */
 export interface ToBeOutput {}
 
 /**
@@ -59,6 +61,11 @@ export enum Cryptocurrency {
     BTC = 'BTC',
     PART = 'PART',
     ZCASH = 'ZEC'
+}
+
+export enum Fiatcurrency {
+    EUR = 'EUR',
+    USD = 'USD'
 }
 
 export enum CryptoAddressType {

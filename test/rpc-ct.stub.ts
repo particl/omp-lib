@@ -16,8 +16,20 @@ class CtCoreRpcService extends CtRpc {
     private RPC_REQUEST_ID = 1;
     private DEBUG = true;
 
-    constructor(host: string, port: number, user: string, password: string) {
-        super(host, port, user, password);
+    private _host = '';
+    private _port = 0;
+    private _user = '';
+    private _password = '';
+
+    constructor() {
+        super();
+    }
+
+    public setup(host: string, port: number, user: string, password: string): void {
+        this._host = host;
+        this._port = port;
+        this._user = user;
+        this._password = password;
     }
 
     public async getNewAddress(): Promise<string> {

@@ -1,3 +1,6 @@
+
+export const OMPVERSION = '0.1.0';
+
 export function isObject(v: any): boolean {
     return v && typeof v === 'object';
 }

@@ -1,6 +1,6 @@
-/*
-    An enum for all the marketplace actions.
-*/
+/**
+ * An enum for all the marketplace actions.
+ */
 export enum MPAction {
     MPA_LISTING_ADD = 'MPA_LISTING_ADD',
 
@@ -11,17 +11,34 @@ export enum MPAction {
 
     MPA_LOCK = 'MPA_LOCK',
 
+    UNKNOWN = 'UNKNOWN'         // used in case we receive an unknown message type and want to log it
 }
 
-export enum PaymentType {
-    FREE = 'FREE',
+/**
+ * Represents the types of sales that are possible
+ */
+export enum SaleType {
+    FREE = 'FREE',              // not implemented, yet
     SALE = 'SALE',
-    RENT = 'RENT'
+    AUCTION = 'AUCTION',        // not implemented, yet
+    WANTED = 'WANTED',          // not implemented, yet
+    RENT = 'RENT',              // not implemented, yet
+    NEGOTIATE = 'NEGOTIATE'     // not implemented, yet
 }
 
+/**
+ * Different supported escrow types
+ */
 export enum EscrowType {
-    FE = 'FE',              // Finalize early
-    MULTISIG = 'MULTISIG',  // Normal 2-on-2 multisig
-    MAD = 'MAD',            // Mutual assured destruction
-    MAD_CT = 'MAD_CT'       // Mutual assured destruction with Confidential Tx
+    FE = 'FE',                  // Finalize early
+    MULTISIG = 'MULTISIG',      // Normal 2-on-2 multisig
+    MAD = 'MAD',                // Mutual assured destruction
+    MAD_CT = 'MAD_CT'           // Mutual assured destruction with Confidential Tx
+}
+
+/**
+ * Protocols supported by the protocol.
+ */
+export enum MessagingProtocol {
+    SMSG = 'SMSG'
 }

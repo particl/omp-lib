@@ -1,6 +1,6 @@
 {
     "name": "omp-lib",
-    "version": "0.1.28",
+    "version": "0.1.47",
     "description": "Particl OMP-library",
     "main": "dist/omp.js",
     "types": "dist/omp.d.js",
@@ -12,9 +12,12 @@
         "prestart": "npm run build",
         "start": "node ./dist/src/module.js",
         "pretest": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish '__tests__/**/*.{ts,tsx}'",
-        "setuptest": "python3 particl-test-env.py",
-        "test": "jest --verbose",
-        "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
+        "test": "npm-run-all -s lint test:run",
+        "test:setup": "python3 particl-test-env.py",
+        "test:run": "jest --verbose",
+        "test:single": "npm run test:run -- --testPathPattern=$TEST -i",
+        "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'",
+        "lint:fix": "tslint --fix --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
     },
     "contributors": [
         {
@@ -32,6 +35,7 @@
         "inversify": "^4.13.0",
         "js-sha256": "^0.9.0",
         "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
+        "pjson": "^1.0.9",
         "reflect-metadata": "^0.1.12",
         "tslib": "^1.9.3",
         "web-request": "^1.0.7"
@@ -39,14 +43,17 @@
     "devDependencies": {
         "@types/jest": "^23.1.4",
         "@types/node": "^10.5.2",
+        "@types/semver": "^5.5.0",
         "jest": "^23.6.0",
         "jest-cli": "^23.6.0",
         "jest-sonar-reporter": "^2.0.0",
         "nodemon": "^1.11.0",
+        "npm-run-all": "^4.1.5",
+        "semver": "^5.6.0",
         "sonarqube-scanner": "^2.1.2",
         "ts-jest": "^23.10.4",
         "ts-node": "^7.0.1",
-        "tslint": "5.11.0",
+        "tslint": "^5.13.1",
         "tslint-clean-code": "^0.2.7",
         "tslint-sonarts": "^1.8.0",
         "typescript": "^2.4.1"

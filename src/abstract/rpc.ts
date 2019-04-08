@@ -1,49 +1,10 @@
 import { Cryptocurrency, ISignature, Prevout, BlindPrevout, ToBeBlindOutput, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
+import { toSatoshis, fromSatoshis, clone } from '../util';
+import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout } from '../interfaces/rpc';
 import { ConfidentialTransactionBuilder } from '../transaction-builder/confidential-transaction';
 
-import { toSatoshis, fromSatoshis, clone, log } from '../util';
-import { triggerAsyncId } from 'async_hooks';
-
-// TODO: allowing multiple classes per file for now
-// tslint:disable:max-classes-per-file
-
-
-/*
- * Interfaces which the Rpc class needs to implement
- */
-export interface RpcAddressInfo {
-    pubkey: string;
-}
-
-export interface RpcRawTx {
-    txid: string;
-    vout: RpcVout[];
-}
-
-export interface RpcVout {
-    valueSat: number;
-    n: number;
-    scriptPubKey: RpcScriptPubKey;
-    valueCommitment?: string; // TODO: move to RpcBlindVout?
-}
-
-export interface RpcScriptPubKey {
-    hex: string;
-    addresses: string[];
-}
-
-export interface RpcOutput {
-    txid: string;
-    vout: number;
-}
-
-export interface RpcUnspentOutput extends RpcOutput {
-    spendable: boolean;
-    safe: boolean;
-    scriptPubKey: string;
-    amount: number;
-}
+// tslint:disable max-classes-per-file bool-param-default
 
 export interface RpcBlindInput extends RpcOutput {
     type: string;
@@ -88,20 +49,6 @@ export interface RpcBlindSendToOutput {
  */
 export abstract class Rpc {
 
-    protected _host: string;
-    protected _port: number;
-    protected _user: string;
-    protected _password: string;
-
-    protected constructor(host: string, port: number, user: string, password: string) {
-        this._host = host;
-        this._port = port;
-        this._user = user;
-        this._password = password;
-    }
-
-    // to add support for another coin, the abstract methods below need to be implemented
-    // example implementations in test/rpc.stub.ts and rpc-ct.stub.ts
     public abstract async call(method: string, params: any[]): Promise<any>;
     public abstract async getNewAddress(): Promise<string>; // returns address
     public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
@@ -109,7 +56,7 @@ export abstract class Rpc {
     public abstract async listUnspent(minconf: number): Promise<RpcUnspentOutput[]>;
     public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>; // successful
     public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>; // returns nothing
-    public abstract async createSignatureWithWallet(hex: string, prevtx: RpcUnspentOutput, address: string): Promise<string>; // signature
+    public abstract async createSignatureWithWallet(hex: string, prevtx: RpcOutput, address: string): Promise<string>; // signature
     public abstract async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx>;
     public abstract async sendRawTransaction(rawtx: string): Promise<string>; // returns txid
 
@@ -289,7 +236,7 @@ export abstract class Rpc {
                 scriptPubKey: input._scriptPubKey,
                 amount,
                 spendable: true, // ts lint
-                safe: true,      // ts lint
+                safe: true      // ts lint
             };
 
             const signature: string = await this.createSignatureWithWallet(hex, prevtx, input._address);
@@ -446,7 +393,7 @@ export abstract class CtRpc extends Rpc {
             return i;
         });
 
-        let outs: Array<RpcBlindOrFeeBase> = outputs.map((out: ToBeBlindOutput) => {
+        let outs: RpcBlindOrFeeBase[] = outputs.map((out: ToBeBlindOutput) => {
 
             const o = {
                 type: out._type || 'blind',
@@ -507,7 +454,7 @@ export abstract class CtRpc extends Rpc {
         } else {
             sx = clone(sx) as CryptoAddress;
         }
-        
+
         const info = await this.call('derivefromstealthaddress', [sx.address]);
         sx.pubKey = info.pubkey;
         sx.ephem = {
@@ -527,7 +474,7 @@ export abstract class CtRpc extends Rpc {
         return sx;
     }
 
-    public async getLastMatchingBlindFactor(inputs: ({ blindFactor: string; }[]), outputs: ToBeBlindOutput[]): Promise<string> {
+    public async getLastMatchingBlindFactor(inputs: (Array<{ blindFactor: string; }>), outputs: ToBeBlindOutput[]): Promise<string> {
         const inp = inputs.map(i => i.blindFactor);
         let out = outputs.map(i => i.blindFactor);
 
@@ -548,7 +495,7 @@ export abstract class CtRpc extends Rpc {
     public async signRawTransactionForBlindInputs(tx: ConfidentialTransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]> {
         const r: ISignature[] = [];
 
-        //log("signing for rawtx with blind innputs" + tx.txid)
+        // log("signing for rawtx with blind innputs" + tx.txid)
         // needs to synchronize, because the order needs to match
         // the inputs order.
         for (const input of inputs) {
@@ -575,7 +522,7 @@ export abstract class CtRpc extends Rpc {
                 // If it's a stealth address, derive the key and sign for it.
                 // TODO: verify sx type
                 if (!sx.ephem || !sx.ephem.public) {
-                    throw new Error('Missing ephemeral (public key) for stealth address.')
+                    throw new Error('Missing ephemeral (public key) for stealth address.');
                 }
                 const derived = (await this.call('derivefromstealthaddress', [sx.address, sx.ephem.public]));
                 const params = [

@@ -4,9 +4,9 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey } from './crypto';
+import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey, Fiatcurrency } from './crypto';
 import { DSN, ContentReference } from './dsn';
-import { MPAction, PaymentType, EscrowType } from './omp-enums';
+import { MPAction, SaleType, EscrowType, MessagingProtocol } from './omp-enums';
 import { KVS } from './common';
 
 
@@ -21,55 +21,27 @@ export interface MPM {
 
 export interface MPA {
     type: MPAction;
+
+    // other SaleTypes might require generated field in other messages, so we might need to move this to MPA later.
+    // adding generated+hash to all messages so they'll all have has if needed
+    // created renamed to generated, as the naming would conflict with the db default fields.
+    // generated is needed for bid differentiation, so we can have multiple bids. and we can't use the db.created !implementation !protocol
+    generated: number;          // timestamp, when the bidder generated this bid !implementation !protocol
+    hash: string;               // accept hash, used to verify on the receiving end
+
+    // at least two messages need this, so we might as well add an optional extra objects field here,
+    // so we can easily expand the messages when needed without modifying the omp interfaces right away, !implementation !protocol
+    objects?: KVS[];
 }
 
 
 /**
- * This is the most basic listing.
- * It should only contain the necessary fields
- * as documented in protocol.
+ * This is the marketplace listing.
  */
 export interface MPA_LISTING_ADD extends MPA {
-    type: MPAction.MPA_LISTING_ADD;
-    item: {
-        // created: number, // timestamp // add?
-        // item doesn't need created or any other timestamps, those come from the smsgmessage
-        // hash: string, //item hash // TODO: remove
-        information: {
-            title: string,
-            shortDescription: string,
-            longDescription: string,
-            category: string[],
-            location: {
-                country: string,
-            },
-            shippingDestinations: string[],
-        },
-        payment: {
-            type: PaymentType,
-            escrow: {
-                type: EscrowType,
-                ratio: { // Missing from spec
-                    buyer: number,
-                    seller: number
-                }
-            },
-            cryptocurrency: [{
-                currency: Cryptocurrency,
-                basePrice: number,
-                shippingPrice: {
-                    domestic: number,
-                    international: number
-                },
-                address: CryptoAddress
-            }]
-        },
-        messaging: [{
-            protocol: string,
-            publicKey: string
-        }],
-        objects?: any[]
-    };
+    // type: MPAction.MPA_LISTING_ADD;
+    item: Item;
+    // hash: string;               // item hash, used to verify on the receiving end
 }
 
 
@@ -77,98 +49,39 @@ export interface MPA_LISTING_ADD extends MPA {
  * This is the extended listing.
  * It can also include additional fields.
  */
-export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
-    type: MPAction.MPA_LISTING_ADD;
-    item: {
-        // created: number,     // timestamp // add?
-        // hash: string,        // remove!
-        information: {
-            title: string,
-            shortDescription: string,
-            longDescription: string,
-            category: string[],
-            location: {
-                country: string,
-                address: string,
-                gps: {
-                    lng: number,
-                    lat: number,
-                    markerTitle: string,
-                    markerText: string
-                }
-            },
-            shippingDestinations: string[],
-            images: ContentReference[]
-        },
-        payment: {
-            type: PaymentType,
-            escrow: {
-                type: EscrowType,
-                secondsToLock?: number,
-                ratio: {
-                    buyer: number,
-                    seller: number
-                }
-            },
-            cryptocurrency: [
-                {
-                    currency: Cryptocurrency,
-                    basePrice: number,
-                    shippingPrice: {
-                        domestic: number,
-                        international: number
-                    },
-                    address: CryptoAddress
-                }
-                ]
-        },
-        messaging: [{
-            protocol: string,
-            publicKey: string
-        }],
-        objects?: KVS[]
+/*
+ Commented out for now, as I dont think we really need this?
+ the extended vars are just set optional on the MPA_LISTING_ADD and I dont really see the reason why we should have
+ a specific extended type where they're not optional.
+*/
+// export interface MPA_EXT_LISTING_ADD extends MPA_LISTING_ADD {
+//    type: MPAction.MPA_LISTING_ADD;
+//    item: Item;
+// }
+
+/**
+ *  MPA_BID (buyer -> sender)
+ *  Buyer bids for a listing.
+ *  It includes their payment details and links to the listing.
+ */
+export interface MPA_BID extends MPA {
+    // completely refactored, !implementation !protocol
+    // type: MPAction.MPA_BID;
+    // hash: string;                // bid hash, used to verify on the receiving end
+    item: string;                   // item hash
+    buyer: {                        // buyer payment and other purchase details like shipping address
+        payment: PaymentDataBid;             // MPA_BID, MPA_ACCEPT, MPA_LOCK
+        shippingAddress?: ShippingAddress;   // MPA_BID
     };
 }
 
 /**
- *  MPA_BID (buyer -> sender)
- *  It includes their payment details and links to the listing.
+ *  MPA_REJECT (seller -> buyer)
+ *  Seller rejected the buyers bid.
  */
-export interface MPA_BID extends MPA { // completely refactored, !implementation !protocol
-    type: MPAction;
-    created: number;    // timestamp
-    item: string;       // item hash
-    buyer: {
-        payment: {
-            cryptocurrency: Cryptocurrency,
-            escrow: EscrowType,
-            pubKey: string,                 // MULTISIG
-            address?: CryptoAddress,        // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
-            changeAddress: CryptoAddress,   // MULTISIG
-            prevouts: Prevout[],            // MULTISIG & CT
-            outputs?: ToBeOutput[],         // CT
-            release?: {                     // CT
-                blindFactor: string,
-                ephem: EphemeralKey
-            }
-        },
-        shippingAddress: {
-            firstName: string,
-            lastName: string,
-            addressLine1: string,
-            addressLine2: string,           // optional
-            city: string,
-            state: string,
-            zipCode: string,
-            country: string
-        }
-    };
-    objects?: KVS[];
-}
-
 export interface MPA_REJECT extends MPA {
-    type: MPAction.MPA_REJECT;
-    bid: string; // item hash
+    // type: MPAction.MPA_REJECT;
+    bid: string;                // hash of MPA_BID
 }
 
 /**
@@ -176,32 +89,20 @@ export interface MPA_REJECT extends MPA {
  *  Seller added his payment data.
  */
 export interface MPA_ACCEPT extends MPA {
-    type: MPAction.MPA_ACCEPT;
-    bid: string; // hash of MPA_BID
+    // type: MPAction.MPA_ACCEPT;
+    bid: string;                // hash of MPA_BID
     seller: {
-        payment: {
-            escrow: EscrowType,
-            pubKey: string,                     // MULTISIG
-            changeAddress: CryptoAddress,       // MULTISIG
-            fee: number,
-            prevouts: Prevout[],                // MULTISIG & CT
-            outputs?: ToBeOutput[],             // CT
-            signatures: ISignature[],           // MULTISIG
-            release: {                          // MULTISIG & CT
-                blindFactor?: string,           // CT
-                ephem?: EphemeralKey,           // CT
-                signatures: ISignature[]        // MULTISIG & CT
-            },
-            destroy?: {                         // CT
-                signatures: ISignature[]
-            }
-        }
+        payment: PaymentDataAccept;
     };
 }
 
+/**
+ *  MPA_CANCEL (buyer -> seller)
+ *  Buyer cancelled his bid.
+ */
 export interface MPA_CANCEL extends MPA { // !implementation !protocol
-    type: MPAction.MPA_CANCEL;
-    bid: string; // hash of MPA_BID
+    // type: MPAction.MPA_CANCEL;
+    bid: string;                // hash of MPA_BID
 }
 
 /**
@@ -209,21 +110,240 @@ export interface MPA_CANCEL extends MPA { // !implementation !protocol
  *  Buyer signed the tx too.
  */
 export interface MPA_LOCK extends MPA {
-    type: MPAction.MPA_LOCK;
-    bid: string; // hash of MPA_BID
+    // type: MPAction.MPA_LOCK;
+    bid: string;                // hash of MPA_BID
     buyer: {
-        payment: {
-            escrow: EscrowType,
-            signatures: ISignature[],       // MULTISIG & CT
-            destroy?: {                     // CT
-                signatures: ISignature[]
-            },
-            refund: {                       // MULTISIG & CT
-                signatures: ISignature[]
-            }
-        }
+        payment: PaymentDataLock;
     };
-    info?: {
-        memo: string // is  this useful?
-    };
+    info: LockInfo;
 }
+
+// =============================================================================================
+
+
+
+/**
+ * This is propably useless?
+ */
+export interface LockInfo {
+    memo: string;       // is this useful?
+}
+
+export interface ParticipantData {
+
+}
+
+export interface SignatureData {
+    blindFactor?: string;               // CT (only used BID)
+    ephem?: EphemeralKey;               // CT (only used BID)
+    signatures?: ISignature[];           // MULTISIG & CT
+}
+
+export interface PaymentDataBid {
+    escrow: EscrowType;
+    cryptocurrency: Cryptocurrency;
+    pubKey?: string;                    // MULTISIG
+    address?: CryptoAddress;            // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
+    changeAddress?: CryptoAddress;      // MULTISIG
+    prevouts: Prevout[];                // MULTISIG & CT
+    outputs?: ToBeOutput[];             // CT
+    release?: SignatureData;            // CT (no signatures!)
+}
+
+export interface PaymentDataAccept {
+    escrow: EscrowType;
+    pubKey?: string;                    // MULTISIG
+    changeAddress?: CryptoAddress;      // MULTISIG
+    prevouts: Prevout[];                // MULTISIG & CT
+    outputs?: ToBeOutput[];             // CT
+    fee: number;
+    signatures: ISignature[];           // MULTISIG
+    release: SignatureData;             // MULTISIG & CT (only signatures)
+    destroy?: SignatureData;            // CT  (only signatures)
+}
+
+export interface PaymentDataLock {
+    escrow: EscrowType;
+    signatures: ISignature[];           // MULTISIG & CT
+    refund: SignatureData;              // MULTISIG & CT
+    destroy?: SignatureData;            // CT
+}
+
+/**
+ * ShippingAddress
+ *
+ * MPA_BID
+ */
+export interface ShippingAddress {
+    firstName: string;
+    lastName: string;
+    addressLine1: string;
+    addressLine2?: string; // optional
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+}
+
+/**
+ * Information about the Item being sold
+ *
+ * MPA_LISTING_ADD
+ */
+export interface Item {
+    information: ItemInfo;
+    payment: PaymentInfo;
+    messaging: MessagingInfo;
+    objects?: ItemObject[];
+}
+
+/**
+ * Information related to the item
+ *
+ * MPA_LISTING_ADD
+ */
+export interface ItemInfo {
+    title: string;
+    shortDescription: string;
+    longDescription: string;
+    category: string[];
+    location?: Location;                // optional
+    shippingDestinations?: string[];    // optional
+    images?: ContentReference[];        // optional
+}
+
+/**
+ * Location for the item
+ *
+ * MPA_LISTING_ADD
+ */
+export interface Location {
+    country: string;
+    address: string;
+    description: string; // extra information, could be used for some additional information // !protocol
+    gps: LocationMarker;
+}
+
+/**
+ * LocationMarker with the exact gps coordinates for the item
+ *
+ * MPA_LISTING_ADD
+ */
+export interface LocationMarker {
+    lng: number;
+    lat: number;
+    title: string;
+    description: string;
+}
+
+/**
+ * Information describing the different messaging options
+ *
+ * MPA_LISTING_ADD
+ */
+export interface MessagingInfo {
+    options: MessagingOption[];
+}
+
+// TODO: needs refactoring
+export interface ItemObject {
+    type: string;           // create separate enum
+    description: string;
+    table?: KVS[];          // is this really needed? if it is, split this interface in two
+    order?: number;
+    forceInput?: boolean;
+    objectId?: string;
+    options?: KVS[];
+}
+
+/**
+ * Information describing to how the item is going to be paid and sold
+ * TODO: should the sale information be separately configured from the payment information?
+ *
+ * MPA_LISTING_ADD
+ */
+export type PaymentInfo = PaymentInfoEscrow | PaymentInfoFree;
+
+export interface PaymentInfoEscrow {
+    type: SaleType;
+    escrow: EscrowConfig;
+    pegging?: PricePegging;
+    options: PaymentOption[];
+}
+
+export interface PaymentInfoFree {
+    type: SaleType;
+    escrow?: EscrowConfig;      // SaleType.FREE does not require escrow
+    pegging?: PricePegging;     // pegging is optional
+    options?: PaymentOption[];  // SaleType.FREE might not require this
+}
+
+/**
+ * Configuration for the Escrow
+ *
+ * MPA_LISTING_ADD
+ */
+export interface EscrowConfig {
+    type: EscrowType;
+    ratio: EscrowRatio;
+    secondsToLock: number;
+}
+
+/**
+ * Ratio for the selected EscrowType
+ *
+ * MPA_LISTING_ADD
+ */
+export interface EscrowRatio {
+    buyer: number;
+    seller: number;
+}
+
+/**
+ * Price pegging configuration for the item // !protocol
+ * this would be used to override the basePrice and shippingPrice for selected PaymentOption
+ *
+ * MPA_LISTING_ADD
+ */
+export interface PricePegging {
+    currency: Fiatcurrency | Cryptocurrency;
+    basePrice: number;
+    shippingPrice: ShippingPrice;
+    // +other configuration data is definitely needed for this
+}
+
+/**
+ * PaymentOption describes the how the item can be paid for and what it costs
+ * todo: in case of an order containing multiple different items from the same seller, we might override the ShippingPrice defined here
+ *
+ * MPA_LISTING_ADD
+ */
+export interface PaymentOption {
+    currency: Cryptocurrency;
+    basePrice: number;
+    shippingPrice?: ShippingPrice;  // some SaleTypes might not require this
+    address?: CryptoAddress;        // some SaleTypes might not require this
+}
+
+/**
+ * ShippingPrice for the item
+ *
+ * MPA_LISTING_ADD
+ */
+export interface ShippingPrice {
+    domestic: number;
+    international: number;
+}
+
+/**
+ * Represents Options that can be used for messageing between buyer and seller
+ *
+ * todo: we might consider adding type since we might want to use some options just for certain types of messaging?
+ *
+ * MPA_LISTING_ADD
+ */
+export interface MessagingOption {
+    protocol: MessagingProtocol;
+    publicKey: string;
+}
+

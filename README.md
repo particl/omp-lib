@@ -40,3 +40,11 @@ Given a sequence of MPA's (marketplace actions), the resulting transaction gener
 ## Private fields
 Additional fields can be supplied by the database with an "_", these should be stripped out using `strip()`.
 We only use these when building transactions.
+
+## Testing
+
+Run the test environment by running:
+python3 particl-test-env.py
+
+Then run the test with:
+yarn test
