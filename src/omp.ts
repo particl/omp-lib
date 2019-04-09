@@ -1,124 +1,30 @@
 import 'reflect-metadata';
-import { injectable, Container, interfaces } from 'inversify';
+import { Container, interfaces } from 'inversify';
 import { TYPES } from './types';
-import { Rpc, ILibrary } from './abstract/rpc';
+import { Rpc, ILibrary, CtRpc } from './abstract/rpc';
 import { MPM } from './interfaces/omp';
 import { BidConfiguration } from './interfaces/configs';
-import { DirtyOMP, OMP } from './abstract/omp';
+import { OMP } from './abstract/omp';
 import { Bid } from './bid';
 import { Cryptocurrency } from './interfaces/crypto';
-import { IMultiSigBuilder } from './abstract/transactions';
-import { MultiSigBuilder } from './transaction-builder/multisig';
 
-import { strip, clone} from './util';
+// Escrow buyflows
+import { IMultiSigBuilder, IMadCTBuilder } from './abstract/transactions';
+import { MultiSigBuilder } from './buyflow/multisig';
+import { MadCTBuilder } from './buyflow/madct';
 
-import { FV_MPM } from './format-validators/mpm';
+import { strip } from './util';
+
 import { Format } from './format-validators/validate';
 import { Sequence } from './sequence-verifier/verify';
 import { EscrowType } from './interfaces/omp-enums';
 
 export { Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
 
-export function ompVersion(): string {
-    const pjson = require('pjson');
-    return pjson.version;
-}
+// tslint:disable:bool-param-default
 
 // @injectable()
 export class OpenMarketProtocol implements OMP {
-
-    // public TxLibs: Object = {};
-    private container: Container;
-
-    constructor() {
-        this.container = new Container();
-        this.setup();
-    }
-
-    /**
-     * Bind an Rpc service for a given cryptocurrency.
-     * @param cryptocurrency The currency for which this service works.
-     * @param service Rpc service
-     */
-    public inject(cryptocurrency: Cryptocurrency, service: any): void {
-        // Bind an _instance_ (constant value) to the container.
-        // and give it the name of the cryptocurrency.
-        this.container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
-    }
-
-    public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
-        Format.validate(listing);
-
-        const bid = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await bid.bid(config, listing);
-    }
-
-    public async accept(listing: MPM, bid: MPM): Promise<MPM> {
-        Format.validate(listing);
-        Format.validate(bid);
-
-        const cloned_listing = strip(listing);
-        const cloned_bid = strip(bid);
-
-        Sequence.validate([cloned_listing, cloned_bid]);
-
-        const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.accept(cloned_listing, cloned_bid);
-    }
-
-    public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
-        Format.validate(listing);
-        Format.validate(bid);
-        Format.validate(accept);
-
-        const cloned_listing = strip(listing);
-        const cloned_bid = strip(bid);
-        const cloned_accept = strip(accept);
-
-        Sequence.validate([cloned_listing, cloned_bid, cloned_accept]);
-
-        const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.lock(cloned_listing, cloned_bid, cloned_accept);
-    }
-
-    public async release(listing: MPM, bid: MPM, accept: MPM, release?: MPM): Promise<MPM> {
-        Format.validate(listing);
-        Format.validate(bid);
-        Format.validate(accept);
-
-        const chain: MPM[] = [strip(listing), strip(bid), strip(accept)];
-
-        if (release) {
-            Format.validate(release);
-            chain.push(strip(release));
-        }
-
-        Sequence.validate(chain);
-
-        const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.release(chain[0], chain[1], chain[2], chain[3]);
-    }
-
-    public async refund(listing: MPM, bid: MPM, accept: MPM, refund?: MPM): Promise<MPM> {
-        Format.validate(listing);
-        Format.validate(bid);
-        Format.validate(accept);
-
-        const chain: MPM[] = [strip(listing), strip(bid), strip(accept)];
-
-        if (refund) {
-            Format.validate(refund);
-            chain.push(strip(refund));
-        }
-
-        Sequence.validate(chain);
-
-        const action = this.container.get<DirtyOMP>(TYPES.Bid);
-        return await action.refund(chain[0], chain[1], chain[2], chain[3]);
-    }
-
-    /*
-    TODO: unused code, are these supposed to be used or can we remove these?
 
     public static strip(msg: MPM): MPM {
         return strip(msg);
@@ -133,7 +39,103 @@ export class OpenMarketProtocol implements OMP {
 
         return true;
     }
-    */
+
+    // public TxLibs: Object = {};
+    private container: Container;
+
+    constructor() {
+        this.container = new Container();
+        this.setup();
+    }
+
+
+    /**
+     * Bind an Rpc service for a given cryptocurrency.
+     * @param cryptocurrency The currency for which this service works.
+     * @param service Rpc service
+     */
+    public inject(cryptocurrency: Cryptocurrency, service: any): void {
+        // Bind an _instance_ (constant value)
+        // to the container.
+        // and give it the name of the cryptocurrency.
+
+        if (service instanceof CtRpc) {
+            this.container.bind<CtRpc>(TYPES.CtRpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
+        } else if (service instanceof Rpc) {
+            this.container.bind<Rpc>(TYPES.Rpc).toConstantValue(service).whenTargetNamed(cryptocurrency.toString());
+        } else {
+            throw new Error('The injected service did not comply to the abstracted Rpc class for which it was specified!');
+        }
+    }
+
+    public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
+        Format.validate(listing);
+
+        const bid = this.container.get<OMP>(TYPES.Bid);
+        return await bid.bid(config, listing);
+    }
+
+    public async accept(listing: MPM, bid: MPM): Promise<MPM> {
+        Format.validate(listing);
+        Format.validate(bid);
+
+        const cloned_listing = strip(listing);
+        const cloned_bid = strip(bid);
+
+        Sequence.validate([cloned_listing, cloned_bid]);
+
+        const action = this.container.get<OMP>(TYPES.Bid);
+        return await action.accept(cloned_listing, cloned_bid);
+    }
+
+    public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
+        Format.validate(listing);
+        Format.validate(bid);
+        Format.validate(accept);
+
+        const cloned_listing = strip(listing);
+        const cloned_bid = strip(bid);
+        const cloned_accept = strip(accept);
+
+        Sequence.validate([cloned_listing, cloned_bid, cloned_accept]);
+
+        const action = this.container.get<OMP>(TYPES.Bid);
+        return await action.lock(cloned_listing, cloned_bid, cloned_accept);
+    }
+
+    public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
+        const action = this.container.get<OMP>(TYPES.Bid);
+        return action.complete(listing, bid, accept, lock);
+    }
+
+    public async release(listing: MPM, bid: MPM, accept: MPM): Promise<string> {
+        Format.validate(listing);
+        Format.validate(bid);
+        Format.validate(accept);
+
+        const chain: MPM[] = [strip(listing), strip(bid), strip(accept)];
+
+        Sequence.validate(chain);
+
+        const action = this.container.get<OMP>(TYPES.Bid);
+        return await action.release(chain[0], chain[1], chain[2]);
+    }
+
+    public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
+        // TODO: validate that there are no cancels/rejects in here!
+        Format.validate(listing);
+        Format.validate(bid);
+        Format.validate(accept);
+        Format.validate(lock);
+
+        const chain: MPM[] = [strip(listing), strip(bid), strip(accept), strip(lock)];
+
+        Sequence.validate(chain);
+
+        const action = this.container.get<OMP>(TYPES.Bid);
+        return await action.refund(chain[0], chain[1], chain[2], chain[3]);
+    }
+
 
     public rpc(cryptocurrency: Cryptocurrency): Rpc {
         return this.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
@@ -146,16 +148,23 @@ export class OpenMarketProtocol implements OMP {
         // This is our library factory
         // it returns the Rpc libraries that we injected below (cfr. inject() ).
         // based on a cryptocurrency: Cryptocurrency
-        this.container.bind<ILibrary>(TYPES.Library).toFactory<Rpc>(
+        this.container.bind<ILibrary>(TYPES.Library).toFactory<CtRpc | Rpc>(
             (ctx: interfaces.Context) => {
-                return (cryptocurrency: Cryptocurrency) => {
-                    const lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
+                return (cryptocurrency: Cryptocurrency, isCt?: boolean) => {
+                    let lib;
+                    if (!isCt) {
+                        lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
+                    } else {
+                        lib = ctx.container.getNamed<CtRpc>(TYPES.CtRpc, cryptocurrency);
+                    }
                     return lib;
                 };
             });
 
-        this.container.bind<DirtyOMP>(TYPES.Bid).to(Bid);
+        this.container.bind<OMP>(TYPES.Bid).to(Bid);
         this.container.bind<IMultiSigBuilder>(TYPES.MultiSigBuilder).to(MultiSigBuilder);
+        this.container.bind<IMadCTBuilder>(TYPES.MadCTBuilder).to(MadCTBuilder);
     }
+
 }
 

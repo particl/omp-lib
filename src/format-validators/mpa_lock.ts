@@ -5,6 +5,7 @@ import { isObject, isArray, isString, isSHA256Hash } from '../util';
 import { FV_CRYPTO } from './crypto';
 import { FV_MPM} from './mpm';
 import { FV_MPA_LOCK_ESCROW_MULTISIG } from './escrow/multisig';
+import { FV_MPA_LOCK_ESCROW_MAD_CT } from './escrow/madct';
 
 export class FV_MPA_LOCK {
 
@@ -20,7 +21,7 @@ export class FV_MPA_LOCK {
         }
 
         if (action.type !== MPAction.MPA_LOCK) {
-            throw new Error('action.type: expecting MPA_LOCK got ' + action.type);
+            throw new Error('action.type: expecting MPA_LOCK received=' + action.type);
         }
 
         if (!isSHA256Hash(action.bid)) {
@@ -43,9 +44,10 @@ export class FV_MPA_LOCK {
                 case EscrowType.MAD:
                     // TODO: not implemented
                 case EscrowType.MAD_CT:
-                    // TODO: not implemented
+                    FV_MPA_LOCK_ESCROW_MAD_CT.validate(payment);
+                    break;
                 default:
-                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, got ' + payment.escrow);
+                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, received=' + payment.escrow);
             }
 
         } else {

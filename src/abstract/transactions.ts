@@ -1,10 +1,19 @@
-import { MPM } from '../interfaces/omp';
+import { MPA } from '../interfaces/omp';
 
 export interface IMultiSigBuilder {
-    bid(listing: MPM, bid: MPM): Promise<MPM>;
-    accept(listing: MPM, bid: MPM, accept: MPM): Promise<MPM>;
-    release(listing: MPM, bid: MPM, accept: MPM, release: MPM): Promise<MPM>;
-    lock(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<MPM>;
-    refund(listing: MPM, bid: MPM, accept: MPM, refund: MPM): Promise<MPM>;
+    bid(listing: MPA, bid: MPA): Promise<MPA>;
+    accept(listing: MPA, bid: MPA, accept: MPA): Promise<MPA>;
+    lock(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<MPA>;
+    release(listing: MPA, bid: MPA, accept: MPA): Promise<string>;
+    refund(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<string>;
+}
+
+export interface IMadCTBuilder {
+    bid(listing: MPA, bid: MPA): Promise<MPA>;
+    accept(listing: MPA, bid: MPA, accept: MPA): Promise<MPA>;
+    lock(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<MPA>;
+    complete(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<string>; // rawtx
+    release(listing: MPA, bid: MPA, accept: MPA): Promise<string>;
+    refund(listing: MPA, bid: MPA, accept: MPA, lock: MPA): Promise<string>;
 }
 

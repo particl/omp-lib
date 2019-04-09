@@ -1,6 +1,6 @@
-import { Item, ItemInfo, MPA, MPA_BID, MPA_LISTING_ADD, MPM, PaymentDataBid, PaymentInfoEscrow, PaymentOption } from '../interfaces/omp';
+import { Item, ItemInfo, MPA_LISTING_ADD, MPM, PaymentDataBid, PaymentInfoEscrow, PaymentOption } from '../interfaces/omp';
 import { SaleType, MPAction, EscrowType } from '../interfaces/omp-enums';
-import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry } from '../util';
+import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry, isNonNegativeNaturalNumber } from '../util';
 import { FV_MPM } from './mpm';
 import { FV_CRYPTO } from './crypto';
 import { Cryptocurrency } from '../interfaces/crypto';
@@ -145,24 +145,28 @@ export class FV_MPA_LISTING {
             // TODO: RENT?
             if (['SALE', 'RENT'].indexOf(payment.type) !== -1) {
 
-                if (!isObject(payment.escrow)) {
+                if (!payment.escrow  || !isObject(payment.escrow)) {
                     throw new Error('action.item.payment.escrow: missing');
                 }
 
-                if (payment.escrow && !isString(payment.escrow.type)) {
+                if (!isString(payment.escrow.type)) {
                     throw new Error('action.item.payment.escrow.type: missing or not a string');
                 }
 
-                if (payment.escrow && !(payment.escrow.type in EscrowType)) {
+                if (!(payment.escrow.type in EscrowType)) {
                     throw new Error('action.item.payment.escrow.type: unknown value');
+                }
+
+                if (payment.escrow.secondsToLock && !isNonNegativeNaturalNumber(payment.escrow.secondsToLock)) {
+                    throw new Error('action.item.payment.secondsToLock: missing or not an non-negative natural number');
                 }
 
                 if (payment.escrow && !isObject(payment.escrow.ratio)) {
                     throw new Error('action.item.payment.escrow: missing or not an object');
                 }
 
-                if ((payment.escrow && !isValidPercentage(payment.escrow.ratio.buyer))
-                    || (payment.escrow && !isValidPercentage(payment.escrow.ratio.seller))) {
+                if ((!isValidPercentage(payment.escrow.ratio.buyer))
+                    || !isValidPercentage(payment.escrow.ratio.seller)) {
                     throw new Error('action.item.payment.escrow.ratio: missing or invalid percentages');
                 }
 
@@ -170,7 +174,7 @@ export class FV_MPA_LISTING {
                     throw new Error('action.item.payment.options: not an array');
                 }
 
-                if (payment.options && payment.options.length <= 0) {
+                if (!payment.options || payment.options.length <= 0) {
                     throw new Error('action.item.payment.options: length of array is 0, missing?');
                 }
 
@@ -185,6 +189,7 @@ export class FV_MPA_LISTING {
                         throw new Error('action.item.payment.options.currency: missing or not a string, fault in element');
                     }
 
+                    // TODO: fix for fiat as well now
                     if (!(paymentOption.currency in Cryptocurrency)) {
                         throw new Error('action.item.payment.options.currency: unknown value, fault in element');
                     }
@@ -226,7 +231,7 @@ export class FV_MPA_LISTING {
             }
 
             if (!isArray(item.messaging.options)) {
-                throw new Error('action.item.options: not an array');
+                throw new Error('action.item.messaging.options: not an array');
             }
 
             if (item.messaging.options.length === 0) {

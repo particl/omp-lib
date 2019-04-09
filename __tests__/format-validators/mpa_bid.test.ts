@@ -22,7 +22,7 @@ describe('format-validator: MPA_BID', () => {
                         "type": "NORMAL",
                         "address": "someaddress"
                     },
-                    "outputs": [
+                    "prevouts": [
                         {
                             "txid": "${hash('txid')}",
                             "vout": 0
@@ -47,7 +47,7 @@ describe('format-validator: MPA_BID', () => {
         //
     });
 
-    test('should validate ok MPA_BID', () => {
+    test('should validate ok', () => {
         let fail: boolean;
         try {
             fail = !validate(ok);
@@ -57,7 +57,7 @@ describe('format-validator: MPA_BID', () => {
         expect(fail).toBe(false);
     });
 
-    test('should fail to validate because missing buyer MPA_BID', () => {
+    test('should fail to validate because missing buyer', () => {
         const missing_buyer = clone(ok);
         missing_buyer.action.buyer = 'UNKWONSDFS';
         let error = '';
@@ -69,7 +69,7 @@ describe('format-validator: MPA_BID', () => {
         expect(error).toEqual(expect.stringContaining('buyer: missing or not an object'));
     });
 
-    test('should fail to validate because payment not an object MPA_BID', () => {
+    test('should fail to validate because payment not an object', () => {
         const invalid_payment = clone(ok);
         invalid_payment.action.buyer.payment = 'not-an-object';
         let error = '';
@@ -81,7 +81,7 @@ describe('format-validator: MPA_BID', () => {
         expect(error).toEqual(expect.stringContaining('payment: not an object'));
     });
 
-    test('should fail to validate because invalid escrow type MPA_BID', () => {
+    test('should fail to validate because invalid escrow type', () => {
         const invalid_escrow = clone(ok);
         invalid_escrow.action.buyer.payment.escrow = 'INVALID';
         let error = '';
@@ -90,10 +90,10 @@ describe('format-validator: MPA_BID', () => {
         } catch (e) {
             error = e.toString();
         }
-        expect(error).toEqual(expect.stringContaining('expecting escrow type, unknown value, got INVALID'));
+        expect(error).toEqual(expect.stringContaining('expecting escrow type, unknown value, received=INVALID'));
     });
 
-    test('should fail to validate because missing payment cryptocurrency MPA_BID', () => {
+    test('should fail to validate because missing payment cryptocurrency', () => {
         const missing_payment_cryptocurrency = clone(ok);
         delete missing_payment_cryptocurrency.action.buyer.payment.cryptocurrency;
         let error = '';
@@ -105,7 +105,7 @@ describe('format-validator: MPA_BID', () => {
         expect(error).toEqual(expect.stringContaining('payment.cryptocurrency: missing cryptocurrency type'));
     });
 
-    test('should fail to validate because missing shipping address MPA_BID', () => {
+    test('should fail to validate because missing shipping address', () => {
         const missing_shippingAddress = clone(ok);
         missing_shippingAddress.action.buyer.shippingAddress = 'MISSING';
         let error = '';

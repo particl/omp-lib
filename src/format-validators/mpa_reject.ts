@@ -16,7 +16,7 @@ export class FV_MPA_REJECT {
         }
 
         if (action.type !== MPAction.MPA_REJECT) {
-            throw new Error('action.type: expecting MPA_REJECT got ' + action.type);
+            throw new Error('action.type: expecting MPA_REJECT received=' + action.type);
         }
 
         if (!isSHA256Hash(action.bid)) {

@@ -1,6 +1,6 @@
 // tslint:disable:no-for-each-push
 import { sha256 } from 'js-sha256';
-import { isString, isObject, isArray, isNumber } from '../format-validators/util';
+import { isObject, isArray } from '../format-validators/util';
 import { MPA_LISTING_ADD, MPM } from '../interfaces/omp';
 import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
 
@@ -10,12 +10,13 @@ export function hash(v: any): string {
         throw new Error('hash(): value is undefined');
     }
 
-    if (isObject(v)) {
+    if (v instanceof Buffer) {
+        return sha256(v);
+    } else if (isObject(v)) {
         return hashObject(v);
     } else {
         return sha256(v);
     }
-
 }
 
 function hashObject(unordered: object): string {

@@ -1,0 +1,17 @@
+Q1. Pregenerating the blinding factors.
+
+test8.py L2371
+```
+bfSellerIn = sha256(bfOutSeller + bfOutBuyer + b58decode(sxSeller))
+```
+
+Neat trick to reduce the round of communication, we need to know the blinding factor in "advance".
+Instead we allow the buyer to pick it and create an "intermediate" tx with predetermined blind factors.
+
+The intermediate tx also prevents another issue, the initial blinding factor is known to a third party.
+Alice (random) -> Bob (buyer) -> Carol (seller).
+If we imagine the situation where _only_ the seller would generate an intermediate tx - reusing the 
+initial (third-party known) blinding factor could be a security issue.
+
+Seeing that bfOutBuyer from the new intermediate tx is randomly generated, wouldn't sha256(bfOutBuyer)
+technically be enough?

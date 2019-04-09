@@ -1,4 +1,6 @@
 
+export const OMPVERSION = '0.1.0';
+
 export function isObject(v: any): boolean {
     return v && typeof v === 'object';
 }
@@ -45,6 +47,10 @@ export function isSHA256Hash(h: any): boolean {
 }
 
 export function isTxid(txid: any): boolean {
+    return isSHA256Hash(txid);
+}
+
+export function isBlindFactor(txid: any): boolean {
     return isSHA256Hash(txid);
 }
 
@@ -103,7 +109,12 @@ function _strip(obj: any): any {
     return obj;
 }
 
+// TODO: use generics?
 export function strip(obj: any): any {
     const o = clone(obj);
     return _strip(o);
+}
+
+export function log(obj: any): void {
+    console.log(JSON.stringify(obj, null, 4));
 }

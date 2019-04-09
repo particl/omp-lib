@@ -30,7 +30,7 @@ describe('Bid', () => {
                     "seller": 100
                   }
                 },
-                "cryptocurrency": [
+                "options": [
                   {
                     "currency": "PART",
                     "basePrice": 100000000000

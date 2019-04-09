@@ -16,7 +16,7 @@ describe('format-validator: Crypto', () => {
         }`);
         let fail: boolean;
         try {
-            fail = !FV_CRYPTO.validateOutput(success);
+            fail = !FV_CRYPTO.validatePrevout(success);
         } catch (e) {
             console.log(e);
             fail = true;
@@ -28,7 +28,7 @@ describe('format-validator: Crypto', () => {
         const horrible_fail = JSON.parse(`"not even an object"`);
         let fail: boolean;
         try {
-            fail = !FV_CRYPTO.validateOutput(horrible_fail);
+            fail = !FV_CRYPTO.validatePrevout(horrible_fail);
         } catch (e) {
             fail = true;
         }
@@ -43,7 +43,7 @@ describe('format-validator: Crypto', () => {
         }`);
         let fail: boolean;
         try {
-            fail = !FV_CRYPTO.validateOutput(negative_vout);
+            fail = !FV_CRYPTO.validatePrevout(negative_vout);
         } catch (e) {
             fail = true;
         }

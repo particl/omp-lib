@@ -2,11 +2,16 @@ import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 
-import { Rpc } from '../src/abstract/rpc';
-import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from '../src/interfaces/rpc';
+import { CtRpc, RpcAddressInfo, RpcRawTx, RpcUnspentOutput, RpcBlindSendToOutput } from '../src/abstract/rpc';
+
+import { Prevout, ISignature, BlindPrevout, CryptoAddressType, CryptoAddress, ToBeBlindOutput } from "../src/interfaces/crypto";
+import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone, log } from "../src/util";
+import { TransactionBuilder } from '../src/transaction-builder/transaction';
+import { ConfidentialTransactionBuilder } from '../src/transaction-builder/confidential-transaction';
+
 
 @injectable()
-export class CoreRpcService extends Rpc {
+class CtCoreRpcService extends CtRpc {
 
     private RPC_REQUEST_ID = 1;
     private DEBUG = true;
@@ -43,7 +48,11 @@ export class CoreRpcService extends Rpc {
         return await this.call('sendtoaddress', [address, amount, comment]);
     }
 
-    public async createSignatureWithWallet(hex: string, prevtx: RpcUnspentOutput, address: string): Promise<string> {
+    public async sendTypeTo(typeIn: string, typeOut: string, outputs: RpcBlindSendToOutput[]): Promise<string>{
+        return await this.call('sendtypeto', [typeIn, typeOut, outputs]);
+    }
+
+    public async createSignatureWithWallet(hex: string, prevtx: Prevout, address: string): Promise<string> {
         return await this.call('createsignaturewithwallet', [hex, prevtx, address]);
     }
 
@@ -59,20 +68,50 @@ export class CoreRpcService extends Rpc {
      * Get a raw transaction, always in verbose mode
      * @param txid
      */
-    public async getRawTransaction(txid: string, verbose: boolean = true): Promise<RpcRawTx> {
-        return await this.call('getrawtransaction', [txid, verbose]);
+    public async getRawTransaction(txid: string): Promise<RpcRawTx> {
+        return await this.call('getrawtransaction', [txid, true]);
     }
 
     public async listUnspent(minconf: number): Promise<RpcUnspentOutput[]> {
         return await this.call('listunspent', [minconf]);
     }
 
+    public async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]>{
+        return await this.call('listunspentblind', [minconf]);
+    }
+
     /**
      * Permanently locks outputs until unlocked or spent.
      * @param prevout an array of outputs to lock
      */
-    public async lockUnspent(unlock: boolean = false, prevouts: RpcOutput[], permanent: boolean = true): Promise<boolean> {
+    public async lockUnspent(unlock: boolean, prevouts: Prevout[], permanent: boolean): Promise<boolean> {
         return await this.call('lockunspent', [unlock, prevouts, permanent]);
+    }
+
+    // CtRpc required implmentations below...
+
+    public async getNewStealthAddress(): Promise<CryptoAddress> {
+        const sx = await this.call('getnewstealthaddress');
+        return {
+            type: CryptoAddressType.STEALTH,
+            address: sx
+        } as CryptoAddress;
+    }
+
+    public async getBlindPrevouts(satoshis: number, blind?: string): Promise<BlindPrevout[]> {
+        return [await this.createBlindPrevoutFromAnon(satoshis, blind)];
+    }
+
+    /**
+     * Verify value commitment.
+     * note that the amount is satoshis, which differs from the rpc api
+     *
+     * @param commitment
+     * @param blind
+     * @param satoshis
+     */
+    public async verifyCommitment(commitment: string, blind: string, satoshis: number): Promise<boolean> {
+        return (await this.call('verifycommitment', [commitment, blind, fromSatoshis(satoshis)])).result;
     }
 
     public async call(method: string, params: any[] = []): Promise<any> {
@@ -125,4 +164,11 @@ export class CoreRpcService extends Rpc {
 
         return rpcOpts;
     }
+
 }
+
+export const node0 = new CtCoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');
+export const node1 = new CtCoreRpcService('localhost', 19793, 'rpcuser1', 'rpcpass1');
+export const node2 = new CtCoreRpcService('localhost', 19794, 'rpcuser2', 'rpcpass2');
+
+export { CtCoreRpcService };

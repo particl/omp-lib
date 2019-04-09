@@ -10,12 +10,14 @@
     "scripts": {
         "build": "tsc",
         "prestart": "npm run build",
+        "start": "node ./dist/src/module.js",
         "pretest": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish '__tests__/**/*.{ts,tsx}'",
         "test": "npm-run-all -s lint test:run",
         "test:setup": "python3 particl-test-env.py",
         "test:run": "jest --verbose",
         "test:single": "npm run test:run -- --testPathPattern=$TEST -i",
-        "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
+        "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'",
+        "lint:fix": "tslint --fix --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
     },
     "contributors": [
         {
@@ -33,7 +35,6 @@
         "inversify": "^4.13.0",
         "js-sha256": "^0.9.0",
         "particl-bitcore-lib": "https://github.com/kewde/particl-bitcore-lib.git",
-        "pjson": "^1.0.9",
         "reflect-metadata": "^0.1.12",
         "tslib": "^1.9.3",
         "web-request": "^1.0.7"

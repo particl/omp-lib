@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Output, CryptoAddress, Cryptocurrency, ISignature, Fiatcurrency } from './crypto';
+import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey, Fiatcurrency } from './crypto';
 import { DSN, ContentReference } from './dsn';
 import { MPAction, SaleType, EscrowType, MessagingProtocol } from './omp-enums';
 import { KVS } from './common';
@@ -67,9 +67,12 @@ export interface MPA_LISTING_ADD extends MPA {
 export interface MPA_BID extends MPA {
     // completely refactored, !implementation !protocol
     // type: MPAction.MPA_BID;
-    // hash: string;               // bid hash, used to verify on the receiving end
-    item: string;               // item hash
-    buyer: BuyerData;           // buyer payment and other purchase details like shipping address
+    // hash: string;                // bid hash, used to verify on the receiving end
+    item: string;                   // item hash
+    buyer: {                        // buyer payment and other purchase details like shipping address
+        payment: PaymentDataBid;             // MPA_BID, MPA_ACCEPT, MPA_LOCK
+        shippingAddress?: ShippingAddress;   // MPA_BID
+    };
 }
 
 /**
@@ -88,7 +91,9 @@ export interface MPA_REJECT extends MPA {
 export interface MPA_ACCEPT extends MPA {
     // type: MPAction.MPA_ACCEPT;
     bid: string;                // hash of MPA_BID
-    seller: SellerData;
+    seller: {
+        payment: PaymentDataAccept;
+    };
 }
 
 /**
@@ -107,24 +112,10 @@ export interface MPA_CANCEL extends MPA { // !implementation !protocol
 export interface MPA_LOCK extends MPA {
     // type: MPAction.MPA_LOCK;
     bid: string;                // hash of MPA_BID
-    buyer: BuyerData;
+    buyer: {
+        payment: PaymentDataLock;
+    };
     info: LockInfo;
-}
-
-/**
- *  MPA_RELEASE (seller -> buyer)
- *  Seller automatically requests the release of the escrow.
- */
-export interface MPA_RELEASE extends MPA { // !implementation !protocol
-    // type: MPAction.MPA_RELEASE;
-    bid: string;                // hash of MPA_BID
-    seller: SellerData;
-}
-
-export interface MPA_REFUND extends MPA {
-    // type: MPAction.MPA_REFUND;
-    bid: string;                // hash of MPA_BID
-    buyer: BuyerData;
 }
 
 // =============================================================================================
@@ -138,64 +129,45 @@ export interface LockInfo {
     memo: string;       // is this useful?
 }
 
-/**
- * SellerData holds the seller related information
- *
- * MPA_ACCEPT
- */
-export interface SellerData extends ParticipantData {
+export interface BlindData {
+    blindFactor: string;               // CT (only used BID)
+    ephem: EphemeralKey;               // CT (only used BID)
 }
 
-/**
- * BuyerData holds the buyer related information
- *
- * MPA_BID
- */
-export interface BuyerData extends ParticipantData {
-    shippingAddress: ShippingAddress;   // MPA_BID
+export interface SignatureData {
+    blindFactor?: string;               // CT
+    ephem?: EphemeralKey;               // CT
+    signatures: ISignature[];           // MULTISIG & CT
 }
-
-export interface ParticipantData {
-    payment: PaymentData;               // MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND
-}
-
-/**
- * PaymentData holds the information related to payment and the payment negotiation flow between buyer and seller
- */
-export type PaymentData = PaymentDataBid | PaymentDataAccept | PaymentDataSign;
-
-/*
-export interface PaymentData {
-    escrow: EscrowType;                 // MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND
-    cryptocurrency?: Cryptocurrency;    // MPA_BID
-    pubKey?: string;                    // MPA_BID, MPA_ACCEPT
-    changeAddress?: CryptoAddress;      // MPA_BID, MPA_ACCEPT
-    outputs?: Output[];                 // MPA_BID, MPA_ACCEPT
-    fee?: number;                       // MPA_ACCEPT
-    signatures?: ISignature[];          // MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND
-}
-*/
 
 export interface PaymentDataBid {
     escrow: EscrowType;
     cryptocurrency: Cryptocurrency;
-    pubKey: string;
-    changeAddress: CryptoAddress;
-    outputs: Output[];
+    pubKey?: string;                    // MULTISIG
+    address?: CryptoAddress;            // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
+    changeAddress?: CryptoAddress;      // MULTISIG
+    prevouts: Prevout[];                // MULTISIG & CT
+    outputs?: ToBeOutput[];             // CT
+    release?: BlindData;                // CT (no signatures!)
 }
 
 export interface PaymentDataAccept {
     escrow: EscrowType;
-    pubKey: string;
-    changeAddress: CryptoAddress;
-    outputs: Output[];
+    pubKey?: string;                    // MULTISIG
+    changeAddress?: CryptoAddress;      // MULTISIG
+    prevouts: Prevout[];                // MULTISIG & CT
+    outputs?: ToBeOutput[];             // CT
     fee: number;
-    signatures: ISignature[];
+    signatures: ISignature[];           // MULTISIG
+    release: SignatureData;             // MULTISIG & CT (only signatures)
+    destroy?: SignatureData;            // CT  (only signatures)
 }
 
-export interface PaymentDataSign {
+export interface PaymentDataLock {
     escrow: EscrowType;
-    signatures: ISignature[];
+    signatures: ISignature[];           // MULTISIG & CT
+    refund: SignatureData;              // MULTISIG & CT
+    destroy?: SignatureData;            // CT
 }
 
 /**
@@ -315,6 +287,7 @@ export interface PaymentInfoFree {
 export interface EscrowConfig {
     type: EscrowType;
     ratio: EscrowRatio;
+    secondsToLock: number;
 }
 
 /**

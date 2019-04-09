@@ -1,14 +1,15 @@
-import { MPA, MPA_LISTING_ADD, MPA_BID, MPM, ShippingAddress, PaymentDataBid } from '../interfaces/omp';
+import { MPA_BID, MPM, ShippingAddress, PaymentDataBid } from '../interfaces/omp';
 import { MPAction, EscrowType } from '../interfaces/omp-enums';
-import { FV_CRYPTO } from './crypto';
-import { isNumber, isObject, isArray, isString, isTimestamp, isSHA256Hash, isCountry } from '../util';
+import { isObject, isString, isTimestamp, isSHA256Hash, isCountry } from '../util';
 import { FV_MPM } from './mpm';
 import { FV_OBJECTS } from './objects';
 import { FV_MPA_BID_ESCROW_MULTISIG } from './escrow/multisig';
 import { Cryptocurrency } from '../interfaces/crypto';
+import { FV_MPA_BID_ESCROW_MAD_CT } from './escrow/madct';
 
 // TODO: cognitive-complexity 22, should be less than 20
 // tslint:disable:cognitive-complexity
+
 
 export class FV_MPA_BID {
 
@@ -23,7 +24,7 @@ export class FV_MPA_BID {
         }
 
         if (action.type !== MPAction.MPA_BID) {
-            throw new Error('action.type: expecting MPA_BID got ' + action.type);
+            throw new Error('action.type: expecting MPA_BID received=' + action.type);
         }
 
         if (!isTimestamp(action.generated)) {
@@ -38,7 +39,7 @@ export class FV_MPA_BID {
             throw new Error('action.buyer: missing or not an object');
         }
 
-        const paymentDataBid = action.buyer.payment as PaymentDataBid;
+        const paymentDataBid = action.buyer.payment;
 
         if (isObject(paymentDataBid)) {
             if (!paymentDataBid.cryptocurrency) {
@@ -46,11 +47,11 @@ export class FV_MPA_BID {
             }
 
             if (!(paymentDataBid.cryptocurrency in Cryptocurrency)) {
-                throw new Error('action.buyer.payment.cryptocurrency: expecting cryptocurrency type, unknown value, got ' + paymentDataBid.cryptocurrency);
+                throw new Error('action.buyer.payment.cryptocurrency: expecting cryptocurrency type, unknown value, received=' + paymentDataBid.cryptocurrency);
             }
 
             if (!(paymentDataBid.escrow in EscrowType)) {
-                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + paymentDataBid.escrow);
+                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, received=' + paymentDataBid.escrow);
             }
 
             // TODO: implement all validators
@@ -63,9 +64,10 @@ export class FV_MPA_BID {
                 case EscrowType.MAD:
                     // TODO: not implemented
                 case EscrowType.MAD_CT:
-                    // TODO: not implemented
+                    FV_MPA_BID_ESCROW_MAD_CT.validate(paymentDataBid);
+                    break;
                 default:
-                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, got ' + paymentDataBid.escrow);
+                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, received=' + paymentDataBid.escrow);
             }
 
         } else {

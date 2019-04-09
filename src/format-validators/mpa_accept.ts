@@ -6,6 +6,7 @@ import { FV_MPM } from './mpm';
 import { FV_CRYPTO } from './crypto';
 import { FV_OBJECTS } from './objects';
 import { FV_MPA_ACCEPT_ESCROW_MULTISIG } from './escrow/multisig';
+import { FV_MPA_ACCEPT_ESCROW_MAD_CT } from './escrow/madct';
 
 export class FV_MPA_ACCEPT {
 
@@ -20,7 +21,7 @@ export class FV_MPA_ACCEPT {
         }
 
         if (action.type !== MPAction.MPA_ACCEPT) {
-            throw new Error('action.type: expecting MPA_ACCEPT got ' + action.type);
+            throw new Error('action.type: expecting MPA_ACCEPT received=' + action.type);
         }
 
         if (!isSHA256Hash(action.bid)) {
@@ -32,10 +33,10 @@ export class FV_MPA_ACCEPT {
         }
 
         if (isObject(action.seller.payment)) {
-            const paymentDataAccept = action.seller.payment as PaymentDataAccept;
+            const paymentDataAccept = action.seller.payment;
 
             if (!(paymentDataAccept.escrow in EscrowType)) {
-                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, got ' + paymentDataAccept.escrow);
+                throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, received=' + paymentDataAccept.escrow);
             }
 
             // TODO: implement all validators
@@ -48,9 +49,10 @@ export class FV_MPA_ACCEPT {
                 case EscrowType.MAD:
                     // TODO: not implemented
                 case EscrowType.MAD_CT:
-                    // TODO: not implemented
+                    FV_MPA_ACCEPT_ESCROW_MAD_CT.validate(paymentDataAccept);
+                    break;
                 default:
-                    throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, got ' + paymentDataAccept.escrow);
+                    throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, received=' + paymentDataAccept.escrow);
             }
 
             if (!isValidPrice(paymentDataAccept.fee)) {

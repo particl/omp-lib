@@ -14,6 +14,7 @@ export interface RpcVout {
     valueSat: number;
     n: number;
     scriptPubKey: RpcScriptPubKey;
+    valueCommitment?: string; // TODO: move to RpcBlindVout?
 }
 
 export interface RpcScriptPubKey {

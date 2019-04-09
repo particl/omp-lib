@@ -12,6 +12,7 @@ describe('format-validator: MPA_BID', () => {
             "version": "0.1.0.0",
             "action": {
                 "type": "MPA_LISTING_ADD",
+                "hash": "${hash('hash')}",
                 "item": {
                   "information": {
                     "title": "a 6 month old dog",
@@ -43,8 +44,7 @@ describe('format-validator: MPA_BID', () => {
                       "publicKey": "TODO"
                     }]
                   }
-                },
-                "hash": "${hash('hash')}"
+                }
             }
         }`);
 

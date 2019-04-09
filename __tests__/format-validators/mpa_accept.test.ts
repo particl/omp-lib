@@ -25,7 +25,7 @@ describe('format-validator: MPA_ACCEPT', () => {
                         "type": "NORMAL",
                         "address": "someaddress"
                     },
-                    "outputs": [
+                    "prevouts": [
                         {
                             "txid": "${hash('txid')}",
                             "vout": 0
@@ -36,13 +36,21 @@ describe('format-validator: MPA_ACCEPT', () => {
                             "signature": "signature1",
                             "pubKey": "pubkey1"
                         }
-                    ]
+                    ],
+                    "release": {
+                        "signatures": [
+                            {
+                                "signature": "signature1",
+                                "pubKey": "pubkey1"
+                            }
+                        ]
+                    }
                   }
                 }
             }
         }`);
 
-    test('validate ok MPA_ACCEPT', () => {
+    test('validate ok', () => {
         let fail: boolean;
         try {
             fail = !validate(ok);
@@ -53,7 +61,7 @@ describe('format-validator: MPA_ACCEPT', () => {
         expect(fail).toBe(false);
     });
 
-    test('validate missing bid hash MPA_ACCEPT', () => {
+    test('validate missing bid hash', () => {
         const missing_bid_hash = clone(ok);
         delete missing_bid_hash.action.bid;
         let error = '';
@@ -65,7 +73,7 @@ describe('format-validator: MPA_ACCEPT', () => {
         expect(error).toEqual(expect.stringContaining('bid: missing or not a valid hash'));
     });
 
-    test('validate missing seller object MPA_ACCEPT', () => {
+    test('validate missing seller object', () => {
         const missing_seller = clone(ok);
         delete missing_seller.action.seller;
         let error = '';
@@ -78,7 +86,7 @@ describe('format-validator: MPA_ACCEPT', () => {
     });
 
 
-    test('validate unknown escrow type MPA_ACCEPT', () => {
+    test('validate unknown escrow type', () => {
         const missing_payment = clone(ok);
         missing_payment.action.seller.payment = 'UNKWONSDFS';
         let error = '';
