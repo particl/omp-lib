@@ -302,7 +302,6 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         // complete the release tx but don't reveal to seller.
         if (accept['_buyerbuildrelease']) {
-            console.log('building and signing the release tx as buyer');
             const seller_release_input = bid_utxos[0];
             const buyer_release_input = bid_utxos[1];
 

@@ -129,14 +129,13 @@ export interface LockInfo {
     memo: string;       // is this useful?
 }
 
-export interface ParticipantData {
-
+export interface BlindData {
+    blindFactor: string;               // CT (only used BID)
+    ephem: EphemeralKey;               // CT (only used BID)
 }
 
 export interface SignatureData {
-    blindFactor?: string;               // CT (only used BID)
-    ephem?: EphemeralKey;               // CT (only used BID)
-    signatures?: ISignature[];           // MULTISIG & CT
+    signatures: ISignature[];           // MULTISIG & CT
 }
 
 export interface PaymentDataBid {
@@ -147,7 +146,7 @@ export interface PaymentDataBid {
     changeAddress?: CryptoAddress;      // MULTISIG
     prevouts: Prevout[];                // MULTISIG & CT
     outputs?: ToBeOutput[];             // CT
-    release?: SignatureData;            // CT (no signatures!)
+    release?: BlindData;                // CT (no signatures!)
 }
 
 export interface PaymentDataAccept {
