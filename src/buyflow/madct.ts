@@ -261,14 +261,14 @@ export class MadCTBuilder implements IMadCTBuilder {
         const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, true);
         const release_outputs: ToBeBlindOutput[] = [
             this.getReleaseOutput(buyer_release_address, buyer_releaseSatoshis, buyer_blindFactor_release), // buyer_release_output
-            this.getReleaseOutput(seller_release_address, seller_releaseSatoshis - seller_fee, seller_blindFactor_release!) // seller_release_output
+            this.getReleaseOutput(seller_release_address, seller_releaseSatoshis - seller_fee, seller_blindFactor_release) // seller_release_output
         ];
 
         const buyer_refundSatoshis = this.release_calculateRequiredSatoshis(listing, bid, false, true);
         const seller_refundSatoshis = this.release_calculateRequiredSatoshis(listing, bid, true, true);
         const refund_outputs: ToBeBlindOutput[] = [
             this.getReleaseOutput(buyer_release_address, buyer_refundSatoshis, buyer_blindFactor_release), // buyer_refund_output
-            this.getReleaseOutput(seller_release_address, seller_refundSatoshis - seller_fee, seller_blindFactor_release!) // seller_refund_output
+            this.getReleaseOutput(seller_release_address, seller_refundSatoshis - seller_fee, seller_blindFactor_release) // seller_refund_output
         ];
 
         // If seller is not the last output, swap them.

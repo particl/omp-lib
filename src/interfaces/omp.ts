@@ -135,6 +135,8 @@ export interface BlindData {
 }
 
 export interface SignatureData {
+    blindFactor?: string;               // CT
+    ephem?: EphemeralKey;               // CT
     signatures: ISignature[];           // MULTISIG & CT
 }
 

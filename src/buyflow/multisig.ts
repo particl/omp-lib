@@ -233,7 +233,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
                 lock.buyer.payment.refund.signatures = await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
             } else {
-                refundTx.addSignature(multisigUtxo, lock.buyer.payment.refund.signatures![0]);
+                refundTx.addSignature(multisigUtxo, lock.buyer.payment.refund.signatures[0]);
             }
 
             lock['_refundtx'] = refundTx;
