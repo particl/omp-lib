@@ -1,4 +1,16 @@
-import { MPA_LISTING_ADD, MPA_BID, MPM } from './interfaces/omp';
+import {
+    MPA_LISTING_ADD,
+    MPA_BID,
+    MPM,
+    MPA_ACCEPT,
+    MPA_LOCK,
+    LockInfo,
+    BuyerData,
+    PaymentDataSign,
+    MPA_RELEASE,
+    SellerData,
+    MPA_REFUND, PaymentData
+} from './interfaces/omp';
 import { Cryptocurrency, CryptoAddressType } from './interfaces/crypto';
 import { MPAction, EscrowType } from './interfaces/omp-enums';
 import { hash } from './hasher/hash';
@@ -62,8 +74,9 @@ export class Bid {
                     },
                     shippingAddress: config.shippingAddress
                 },
-                objects: config.objects
-            } // as MPA_BID;
+                objects: config.objects,
+                hash: ''
+            } as MPA_BID
         } as MPM;
 
         // Pick correct route for configuration
@@ -110,9 +123,11 @@ export class Bid {
                         outputs: [],
                         signatures: []
                     }
-                }
+                },
                 // objects: KVS[]
-            }
+                generated: +new Date().getTime(), // timestamp
+                hash: ''
+            } as MPA_ACCEPT
         } as MPM;
 
 
@@ -153,10 +168,15 @@ export class Bid {
                     payment: {
                         escrow: payment.escrow,
                         signatures: []
-                    }
-                }
+                    } as PaymentDataSign
+                } as BuyerData,
+                info: {
+                    memo: 'memo'
+                } as LockInfo,
                 // objects: KVS[]
-            }
+                generated: +new Date().getTime(), // timestamp
+                hash: ''
+            } as MPA_LOCK
         } as MPM;
 
         switch (payment.escrow) {
@@ -198,9 +218,9 @@ export class Bid {
                             escrow: payment.escrow,
                             signatures: []
                         }
-                    }
+                    } as SellerData
                     // objects: KVS[]
-                }
+                } as MPA_RELEASE
             } as MPM;
         }
 
@@ -241,9 +261,9 @@ export class Bid {
                     buyer: {
                         payment: {
                             escrow: payment.escrow
-                        }
-                    }
-                }
+                        } as PaymentData
+                    } as BuyerData
+                } as MPA_REFUND
             } as MPM;
         }
 
