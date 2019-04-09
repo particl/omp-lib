@@ -111,7 +111,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const multisigOutput = bidtx.newMultisigOutput(
             multisig_requiredSatoshis,
             [
-                bid.buyer.payment.pubKey,
+                bid.buyer.payment.pubKey!,
                 accept.seller.payment.pubKey
             ]);
 
@@ -142,12 +142,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             const multisigUtxo = bidtx.getMultisigUtxo(accept.seller.payment.pubKey);
 
             releaseTx.addMultisigInput(multisigUtxo, [
-                bid.buyer.payment.pubKey,
+                bid.buyer.payment.pubKey!,
                 accept.seller.payment.pubKey
             ]);
 
             // Add the prevout for the buyer
-            const buyer_address = bid.buyer.payment.changeAddress;
+            const buyer_address = bid.buyer.payment.changeAddress!;
             const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, false);
             releaseTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
@@ -208,19 +208,19 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Refund: build the release signatures for the buyer!
         {
             const refundTx = new TransactionBuilder();
-            const multisigUtxo = bidtx.getMultisigUtxo(bid.buyer.payment.pubKey);
+            const multisigUtxo = bidtx.getMultisigUtxo(bid.buyer.payment.pubKey!);
 
             refundTx.addMultisigInput(multisigUtxo, [
-                bid.buyer.payment.pubKey,
-                accept.seller.payment.pubKey
+                bid.buyer.payment.pubKey!,
+                accept.seller.payment.pubKey!
             ]);
 
             // Add the prevout for the buyer
-            const buyer_address = bid.buyer.payment.changeAddress;
+            const buyer_address = bid.buyer.payment.changeAddress!;
             const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, false, true);
             refundTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
-            const seller_address = accept.seller.payment.changeAddress;
+            const seller_address = accept.seller.payment.changeAddress!;
             const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, true, true);
             const seller_fee = accept.seller.payment.fee;
             refundTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
@@ -293,13 +293,18 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const releaseTx: TransactionBuilder = rebuilt['_releasetx'];
 
         // sign for buyer
-        const multisigUtxo = bidTx.getMultisigUtxo(bid.buyer.payment.pubKey);
+        const multisigUtxo = bidTx.getMultisigUtxo(bid.buyer.payment.pubKey!);
         await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
 
         return releaseTx.build();
     }
 
     public release_calculateRequiredSatoshis(listing: MPA_LISTING_ADD, bid: MPA_BID, seller: boolean, refund: boolean = false): number {
+
+        if (!listing.item.payment.escrow) {
+            throw new Error('No escrow configuration provided!')
+        }
+
         const basePrice = this.bid_valueToTransferSatoshis(listing, bid);
         const percentageRatio = seller ? listing.item.payment.escrow.ratio.seller : listing.item.payment.escrow.ratio.buyer;
         const ratio = percentageRatio / 100;
@@ -330,7 +335,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const refundTx: TransactionBuilder = rebuilt['_refundtx'];
 
         // sign for seller
-        const multisigUtxo = bidTx.getMultisigUtxo(accept.seller.payment.pubKey);
+        const multisigUtxo = bidTx.getMultisigUtxo(accept.seller.payment.pubKey!);
         await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
 
         return refundTx.build();

@@ -1,16 +1,15 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types';
 
-import { CryptoAddressType, BlindPrevout, ToBeBlindOutput, Prevout, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
-import { BidConfiguration } from '../interfaces/configs';
-import { Rpc, ILibrary, CtRpc } from '../abstract/rpc';
+import { BlindPrevout, ToBeBlindOutput, Prevout, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
+
+import { ILibrary, CtRpc } from '../abstract/rpc';
 import { IMadCTBuilder } from '../abstract/transactions';
 
-import { TransactionBuilder, getTxidFrom } from '../transaction-builder/transaction';
 import { ConfidentialTransactionBuilder, buildBidTxScript, buildDestroyTxScript, getExpectedSequence } from '../transaction-builder/confidential-transaction';
 
-import { MPM, MPA_BID, MPA_EXT_LISTING_ADD, MPA_ACCEPT, MPA_LOCK, MPA_LISTING_ADD, MPA } from '../interfaces/omp';
-import { asyncForEach, asyncMap, clone, isArray, fromSatoshis, log, isObject } from '../util';
+import { MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_LISTING_ADD } from '../interfaces/omp';
+import { asyncMap, clone, isArray, fromSatoshis, log, isObject } from '../util';
 import { hash } from '../hasher/hash';
 
 @injectable()
@@ -121,7 +120,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         }
 
         if (!isArray(accept.seller.payment.prevouts)) {
-            const cryptocurrency = listing.item.payment.options.find((crypto) => crypto.currency === bid.buyer.payment.cryptocurrency);
+            const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bid.buyer.payment.cryptocurrency);
             if (!cryptocurrency) {
                 throw new Error('Missing buyer outputs.');
             }
@@ -129,7 +128,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             // Buyer pregenerates the transaction blinding factor for the seller so he can sign earlier.
             // Currently not implemented because we're not checking ownership of the outputs.
             // TODO(security): fix
-            const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
+            const blind = hash(buyer_output.blindFactor + cryptocurrency.address!.address);
             // Generate a new CT output of the _exact_ amount.
             accept.seller.payment.prevouts = await lib.getBlindPrevouts(seller_requiredSatoshis + seller_fee, blind);
         }
@@ -252,8 +251,8 @@ export class MadCTBuilder implements IMadCTBuilder {
                 [{blindFactor: accept.seller.payment.release.blindFactor} as ToBeBlindOutput]);
         }
 
-        const buyer_blindFactor_release = isSellerLastOutput ? bid.buyer.payment.release.blindFactor : lastBlindFactor;
-        const seller_blindFactor_release = isSellerLastOutput ?  lastBlindFactor : accept.seller.payment.release.blindFactor;
+        const buyer_blindFactor_release = isSellerLastOutput ? bid.buyer.payment.release.blindFactor! : lastBlindFactor;
+        const seller_blindFactor_release = isSellerLastOutput ?  lastBlindFactor : accept.seller.payment.release.blindFactor!;
 
         // Randomize the positioning for increased privacy.
         // based on whether the buyer provided a blind factor or not.
@@ -593,6 +592,11 @@ export class MadCTBuilder implements IMadCTBuilder {
     }
 
     private release_calculateRequiredSatoshis(listing: MPA_LISTING_ADD, bid: MPA_BID, seller: boolean, refund: boolean = false): number {
+
+        if (!listing.item.payment.escrow) {
+            throw new Error('No escrow configuration provided!')
+        }
+        
         const basePrice = this.bid_valueToTransferSatoshis(listing, bid);
         const percentageRatio = seller ? listing.item.payment.escrow.ratio.seller : listing.item.payment.escrow.ratio.buyer;
         const ratio = percentageRatio / 100;
@@ -612,8 +616,9 @@ export class MadCTBuilder implements IMadCTBuilder {
      * @param bid
      */
     private bid_valueToTransferSatoshis(listing: MPA_LISTING_ADD, bid: MPA_BID): number {
+
         let satoshis = 0;
-        const payment = listing.item.payment.options.find((crypto) => crypto.currency === bid.buyer.payment.cryptocurrency);
+        const payment = listing.item.payment.options!.find((crypto) => crypto.currency === bid.buyer.payment.cryptocurrency);
 
         if (!payment) {
             throw new Error('Missing payment.');
@@ -622,7 +627,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         satoshis = payment.basePrice;
 
         if (listing.item.information.location && payment.shippingPrice) {
-            if (bid.buyer.shippingAddress.country === listing.item.information.location.country) {
+            if (bid.buyer.shippingAddress!.country === listing.item.information.location.country) {
                 satoshis += payment.shippingPrice.domestic;
             } else {
                 satoshis += payment.shippingPrice.international;

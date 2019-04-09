@@ -36,7 +36,12 @@ export class FV_MPA_BID_ESCROW_MULTISIG {
             }
         });
 
-        FV_CRYPTO.validateCryptoAddress(payment.changeAddress);
+        if (payment.changeAddress) {
+            FV_CRYPTO.validateCryptoAddress(payment.changeAddress);
+        } else {
+            throw new Error('action.buyer.payment.changeAddress: missing or not an object');
+        }
+
 
         return true;
     }
@@ -52,7 +57,7 @@ export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
     public static validate(payment: PaymentDataAccept): boolean {
         // The validation for MPA_BID can be re-used here
         // MPA_ACCEPT shares a similar structure.
-        FV_MPA_BID_ESCROW_MULTISIG.validate(<PaymentDataBid> <unknown> payment);
+        FV_MPA_BID_ESCROW_MULTISIG.validate(<any> payment);
 
         if (!isNonNegativeNaturalNumber(payment.fee) && payment.fee > 0) {
             throw new Error('action.seller.payment.fee: not a non negative number or > 0');
