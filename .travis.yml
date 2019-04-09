@@ -25,5 +25,5 @@ before_script:
 script: 
   # download binaries
   - PARTICL_BINDIR=./bins/particl-core/particl-0.18.0.5/bin/ yarn run test:setup &
-  - sleep 20
+  - sleep 60
   - yarn run test
