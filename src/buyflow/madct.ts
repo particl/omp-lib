@@ -251,7 +251,7 @@ export class MadCTBuilder implements IMadCTBuilder {
                 [{blindFactor: accept.seller.payment.release.blindFactor} as ToBeBlindOutput]);
         }
 
-        const buyer_blindFactor_release = isSellerLastOutput ? bid.buyer.payment.release.blindFactor! : lastBlindFactor;
+        const buyer_blindFactor_release = isSellerLastOutput ? bid.buyer.payment.release.blindFactor : lastBlindFactor;
         const seller_blindFactor_release = isSellerLastOutput ?  lastBlindFactor : accept.seller.payment.release.blindFactor!;
 
         // Randomize the positioning for increased privacy.
@@ -594,9 +594,9 @@ export class MadCTBuilder implements IMadCTBuilder {
     private release_calculateRequiredSatoshis(listing: MPA_LISTING_ADD, bid: MPA_BID, seller: boolean, refund: boolean = false): number {
 
         if (!listing.item.payment.escrow) {
-            throw new Error('No escrow configuration provided!')
+            throw new Error('No escrow configuration provided!');
         }
-        
+
         const basePrice = this.bid_valueToTransferSatoshis(listing, bid);
         const percentageRatio = seller ? listing.item.payment.escrow.ratio.seller : listing.item.payment.escrow.ratio.buyer;
         const ratio = percentageRatio / 100;

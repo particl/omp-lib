@@ -302,7 +302,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
     public release_calculateRequiredSatoshis(listing: MPA_LISTING_ADD, bid: MPA_BID, seller: boolean, refund: boolean = false): number {
 
         if (!listing.item.payment.escrow) {
-            throw new Error('No escrow configuration provided!')
+            throw new Error('No escrow configuration provided!');
         }
 
         const basePrice = this.bid_valueToTransferSatoshis(listing, bid);
