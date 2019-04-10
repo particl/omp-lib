@@ -21,13 +21,8 @@ export function hash(v: any): string {
 
 function hashObject(unordered: object): string {
     const sorted = deepSortObject(unordered);
-
-    const keyHashes = sha256.update('OpenMarketProtocol');
-    deep(sorted, (toHash) => {
-        keyHashes.update(toHash);
-    });
-
-    return sha256(keyHashes.array().join());
+    const toHash = JSON.stringify(sorted);
+    return sha256(toHash);
 }
 
 export function hashListing(l: MPM): string {
@@ -80,25 +75,6 @@ export function deepSortObject(unordered: any): any {
     });
 
     return result;
-}
-
-
-function deep(sorted: any, callback: (toHash: string) => void, parentKey?: string): void {
-
-    parentKey = parentKey ? (parentKey + ':') : '';
-    if (isArray(sorted)) {
-        sorted.forEach(elem => {
-            deep(elem, callback, parentKey);
-        });
-    } else if (isObject(sorted)) {
-        Object.keys(sorted).forEach((key) => {
-            const childKey = parentKey + key;
-            deep(sorted[key], callback, childKey);
-        });
-    } else {
-        const toHash = parentKey + sorted;
-        callback(toHash);
-    }
 }
 
 /**
