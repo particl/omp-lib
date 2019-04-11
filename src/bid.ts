@@ -5,8 +5,6 @@ import {
     MPA_LOCK,
     MPA_LISTING_ADD,
     BuyerData,
-    PaymentData,
-    ShippingAddress,
     PaymentDataLock,
     PaymentDataBid, PaymentDataLockCT
 } from './interfaces/omp';
@@ -17,7 +15,7 @@ import { BidConfiguration } from './interfaces/configs';
 import { inject, injectable } from 'inversify';
 import { IMadCTBuilder, IMultiSigBuilder } from './abstract/transactions';
 import { TYPES } from './types';
-import { OMPVERSION } from './util';
+import { ompVersion } from './omp';
 
 // tslint:disable:no-small-switch
 
@@ -85,7 +83,7 @@ export class Bid {
         }
 
         const msg: MPM = {
-            version: OMPVERSION,
+            version: ompVersion(),
             action: bid
         };
 
@@ -147,7 +145,7 @@ export class Bid {
         }
 
         const msg: MPM = {
-            version: OMPVERSION,
+            version: ompVersion(),
             action: accept
         };
 
@@ -209,7 +207,7 @@ export class Bid {
         }
 
         const msg: MPM = {
-            version: OMPVERSION,
+            version: ompVersion(),
             action: lock
         };
 
@@ -227,6 +225,7 @@ export class Bid {
      * @param listing the listing message.
      * @param bid the bid message.
      * @param accept the accept message for which to produce an lock message.
+     * @param lock
      */
     public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
 
@@ -275,6 +274,7 @@ export class Bid {
      * @param listing the listing message.
      * @param bid the bid message.
      * @param accept the accept message for which to produce an lock message.
+     * @param lock
      */
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
         const mpa_bid = <MPA_BID> bid.action;

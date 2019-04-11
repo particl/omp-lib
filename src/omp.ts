@@ -21,7 +21,10 @@ import { EscrowType } from './interfaces/omp-enums';
 
 export { Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
 
-// tslint:disable:bool-param-default
+export function ompVersion(): string {
+    const pjson = require('pjson');
+    return pjson.version;
+}
 
 // @injectable()
 export class OpenMarketProtocol implements OMP {
@@ -55,8 +58,7 @@ export class OpenMarketProtocol implements OMP {
      * @param service Rpc service
      */
     public inject(cryptocurrency: Cryptocurrency, service: any): void {
-        // Bind an _instance_ (constant value)
-        // to the container.
+        // Bind an _instance_ (constant value) to the container.
         // and give it the name of the cryptocurrency.
 
         if (service instanceof CtRpc) {
