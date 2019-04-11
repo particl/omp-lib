@@ -57,8 +57,8 @@ export class MadCTBuilder implements IMadCTBuilder {
             paymentData.outputs.push({} as ToBeBlindOutput);
         }
 
-        const buyer_prevout = (<BlindPrevout> paymentData.prevouts[0]);
-        const buyer_output = (<ToBeBlindOutput> paymentData.outputs[0]);
+        const buyer_prevout = paymentData.prevouts[0];
+        const buyer_output = paymentData.outputs[0];
 
         buyer_output.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
         buyer_output.address = await lib.getNewStealthAddressWithEphem();
@@ -107,8 +107,8 @@ export class MadCTBuilder implements IMadCTBuilder {
             throw new Error('Missing buyer outputs.');
         }
 
-        let seller_output = (<ToBeBlindOutput> acceptPaymentData.outputs[0]);
-        let buyer_output = (<ToBeBlindOutput> bidPaymentData.outputs[0]);
+        let seller_output = acceptPaymentData.outputs[0];
+        let buyer_output = bidPaymentData.outputs[0];
 
         // Get the right transaction library for the right currency.
         const lib = <CtRpc> this._libs(bidPaymentData.cryptocurrency, true);
@@ -144,8 +144,8 @@ export class MadCTBuilder implements IMadCTBuilder {
             acceptPaymentData.prevouts = await lib.getBlindPrevouts(seller_requiredSatoshis + seller_fee, blind);
         }
 
-        const seller_prevout = (<BlindPrevout> acceptPaymentData.prevouts[0]);
-        const buyer_prevout = (<BlindPrevout> bidPaymentData.prevouts[0]);
+        const seller_prevout = acceptPaymentData.prevouts[0];
+        const buyer_prevout = bidPaymentData.prevouts[0];
         if (acceptPaymentData.prevouts.length !== 1) {
             throw new Error('Currently only supports one input from the seller.');
         } else {
@@ -169,7 +169,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         seller_output = this.getBidOutput(seller_output, buyer_output, 2880, seller_requiredSatoshis, true);
         buyer_output = this.getBidOutput(seller_output, buyer_output, 2880, buyer_requiredSatoshis);
 
-        const all_inputs = clone(<BlindPrevout[]> bidPaymentData.prevouts).concat(acceptPaymentData.prevouts);
+        const all_inputs = clone(bidPaymentData.prevouts).concat(acceptPaymentData.prevouts);
         const all_outputs = [seller_output, buyer_output];
 
         const rawbidtx = await lib.generateRawConfidentialTx(all_inputs, all_outputs, seller_fee);
@@ -367,7 +367,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             const signature = lockPaymentData.signatures;
             bidPaymentData.prevouts.forEach((out, i) => bidtx.setWitness(out, signature[i]));
         } else {
-            lockPaymentData.signatures = await lib.signRawTransactionForBlindInputs(bidtx, <BlindPrevout[]> bidPaymentData.prevouts);
+            lockPaymentData.signatures = await lib.signRawTransactionForBlindInputs(bidtx, bidPaymentData.prevouts);
         }
 
         lock['_bidtx'] = bidtx;
@@ -382,8 +382,8 @@ export class MadCTBuilder implements IMadCTBuilder {
         } else if (!bidPaymentData.outputs || bidPaymentData.outputs.length === 0) {
             throw new Error('Missing buyer outputs.');
         }
-        const seller_output = (<ToBeBlindOutput> acceptPaymentData.outputs[0]);
-        let buyer_output = (<ToBeBlindOutput> bidPaymentData.outputs[0]);
+        const seller_output = acceptPaymentData.outputs[0];
+        let buyer_output = bidPaymentData.outputs[0];
         const bid_utxos = this.getUtxosFromBidTx(bidtx, seller_output, buyer_output, 2880);
 
         /**
@@ -516,8 +516,8 @@ export class MadCTBuilder implements IMadCTBuilder {
         } else if (!bidPaymentData.outputs || bidPaymentData.outputs.length === 0) {
             throw new Error('Missing buyer outputs.');
         }
-        let seller_output = (<ToBeBlindOutput> acceptPaymentData.outputs[0]);
-        let buyer_output = (<ToBeBlindOutput> bidPaymentData.outputs[0]);
+        let seller_output = acceptPaymentData.outputs[0];
+        let buyer_output = bidPaymentData.outputs[0];
 
         const bid_utxos = this.getUtxosFromBidTx(bidtx, seller_output, buyer_output, 2880);
 
@@ -655,7 +655,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         satoshis = payment.basePrice;
 
         if (listing.item.information.location && payment.shippingPrice) {
-            if (bid.buyer.shippingAddress!.country === listing.item.information.location.country) {
+            if (bid.buyer.shippingAddress.country === listing.item.information.location.country) {
                 satoshis += payment.shippingPrice.domestic;
             } else {
                 satoshis += payment.shippingPrice.international;
