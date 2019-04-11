@@ -1,9 +1,7 @@
 import * from 'jest';
 import { hash, hashListing, deepSortObject } from '../src/hasher/hash';
-import { MPA_CANCEL } from '../src/interfaces/omp';
 import { clone, strip, log } from '../src/util';
 import { sha256 } from 'js-sha256';
-import { MPAction } from '../src/interfaces/omp-enums';
 
 describe('Hash', () => {
 

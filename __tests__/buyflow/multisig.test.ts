@@ -1,5 +1,5 @@
 import * from 'jest';
-import { OpenMarketProtocol } from '../../src/omp';
+import { MPM, OpenMarketProtocol } from '../../src/omp';
 import { Cryptocurrency } from '../../src/interfaces/crypto';
 import { BidConfiguration } from '../../src/interfaces/configs';
 import { EscrowType } from '../../src/interfaces/omp-enums';
@@ -10,7 +10,7 @@ import { FV_MPA_LOCK } from '../../src/format-validators/mpa_lock';
 import { CoreRpcService } from '../../test/rpc.stub';
 
 
-//describe('Buyflow: multisig', () => {
+describe('Buyflow: multisig', () => {
 
     const delay = ms => {
         return new Promise(resolve => {
@@ -21,45 +21,41 @@ import { CoreRpcService } from '../../test/rpc.stub';
 
     const ok = JSON.parse(
         `{
-        "version": "0.1.0.0",
-        "action": {
-            "type": "MPA_LISTING_ADD",
-            "item": {
-              "information": {
-                "title": "a 6 month old dog",
-                "shortDescription": "very cute",
-                "longDescription": "not for eating",
-                "category": [
-                    "Animals"
-                ]
-              },
-              "payment": {
-                "type": "SALE",
-                "escrow": {
-                  "type": "MULTISIG",
-                  "ratio": {
-                    "buyer": 100,
-                    "seller": 100
-                  }
-                },
-                "options": [
-                  {
-                    "currency": "PART",
-                    "basePrice": ${toSatoshis(20)}
-                  }
-                ]
-              },
-              "messaging": {
-                "options": [
-                    {
-                      "protocol": "TODO",
+            "version": "0.1.0.0",
+            "action": {
+                "type": "MPA_LISTING_ADD",
+                "item": {
+                  "information": {
+                    "title": "a 6 month old dog",
+                    "shortDescription": "very cute",
+                    "longDescription": "not for eating",
+                    "category": [
+                        "Animals"
+                    ]
+                  },
+                  "payment": {
+                    "type": "SALE",
+                    "escrow": {
+                      "type": "MULTISIG",
+                      "ratio": {
+                        "buyer": 100,
+                        "seller": 100
+                      }
+                    },
+                    "options": [{
+                        "currency": "PART",
+                        "basePrice": ${toSatoshis(20)}
+                    }]
+                  },
+                  "messaging": {
+                    "options": [{
+                      "protocol": "SMSG",
                       "publicKey": "TODO"
-                    }
-                  ]
-              }
+                    }]
+                  }
+                }
             }
-        }
-    }`);
+        }`);
 
     const config: BidConfiguration = {
         cryptocurrency: Cryptocurrency.PART,
@@ -96,11 +92,10 @@ import { CoreRpcService } from '../../test/rpc.stub';
     });
 
     it('buyflow release', async () => {
-        let bool = false;
-        let bid;
-        let accept;
-        let lock;
-        let release;
+        let bid: MPM;
+        let accept: MPM;
+        let lock: MPM;
+        let release: string;
         try {
             jest.setTimeout(40000);
             // Step 1: Buyer does bid
@@ -117,7 +112,7 @@ import { CoreRpcService } from '../../test/rpc.stub';
             await delay(5000);
             lock = await buyer.lock(ok, bid, accept);
             const bidtx = lock.action['_rawbidtx'];
-            lock = strip(lock)
+            lock = strip(lock);
             FV_MPA_LOCK.validate(lock);
             await node0.sendRawTransaction(bidtx);
 
@@ -125,23 +120,19 @@ import { CoreRpcService } from '../../test/rpc.stub';
             release = await buyer.release(ok, bid, accept);
             await node0.sendRawTransaction(release);
 
-            bool = true;
+            expect(bid).toBeDefined();
+            expect(accept).toBeDefined();
+            expect(lock).toBeDefined();
+            expect(release).toBeDefined();
         } catch (e) {
             console.log(e);
         }
-        expect(bool).toBe(true);
-        expect(bid).toBeDefined();
-        expect(accept).toBeDefined();
-        expect(lock).toBeDefined();
-        expect(release).toBeDefined();
     });
 
     it('buyflow refund', async () => {
-        let bool = false;
-        let accept;
-        let lock;
-        let refund;
-        let complete;
+        let accept: MPM;
+        let lock: MPM;
+        let complete: string;
         try {
             jest.setTimeout(40000);
             const bid = await buyer.bid(config, ok);
@@ -154,7 +145,7 @@ import { CoreRpcService } from '../../test/rpc.stub';
             await delay(5000);
             lock = await buyer.lock(ok, bid, accept);
             const bidtx = lock.action['_rawbidtx'];
-            lock = strip(lock)
+            lock = strip(lock);
             FV_MPA_LOCK.validate(lock);
             await node0.sendRawTransaction(bidtx);
 
@@ -162,13 +153,12 @@ import { CoreRpcService } from '../../test/rpc.stub';
             await delay(5000);
             await node0.sendRawTransaction(complete);
 
-            bool = true;
+            expect(lock).toBeDefined();
+            expect(accept).toBeDefined();
+            expect(complete).toBeDefined();
         } catch (e) {
             console.log(e);
         }
-        expect(bool).toBe(true);
-        expect(lock).toBeDefined();
-        expect(accept).toBeDefined();
     });
 
-//});
+});

@@ -1,17 +1,17 @@
+import * from 'jest';
 import { CtCoreRpcService } from '../../test/rpc-ct.stub';
-
-import { OpenMarketProtocol } from "../../src/omp";
-import { Cryptocurrency } from "../../src/interfaces/crypto";
-import { BidConfiguration } from "../../src/interfaces/configs";
-import { EscrowType } from "../../src/interfaces/omp-enums";
-import { toSatoshis, strip, log } from "../../src/util";
+import { OpenMarketProtocol } from '../../src/omp';
+import { Cryptocurrency } from '../../src/interfaces/crypto';
+import { BidConfiguration } from '../../src/interfaces/configs';
+import { EscrowType } from '../../src/interfaces/omp-enums';
+import { toSatoshis, strip, log } from '../../src/util';
 import { Rpc } from '../../src/abstract/rpc';
 
-//describe('Buyflow: mad ct', () => {
+describe('Buyflow: mad ct', () => {
 
     const delay = ms => {
         return new Promise(resolve => {
-            return setTimeout(resolve, ms)
+            return setTimeout(resolve, ms);
         });
     };
 
@@ -39,48 +39,51 @@ import { Rpc } from '../../src/abstract/rpc';
         seller.inject(Cryptocurrency.PART, node1);
     });
 
-    expect.extend({
-        async toBeCompletedTransaction(rawtx) {
-            const verify = await node0.call('verifyrawtransaction', [rawtx])
+    // todo: quicknuglyfixfor https://github.com/kentcdodds/react-testing-library/issues/36
+    const extendedExpect: any = Object.assign(expect);
+
+    extendedExpect.extend({
+        async toBeCompletedTransaction(rawtx: string): Promise<any> {
+            const verify = await node0.call('verifyrawtransaction', [rawtx]);
             const completed = verify['complete'];
             if (completed) {
                 return {
                     message: () =>
                         `expected ${rawtx} to be completed.`,
-                    pass: true,
+                    pass: true
                 };
             } else {
                 return {
                     message: () =>
                         `expected ${rawtx} to be completed but received ${completed} instead`,
-                    pass: false,
+                    pass: false
                 };
             }
-        },
+        }
     });
 
-    expect.extend({
-        async toBeUtxoWithAmount(txid, node, amount) {
+    extendedExpect.extend({
+        async toBeUtxoWithAmount(txid: string, node: Rpc, amount: number): Promise<any> {
             const found = (await node.call('listunspentanon', [0])).find(utxo => (utxo.txid === txid && utxo.amount === amount));
             if (found) {
                 return {
                     message: () =>
                         `expected ${txid} to be found on the node with amount ${amount}.`,
-                    pass: true,
+                    pass: true
                 };
             } else {
                 return {
                     message: () =>
                         `expected ${txid} to be found on the node but didn't find it.`,
-                    pass: false,
+                    pass: false
                 };
             }
-        },
+        }
     });
 
     const timeTravel = (expectedUnixTime: number, node: Rpc) => {
         return node.call('setmocktime', [expectedUnixTime, true]);
-    }
+    };
 
     const waitTillJumped = async (expectedUnixTime: number, node: Rpc) => {
         return new Promise(async resolve => {
@@ -94,9 +97,9 @@ import { Rpc } from '../../src/abstract/rpc';
             }
 
             resolve();
-        })
+        });
 
-    }
+    };
 
     const ok = JSON.parse(
         `{
@@ -148,13 +151,13 @@ import { Rpc } from '../../src/abstract/rpc';
         cryptocurrency: Cryptocurrency.PART,
         escrow: EscrowType.MAD_CT,
         shippingAddress: {
-            firstName: "string",
-            lastName: "string",
-            addressLine1: "string",
-            city: "string",
-            state: "string",
-            zipCode: "string",
-            country: "string",
+            firstName: 'string',
+            lastName: 'string',
+            addressLine1: 'string',
+            city: 'string',
+            state: 'string',
+            zipCode: 'string',
+            country: 'string'
         }
     };
 
@@ -173,42 +176,42 @@ import { Rpc } from '../../src/abstract/rpc';
             // Step 2: seller accepts
             const accept = await seller.accept(ok, bid_stripped);
             const accept_stripped = strip(accept);
-            expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+            extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
 
             // Step 3: buyer signs destroy txn (done), signs bid txn (half)
             await delay(7000);
             const lock = await buyer.lock(ok, bid, accept_stripped);
             const lock_stripped = strip(lock);
 
-            expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+            extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
 
             expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
 
             // Step 4: seller signs bid txn (full) and submits
             const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            expect(complete).toBeCompletedTransaction();
+            extendedExpect(complete).toBeCompletedTransaction();
 
             const completeTxid = await node0.sendRawTransaction(complete);
-            await node1.sendRawTransaction(complete)
+            await node1.sendRawTransaction(complete);
             expect(completeTxid).toBeDefined();
 
             // Step 5: buyer signs release
-            await delay(10000)
+            await delay(10000);
             const release = await buyer.release(ok, bid, accept);
-            expect(release).toBeCompletedTransaction();
+            extendedExpect(release).toBeCompletedTransaction();
 
             const releaseTxid = await node0.sendRawTransaction(release);
-            await node1.sendRawTransaction(release)
+            await node1.sendRawTransaction(release);
             expect(releaseTxid).toBeDefined();
 
-            await delay(10000)
-            expect(releaseTxid).toBeUtxoWithAmount(node0, 2);
-            expect(releaseTxid).toBeUtxoWithAmount(node1, 3.99995000);
+            await delay(10000);
+            extendedExpect(releaseTxid).toBeUtxoWithAmount(node0, 2);
+            extendedExpect(releaseTxid).toBeUtxoWithAmount(node1, 3.99995000);
 
 
             end = true;
         } catch (e) {
-            console.log(e)
+            console.log(e);
         }
         expect(end).toEqual(true);
     });
@@ -229,42 +232,42 @@ import { Rpc } from '../../src/abstract/rpc';
             const accept = await seller.accept(ok, bid_stripped);
             const accept_stripped = strip(accept);
 
-            expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+            extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
 
             // Step 3: buyer signs destroy txn (done), signs bid txn (half)
             await delay(7000);
             const lock = await buyer.lock(ok, bid, accept_stripped);
             const lock_stripped = strip(lock);
 
-            expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+            extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
 
             expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
 
             // Step 4: seller signs bid txn (full) and submits
             const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            expect(complete).toBeCompletedTransaction();
+            extendedExpect(complete).toBeCompletedTransaction();
 
             const completeTxid = await node0.sendRawTransaction(complete);
-            await node1.sendRawTransaction(complete)
+            await node1.sendRawTransaction(complete);
             expect(completeTxid).toBeDefined();
 
             // Step 5: seller signs refund
-            await delay(10000)
+            await delay(10000);
             const refund = await seller.refund(ok, bid, accept, lock);
-            expect(refund).toBeCompletedTransaction();
+            extendedExpect(refund).toBeCompletedTransaction();
 
             const refundTxid = await node0.sendRawTransaction(refund);
-            await node1.sendRawTransaction(refund)
+            await node1.sendRawTransaction(refund);
             expect(refundTxid).toBeDefined();
 
-            await delay(10000)
-            expect(refundTxid).toBeUtxoWithAmount(node0, 4);
-            expect(refundTxid).toBeUtxoWithAmount(node1, 1.99995000);
+            await delay(10000);
+            extendedExpect(refundTxid).toBeUtxoWithAmount(node0, 4);
+            extendedExpect(refundTxid).toBeUtxoWithAmount(node1, 1.99995000);
 
 
             end = true;
         } catch (e) {
-            console.log(e)
+            console.log(e);
         }
         expect(end).toEqual(true);
     });
@@ -285,34 +288,34 @@ import { Rpc } from '../../src/abstract/rpc';
             const accept = await seller.accept(ok, bid_stripped);
             const accept_stripped = strip(accept);
 
-            expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+            extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
 
             // Step 3: buyer signs destroy txn (done), signs bid txn (half)
             await delay(10000);
             const lock = await buyer.lock(ok, bid_stripped, accept_stripped);
             const lock_stripped = strip(lock);
 
-            expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+            extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
 
             // Step 4: seller signs bid txn (full) and submits
             await delay(7000);
             const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            expect(complete).toBeCompletedTransaction();
+            extendedExpect(complete).toBeCompletedTransaction();
 
             const completeTxid = await node0.sendRawTransaction(complete);
             expect(completeTxid).toBeDefined();
 
             // Can not destroy the funds before the timer has been reached
-            let shouldFailToDestroy: boolean = false;
+            let shouldFailToDestroy = false;
             try {
-                const destroytxid = await node0.sendRawTransaction(lock.action['_rawdesttx']);
+                await node0.sendRawTransaction(lock.action['_rawdesttx']);
             } catch (e) {
                 shouldFailToDestroy = (e['message'] === 'non-BIP68-final (code 64)');
             }
             expect(shouldFailToDestroy).toEqual(true);
 
             // Use daemon as a source of truth for what the current time is.
-            let now = (await node0.call('getblockchaininfo', []))['mediantime'];
+            const now = (await node0.call('getblockchaininfo', []))['mediantime'];
             const feasibleFrom = (now + 2880);
 
             // Travelling through time, 3000s in the future!
@@ -323,21 +326,21 @@ import { Rpc } from '../../src/abstract/rpc';
             ]);
 
             // Let a few blocks mine
-            await waitTillJumped(feasibleFrom, node0)
+            await waitTillJumped(feasibleFrom, node0);
 
             // Should be able to destroy them now
             let destroytxid: string;
             try {
                 destroytxid = await node0.sendRawTransaction(lock.action['_rawdesttx']);
             } catch (e) {
-                console.log(e)
+                console.log('ERROR: ' + e);
             }
             expect(destroytxid).toBeDefined();
 
             end = true;
         } catch (e) {
-            console.log(e)
+            console.log('ERROR: ' + e);
         }
         expect(end).toEqual(true);
     });
-//});
+});

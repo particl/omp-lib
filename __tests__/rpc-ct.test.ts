@@ -1,8 +1,8 @@
-import { OpenMarketProtocol } from "../src/omp";
-import { Cryptocurrency } from "../src/interfaces/crypto";
+import * from 'jest';
+import { OpenMarketProtocol } from '../src/omp';
+import { Cryptocurrency } from '../src/interfaces/crypto';
 import { clone } from '../src/util';
-import { CtCoreRpcService } from "../test/rpc-ct.stub";
-
+import { CtCoreRpcService } from '../test/rpc-ct.stub';
 
 describe('CtRpc', () => {
 
@@ -38,10 +38,10 @@ describe('CtRpc', () => {
 
     test('stealth addresses', async () => {
         const sx = await rpc0.getNewStealthAddressWithEphem();
-    
+
         const stripped = clone(sx);
         delete stripped['pubKey'];
-    
+
         const sx2 = await rpc1.getPubkeyForStealthWithEphem(stripped);
         expect(sx).toEqual(sx2);
     });
