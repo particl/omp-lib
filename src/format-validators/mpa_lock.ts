@@ -1,4 +1,4 @@
-import { MPA_LOCK, MPM } from '../interfaces/omp';
+import { MPA_LOCK, MPM, PaymentDataLock, PaymentDataLockCT, PaymentDataLockMultisig } from '../interfaces/omp';
 import { MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isObject, isArray, isString, isSHA256Hash } from '../util';
 
@@ -33,21 +33,21 @@ export class FV_MPA_LOCK {
         }
 
         if (isObject(buyer.payment)) {
-            const payment = buyer.payment;
+            const paymentData = buyer.payment as PaymentDataLock;
             // TODO: implement all validators
-            switch (payment.escrow) {
+            switch (paymentData.escrow) {
                 case EscrowType.MULTISIG:
-                    FV_MPA_LOCK_ESCROW_MULTISIG.validate(payment);
+                    FV_MPA_LOCK_ESCROW_MULTISIG.validate(paymentData as PaymentDataLockMultisig);
+                    break;
+                case EscrowType.MAD_CT:
+                    FV_MPA_LOCK_ESCROW_MAD_CT.validate(paymentData as PaymentDataLockCT);
                     break;
                 case EscrowType.FE:
                     // TODO: not implemented
                 case EscrowType.MAD:
                     // TODO: not implemented
-                case EscrowType.MAD_CT:
-                    FV_MPA_LOCK_ESCROW_MAD_CT.validate(payment);
-                    break;
                 default:
-                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, received=' + payment.escrow);
+                    throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, received=' + paymentData.escrow);
             }
 
         } else {

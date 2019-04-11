@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey, Fiatcurrency } from './crypto';
+import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey, Fiatcurrency, ToBeBlindOutput, BlindPrevout } from './crypto';
 import { DSN, ContentReference } from './dsn';
 import { MPAction, SaleType, EscrowType, MessagingProtocol } from './omp-enums';
 import { KVS } from './common';
@@ -170,20 +170,21 @@ export interface ParticipantData {
 export type PaymentData = PaymentDataBid | PaymentDataAccept | PaymentDataLock;
 
 export interface PaymentDataBid {
+    prevouts: Prevout[];                // MULTISIG & CT
     escrow: EscrowType;
     cryptocurrency: Cryptocurrency;
+
 }
 
 export interface PaymentDataBidMultisig extends PaymentDataBid {
     pubKey: string;                     // MULTISIG
     address: CryptoAddress;             // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
     changeAddress: CryptoAddress;       // MULTISIG
-    prevouts: Prevout[];                // MULTISIG & CT
 }
 
 export interface PaymentDataBidCT extends PaymentDataBid {
-    prevouts: Prevout[];                // MULTISIG & CT
-    outputs: ToBeOutput[];              // CT
+    prevouts: BlindPrevout[];                // MULTISIG & CT
+    outputs: ToBeBlindOutput[];              // CT
     // todo: optional or not?
     release?: BlindData;                // CT (no signatures!)
 }
@@ -191,20 +192,19 @@ export interface PaymentDataBidCT extends PaymentDataBid {
 export interface PaymentDataAccept {
     escrow: EscrowType;
     fee: number;
+    prevouts: Prevout[];                // MULTISIG & CT
+    release: SignatureData;             // MULTISIG & CT (only signatures)
 }
 
 export interface PaymentDataAcceptMultisig extends PaymentDataAccept {
     pubKey?: string;                    // MULTISIG
     changeAddress?: CryptoAddress;      // MULTISIG
-    prevouts: Prevout[];                // MULTISIG & CT
     signatures: ISignature[];           // MULTISIG
-    release: SignatureData;             // MULTISIG & CT (only signatures)
 }
 
 export interface PaymentDataAcceptCT extends PaymentDataAccept {
-    prevouts: Prevout[];                // MULTISIG & CT
-    outputs: ToBeOutput[];              // CT
-    release: SignatureData;             // MULTISIG & CT (only signatures)
+    prevouts: BlindPrevout[];                // MULTISIG & CT
+    outputs: ToBeBlindOutput[];              // CT
     destroy: SignatureData;             // CT  (only signatures)
 }
 

@@ -1,14 +1,14 @@
-import { Prevout, CryptoAddress, CryptoAddressType, ToBeBlindOutput } from '../../interfaces/crypto';
+import { ToBeBlindOutput } from '../../interfaces/crypto';
 import { isObject, isNumber, isString, isTxid, isArray, isBlindFactor, isNonNegativeNaturalNumber } from '../../util';
 import { FV_CRYPTO } from '../crypto';
 import { EscrowType } from '../../interfaces/omp-enums';
 import { isPublicKey, isPrivateKey } from '../util';
-import { PaymentDataLock, PaymentDataBidCT, PaymentDataAcceptCT } from '../../interfaces/omp';
+import { PaymentDataBidCT, PaymentDataAcceptCT, PaymentDataLockCT } from '../../interfaces/omp';
 
 // TODO: max one class per file
 // tslint:disable max-classes-per-file no-string-throw
 
-function validateBasic(payment: any): boolean {
+function validateBasic(payment: PaymentDataBidCT | PaymentDataAcceptCT): boolean {
 
     if (!isObject(payment)) {
         throw ('missing or not an object!');
@@ -163,7 +163,7 @@ export class FV_MPA_ACCEPT_ESCROW_MAD_CT {
 
 export class FV_MPA_LOCK_ESCROW_MAD_CT {
 
-    public static validate(payment: PaymentDataLock): boolean {
+    public static validate(payment: PaymentDataLockCT): boolean {
 
         if (!isArray(payment.signatures)) {
             throw ('action.buyer.payment.signatures: missing or not an array');

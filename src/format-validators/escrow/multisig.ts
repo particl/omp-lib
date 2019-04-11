@@ -1,9 +1,8 @@
-import { Prevout, CryptoAddress, CryptoAddressType } from '../../interfaces/crypto';
 import { isObject, isNumber, isString, isTxid, isArray } from '../../util';
 import { FV_CRYPTO } from '../crypto';
 import { EscrowType } from '../../interfaces/omp-enums';
 import { isNonNegativeNaturalNumber } from '../util';
-import { PaymentDataAccept, PaymentDataAcceptMultisig, PaymentDataBid, PaymentDataBidMultisig, PaymentDataLock } from '../../interfaces/omp';
+import { PaymentDataAcceptMultisig, PaymentDataBidMultisig, PaymentDataLockMultisig } from '../../interfaces/omp';
 
 // TODO: max one class per file
 // tslint:disable max-classes-per-file
@@ -105,7 +104,7 @@ export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
 
 export class FV_MPA_LOCK_ESCROW_MULTISIG {
 
-    public static validate(payment: PaymentDataLock): boolean {
+    public static validate(payment: PaymentDataLockMultisig): boolean {
 
         if (!isArray(payment.signatures)) {
             throw new Error('action.buyer.payment.signatures: missing or not an array');
