@@ -1,4 +1,15 @@
-import { MPA_BID, MPM, MPA_ACCEPT, MPA_LOCK, MPA_LISTING_ADD } from './interfaces/omp';
+import {
+    MPA_BID,
+    MPM,
+    MPA_ACCEPT,
+    MPA_LOCK,
+    MPA_LISTING_ADD,
+    BuyerData,
+    PaymentData,
+    ShippingAddress,
+    PaymentDataLock,
+    PaymentDataBid, PaymentDataLockCT
+} from './interfaces/omp';
 import { MPAction, EscrowType } from './interfaces/omp-enums';
 import { hash } from './hasher/hash';
 import { BidConfiguration } from './interfaces/configs';
@@ -152,11 +163,11 @@ export class Bid {
      * @param accept the accept message for which to produce an lock message.
      */
     public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
-        const mpa_bid = <MPA_BID> bid.action;
 
-        const payment = mpa_bid.buyer.payment;
+        const mpa_bid = bid.action as MPA_BID;
+        const payment = mpa_bid.buyer.payment as PaymentDataBid;
 
-        const lock = <MPA_LOCK> {
+        const lock: MPA_LOCK = {
             type: MPAction.MPA_LOCK,
             hash: '',
             generated: +new Date(), // timestamp
@@ -168,8 +179,8 @@ export class Bid {
                     refund: {
                         signatures: []
                     }
-                }
-            },
+                } as PaymentDataLock
+            } as BuyerData,
             info: {
                 memo: ''
             }
@@ -187,7 +198,7 @@ export class Bid {
                  * Destroy txn: fully signed
                  * Bid txn: only signed by buyer.
                  */
-                lock.buyer.payment.destroy = {
+                (lock.buyer.payment as PaymentDataLockCT).destroy = {
                     signatures: []
                 };
                 await this._madct.lock(listing.action, bid.action, accept.action, lock);
