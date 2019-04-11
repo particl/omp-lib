@@ -8,8 +8,8 @@ import { IMadCTBuilder } from '../abstract/transactions';
 
 import { ConfidentialTransactionBuilder, buildBidTxScript, buildDestroyTxScript, getExpectedSequence } from '../transaction-builder/confidential-transaction';
 
-import { MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_LISTING_ADD } from '../interfaces/omp';
-import { asyncMap, clone, isArray, fromSatoshis, log, isObject } from '../util';
+import { MPM, MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_LISTING_ADD, MPA } from '../interfaces/omp';
+import { asyncForEach, asyncMap, clone, isArray, fromSatoshis, log, isObject } from '../util';
 import { hash } from '../hasher/hash';
 
 @injectable()

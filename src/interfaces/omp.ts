@@ -69,10 +69,11 @@ export interface MPA_BID extends MPA {
     // type: MPAction.MPA_BID;
     // hash: string;                // bid hash, used to verify on the receiving end
     item: string;                   // item hash
-    buyer: {                        // buyer payment and other purchase details like shipping address
-        payment: PaymentDataBid;             // MPA_BID, MPA_ACCEPT, MPA_LOCK
-        shippingAddress?: ShippingAddress;   // MPA_BID
-    };
+    buyer: BuyerData;               // buyer payment and other purchase details like shipping address
+    // {
+    //     payment: PaymentDataBid;             // MPA_BID, MPA_ACCEPT, MPA_LOCK
+    //     shippingAddress?: ShippingAddress;   // MPA_BID
+    // };
 }
 
 /**
@@ -91,9 +92,10 @@ export interface MPA_REJECT extends MPA {
 export interface MPA_ACCEPT extends MPA {
     // type: MPAction.MPA_ACCEPT;
     bid: string;                // hash of MPA_BID
-    seller: {
-        payment: PaymentDataAccept;
-    };
+    seller: SellerData;
+    // {
+    //    payment: PaymentDataAccept;
+    // };
 }
 
 /**
@@ -112,9 +114,10 @@ export interface MPA_CANCEL extends MPA { // !implementation !protocol
 export interface MPA_LOCK extends MPA {
     // type: MPAction.MPA_LOCK;
     bid: string;                // hash of MPA_BID
-    buyer: {
-        payment: PaymentDataLock;
-    };
+    buyer: BuyerData;
+    // {
+    //    payment: PaymentDataLock;
+    // };
     info: LockInfo;
 }
 
@@ -139,6 +142,32 @@ export interface SignatureData {
     ephem?: EphemeralKey;               // CT
     signatures: ISignature[];           // MULTISIG & CT
 }
+
+/**
+ * SellerData holds the seller related information
+ *
+ * MPA_ACCEPT
+ */
+export interface SellerData extends ParticipantData {
+}
+
+/**
+ * BuyerData holds the buyer related information
+ *
+ * MPA_BID
+ */
+export interface BuyerData extends ParticipantData {
+    shippingAddress: ShippingAddress;   // MPA_BID
+}
+
+export interface ParticipantData {
+    payment: PaymentData;               // MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND
+}
+
+/**
+ * PaymentData holds the information related to payment and the payment negotiation flow between buyer and seller
+ */
+export type PaymentData = PaymentDataBid | PaymentDataAccept | PaymentDataLock;
 
 export interface PaymentDataBid {
     escrow: EscrowType;
