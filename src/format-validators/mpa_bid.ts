@@ -79,7 +79,7 @@ export class FV_MPA_BID {
             throw new Error('action.buyer.shippingAddress: missing or not an object');
         }
 
-        const shipping: ShippingAddress = action.buyer.shippingAddress!;
+        const shipping: ShippingAddress = action.buyer.shippingAddress;
         if (!isString(shipping.firstName)) {
             throw new Error('action.buyer.shippingAddress.firstName: missing');
         }

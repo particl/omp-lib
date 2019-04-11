@@ -183,8 +183,8 @@ export interface PaymentDataBidMultisig extends PaymentDataBid {
 }
 
 export interface PaymentDataBidCT extends PaymentDataBid {
-    prevouts: BlindPrevout[];                // MULTISIG & CT
-    outputs: ToBeBlindOutput[];              // CT
+    prevouts: BlindPrevout[];           // MULTISIG & CT
+    outputs: ToBeBlindOutput[];         // CT
     // todo: optional or not?
     release?: BlindData;                // CT (no signatures!)
 }
@@ -197,14 +197,14 @@ export interface PaymentDataAccept {
 }
 
 export interface PaymentDataAcceptMultisig extends PaymentDataAccept {
-    pubKey?: string;                    // MULTISIG
+    pubKey: string;                     // MULTISIG
     changeAddress?: CryptoAddress;      // MULTISIG
     signatures: ISignature[];           // MULTISIG
 }
 
 export interface PaymentDataAcceptCT extends PaymentDataAccept {
-    prevouts: BlindPrevout[];                // MULTISIG & CT
-    outputs: ToBeBlindOutput[];              // CT
+    prevouts: BlindPrevout[];           // MULTISIG & CT
+    outputs: ToBeBlindOutput[];         // CT
     destroy: SignatureData;             // CT  (only signatures)
 }
 

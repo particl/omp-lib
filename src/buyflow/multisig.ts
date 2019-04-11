@@ -113,7 +113,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         acceptPaymentData.prevouts.forEach((input) => bidtx.addInput(input));
 
         // calculate changes (TransactionBuilder)
-        const buyer_change = bidtx.newChangeOutputFor(buyer_requiredSatoshis, bidPaymentData.changeAddress!, bidPaymentData.prevouts);
+        const buyer_change = bidtx.newChangeOutputFor(buyer_requiredSatoshis, bidPaymentData.changeAddress, bidPaymentData.prevouts);
         const seller_change = bidtx.newChangeOutputFor(seller_requiredSatoshis + seller_fee, acceptPaymentData.changeAddress,
             acceptPaymentData.prevouts);
 
@@ -124,7 +124,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const multisigOutput = bidtx.newMultisigOutput(
             multisig_requiredSatoshis,
             [
-                bidPaymentData.pubKey!,
+                bidPaymentData.pubKey,
                 acceptPaymentData.pubKey
             ]);
 
@@ -155,12 +155,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             const multisigUtxo = bidtx.getMultisigUtxo(acceptPaymentData.pubKey);
 
             releaseTx.addMultisigInput(multisigUtxo, [
-                bidPaymentData.pubKey!,
+                bidPaymentData.pubKey,
                 acceptPaymentData.pubKey
             ]);
 
             // Add the prevout for the buyer
-            const buyer_address = bidPaymentData.changeAddress!;
+            const buyer_address = bidPaymentData.changeAddress;
             const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, false);
             releaseTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
@@ -226,15 +226,15 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Refund: build the release signatures for the buyer!
         {
             const refundTx = new TransactionBuilder();
-            const multisigUtxo = bidtx.getMultisigUtxo(bidPaymentData.pubKey!);
+            const multisigUtxo = bidtx.getMultisigUtxo(bidPaymentData.pubKey);
 
             refundTx.addMultisigInput(multisigUtxo, [
-                bidPaymentData.pubKey!,
-                acceptPaymentData.pubKey!
+                bidPaymentData.pubKey,
+                acceptPaymentData.pubKey
             ]);
 
             // Add the prevout for the buyer
-            const buyer_address = bidPaymentData.changeAddress!;
+            const buyer_address = bidPaymentData.changeAddress;
             const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, false, true);
             refundTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
@@ -283,7 +283,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             let satoshis = payment.basePrice;
 
             if (listing.item.information.location && payment.shippingPrice) {
-                if (bid.buyer.shippingAddress!.country === listing.item.information.location.country) {
+                if (bid.buyer.shippingAddress.country === listing.item.information.location.country) {
                     satoshis += payment.shippingPrice.domestic;
                 } else {
                     satoshis += payment.shippingPrice.international;
@@ -315,7 +315,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const releaseTx: TransactionBuilder = rebuilt['_releasetx'];
 
         // sign for buyer
-        const multisigUtxo = bidTx.getMultisigUtxo(bidPaymentData.pubKey!);
+        const multisigUtxo = bidTx.getMultisigUtxo(bidPaymentData.pubKey);
         await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
 
         return releaseTx.build();
@@ -362,7 +362,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const refundTx: TransactionBuilder = rebuilt['_refundtx'];
 
         // sign for seller
-        const multisigUtxo = bidTx.getMultisigUtxo(acceptPaymentData.pubKey!);
+        const multisigUtxo = bidTx.getMultisigUtxo(acceptPaymentData.pubKey);
         await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
 
         return refundTx.build();
