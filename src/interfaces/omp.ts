@@ -172,31 +172,53 @@ export type PaymentData = PaymentDataBid | PaymentDataAccept | PaymentDataLock;
 export interface PaymentDataBid {
     escrow: EscrowType;
     cryptocurrency: Cryptocurrency;
-    pubKey?: string;                    // MULTISIG
-    address?: CryptoAddress;            // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
-    changeAddress?: CryptoAddress;      // MULTISIG
+}
+
+export interface PaymentDataBidMultisig extends PaymentDataBid {
+    pubKey: string;                     // MULTISIG
+    address: CryptoAddress;             // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
+    changeAddress: CryptoAddress;       // MULTISIG
     prevouts: Prevout[];                // MULTISIG & CT
-    outputs?: ToBeOutput[];             // CT
+}
+
+export interface PaymentDataBidCT extends PaymentDataBid {
+    prevouts: Prevout[];                // MULTISIG & CT
+    outputs: ToBeOutput[];              // CT
+    // todo: optional or not?
     release?: BlindData;                // CT (no signatures!)
 }
 
 export interface PaymentDataAccept {
     escrow: EscrowType;
+    fee: number;
+}
+
+export interface PaymentDataAcceptMultisig extends PaymentDataAccept {
     pubKey?: string;                    // MULTISIG
     changeAddress?: CryptoAddress;      // MULTISIG
     prevouts: Prevout[];                // MULTISIG & CT
-    outputs?: ToBeOutput[];             // CT
-    fee: number;
     signatures: ISignature[];           // MULTISIG
     release: SignatureData;             // MULTISIG & CT (only signatures)
-    destroy?: SignatureData;            // CT  (only signatures)
+}
+
+export interface PaymentDataAcceptCT extends PaymentDataAccept {
+    prevouts: Prevout[];                // MULTISIG & CT
+    outputs: ToBeOutput[];              // CT
+    release: SignatureData;             // MULTISIG & CT (only signatures)
+    destroy: SignatureData;             // CT  (only signatures)
 }
 
 export interface PaymentDataLock {
     escrow: EscrowType;
     signatures: ISignature[];           // MULTISIG & CT
     refund: SignatureData;              // MULTISIG & CT
-    destroy?: SignatureData;            // CT
+}
+
+export interface PaymentDataLockMultisig extends PaymentDataLock {
+}
+
+export interface PaymentDataLockCT extends PaymentDataLock {
+    destroy: SignatureData;             // CT
 }
 
 /**
