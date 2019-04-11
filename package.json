@@ -1,6 +1,6 @@
 {
     "name": "omp-lib",
-    "version": "0.1.53",
+    "version": "0.1.54",
     "description": "Particl OMP-library",
     "main": "dist/omp.js",
     "types": "dist/omp.d.js",
