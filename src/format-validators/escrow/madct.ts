@@ -3,7 +3,7 @@ import { isObject, isNumber, isString, isTxid, isArray, isBlindFactor, isNonNega
 import { FV_CRYPTO } from '../crypto';
 import { EscrowType } from '../../interfaces/omp-enums';
 import { isPublicKey, isPrivateKey } from '../util';
-import { PaymentDataBid, PaymentDataAccept, PaymentDataLock } from '../../interfaces/omp';
+import { PaymentDataLock, PaymentDataBidCT, PaymentDataAcceptCT } from '../../interfaces/omp';
 
 // TODO: max one class per file
 // tslint:disable max-classes-per-file no-string-throw
@@ -100,7 +100,7 @@ function validateReleaseRefundDestroy(exit: any, expectEphem: boolean = true, ex
 
 export class FV_MPA_BID_ESCROW_MAD_CT {
 
-    public static validate(payment: PaymentDataBid): boolean {
+    public static validate(payment: PaymentDataBidCT): boolean {
 
         try {
             validateBasic(payment);
@@ -126,7 +126,7 @@ export class FV_MPA_BID_ESCROW_MAD_CT {
 
 export class FV_MPA_ACCEPT_ESCROW_MAD_CT {
 
-    public static validate(payment: PaymentDataAccept): boolean {
+    public static validate(payment: PaymentDataAcceptCT): boolean {
 
         try {
             validateBasic(payment);
