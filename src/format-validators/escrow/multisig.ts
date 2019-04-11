@@ -3,14 +3,14 @@ import { isObject, isNumber, isString, isTxid, isArray } from '../../util';
 import { FV_CRYPTO } from '../crypto';
 import { EscrowType } from '../../interfaces/omp-enums';
 import { isNonNegativeNaturalNumber } from '../util';
-import { PaymentDataAccept, PaymentDataBid, PaymentDataLock } from '../../interfaces/omp';
+import { PaymentDataAccept, PaymentDataAcceptMultisig, PaymentDataBid, PaymentDataBidMultisig, PaymentDataLock } from '../../interfaces/omp';
 
 // TODO: max one class per file
 // tslint:disable max-classes-per-file
 
 export class FV_MPA_BID_ESCROW_MULTISIG {
 
-    public static validate(payment: PaymentDataBid): boolean {
+    public static validate(payment: PaymentDataBidMultisig): boolean {
 
         if (!isObject(payment)) {
             throw new Error('escrow mad: missing or not an object!');
@@ -54,7 +54,7 @@ export class FV_MPA_BID_ESCROW_MULTISIG {
 
 export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
 
-    public static validate(payment: PaymentDataAccept): boolean {
+    public static validate(payment: PaymentDataAcceptMultisig): boolean {
         // The validation for MPA_BID can be re-used here
         // MPA_ACCEPT shares a similar structure.
         FV_MPA_BID_ESCROW_MULTISIG.validate(<any> payment);
