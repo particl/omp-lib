@@ -53,7 +53,8 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         if (!paymentData.outputs) {
             paymentData.outputs = [];
-            paymentData.outputs.push({});
+            // todo: why is an empty object being pushed to the array in here?
+            paymentData.outputs.push({} as ToBeBlindOutput);
         }
 
         const buyer_prevout = (<BlindPrevout> paymentData.prevouts[0]);
@@ -99,7 +100,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         // If seller is accepting, initialize the array
         if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
             acceptPaymentData.outputs = [];
-            acceptPaymentData.outputs.push({});
+            acceptPaymentData.outputs.push({} as ToBeBlindOutput);
         }
 
         if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
@@ -480,7 +481,6 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
         const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
-        const lockPaymentData = lock.buyer.payment as PaymentDataLockCT;
 
         // Get the right transaction library for the right currency.
         const lib = this._libs(bidPaymentData.cryptocurrency, true);
@@ -643,8 +643,10 @@ export class MadCTBuilder implements IMadCTBuilder {
      */
     private bid_valueToTransferSatoshis(listing: MPA_LISTING_ADD, bid: MPA_BID): number {
 
+        const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
+
         let satoshis = 0;
-        const payment = listing.item.payment.options!.find((crypto) => crypto.currency === bid.buyer.payment.cryptocurrency);
+        const payment = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
 
         if (!payment) {
             throw new Error('Missing payment.');

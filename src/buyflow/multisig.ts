@@ -13,7 +13,7 @@ import {
     MPA_LISTING_ADD,
     MPA_ACCEPT,
     MPA_LOCK,
-    PaymentDataBidMultisig, PaymentDataAcceptMultisig, PaymentDataLockMultisig
+    PaymentDataBidMultisig, PaymentDataAcceptMultisig, PaymentDataLockMultisig, PaymentDataBidCT, PaymentDataAcceptCT, PaymentDataLockCT
 } from '../interfaces/omp';
 import { asyncMap, clone, isArray, isObject } from '../util';
 
@@ -195,6 +195,8 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      *
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
+     * @param accept
+     * @param lock
      */
     public async lock(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<MPA_LOCK> {
 
@@ -228,7 +230,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
             refundTx.addMultisigInput(multisigUtxo, [
                 bidPaymentData.pubKey!,
-                accept.seller.payment.pubKey!
+                acceptPaymentData.pubKey!
             ]);
 
             // Add the prevout for the buyer
@@ -236,9 +238,9 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, false, true);
             refundTx.newNormalOutput(buyer_address, buyer_releaseSatoshis);
 
-            const seller_address = accept.seller.payment.changeAddress!;
+            const seller_address = acceptPaymentData.changeAddress!;
             const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, true, true);
-            const seller_fee = accept.seller.payment.fee;
+            const seller_fee = acceptPaymentData.fee;
             refundTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
 
             // Sign the transaction if required (seller), and add the sellers signatures
@@ -273,7 +275,9 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * @param bid
      */
     public bid_valueToTransferSatoshis(listing: MPA_LISTING_ADD, bid: MPA_BID): number {
-        const payment = listing.item.payment.options!.find((crypto) => crypto.currency === bid.buyer.payment.cryptocurrency);
+
+        const bidPaymentData = bid.buyer.payment as PaymentDataBidMultisig;
+        const payment = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
 
         if (payment) {
             let satoshis = payment.basePrice;
@@ -342,10 +346,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * @param listing the listing action for which a bid was created
      * @param bid the bid action for which we're refunding
      * @param accept the accept action for the bid action
+     * @param lock
      */
     public async refund(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidMultisig;
+        const acceptPaymentData = accept.seller.payment as PaymentDataAcceptMultisig;
 
         // Get the right transaction library for the right currency.
         const lib = this._libs(bidPaymentData.cryptocurrency);
@@ -356,7 +362,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const refundTx: TransactionBuilder = rebuilt['_refundtx'];
 
         // sign for seller
-        const multisigUtxo = bidTx.getMultisigUtxo(accept.seller.payment.pubKey!);
+        const multisigUtxo = bidTx.getMultisigUtxo(acceptPaymentData.pubKey!);
         await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
 
         return refundTx.build();
