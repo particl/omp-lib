@@ -13,7 +13,7 @@ import {
     MPA_LISTING_ADD,
     MPA_ACCEPT,
     MPA_LOCK,
-    PaymentDataBidMultisig, PaymentDataAcceptMultisig, PaymentDataLockMultisig, PaymentDataBidCT, PaymentDataAcceptCT, PaymentDataLockCT
+    PaymentDataBidMultisig, PaymentDataAcceptMultisig, PaymentDataLockMultisig
 } from '../interfaces/omp';
 import { asyncMap, clone, isArray, isObject } from '../util';
 

@@ -44,7 +44,7 @@ export class Sequence {
                     const action: MPA_BID = <MPA_BID> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
 
-                    const paymentDataBid = action.buyer.payment;
+                    const paymentDataBid = action.buyer.payment as PaymentDataBid;
                     const options: PaymentOption[] = listing.item.payment.options || [];
                     const paymentInfo = listing.item.payment as PaymentInfoEscrow;
 
