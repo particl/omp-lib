@@ -206,7 +206,7 @@ describe('SequenceValidator', () => {
             error = e.toString();
         }
         // TODO: should fail once MAD validation format is added. Fix it
-        expect(error).toEqual(expect.stringContaining('expected MAD_CT, received=MAD'));
+        expect(error).toEqual(expect.stringContaining('unknown validation format, unknown value, received=MAD'));
     });
 
     const wrong_escrow_accept = clone(accept_ok);
@@ -220,7 +220,7 @@ describe('SequenceValidator', () => {
             error = e.toString();
         }
         // TODO: should fail once MAD validation format is added. Fix it
-        expect(error).toEqual(expect.stringContaining('expected MAD_CT, received=MAD'));
+        expect(error).toEqual(expect.stringContaining('unknown validation format, unknown value, received=MAD'));
     });
 
     const wrong_escrow_lock = clone(bid_ok);
@@ -234,7 +234,7 @@ describe('SequenceValidator', () => {
             error = e.toString();
         }
         // TODO: should fail once MAD validation format is added. Fix it
-        expect(error).toEqual(expect.stringContaining('expected MAD_CT, received=MAD'));
+        expect(error).toEqual(expect.stringContaining('unknown validation format, unknown value, received=MAD'));
     });
 
     const wrong_currency_bid = clone(bid_ok);
