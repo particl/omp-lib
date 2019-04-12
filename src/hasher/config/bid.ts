@@ -1,4 +1,4 @@
-import { HashableBidField, HashableItemField } from '../../interfaces/omp-enums';
+import { HashableBidField } from '../../interfaces/omp-enums';
 import { HashableConfig, HashableFieldConfig } from '../../interfaces/configs';
 
 export class HashableBidMessageConfig implements HashableConfig {

@@ -7,12 +7,15 @@ import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
 import { HashableConfig } from '../interfaces/configs';
 
 export class Hasher {
-    private static hash(objectToHash: any, config: HashableConfig): string {
+    public static hash(objectToHash: any, config: HashableConfig): string {
         // TODO: validate that the result contains all the fields defined in config
         return hash(toHashable(objectToHash, config));
     }
 }
 
+/**
+ * interface which objects we hash should implement
+ */
 export interface HashableObject {
 }
 
@@ -30,6 +33,10 @@ export function toHashable(objectToHash: any, config: HashableConfig): HashableO
     return hashable;
 }
 
+/**
+ * hashes a HashableObject
+ * @param v
+ */
 export function hash(v: HashableObject): string {
     if (typeof v === 'undefined') {
         throw new Error('hash(): value is undefined');
