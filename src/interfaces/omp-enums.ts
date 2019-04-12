@@ -51,7 +51,7 @@ export enum HashableItemField {
     TITLE = 'title',
     SHORT_DESC = 'shortDescription',
     LONG_DESC = 'longDescription',
-    PAYMENT_TYPE = 'paymentType',
+    SALE_TYPE = 'saleType',
     ESCROW_TYPE = 'escrowType',
     ESCROW_RATIO_BUYER = 'escrowRatioBuyer',
     ESCROW_RATIO_SELLER = 'escrowRatioSeller',

@@ -16,7 +16,7 @@ export class HashableListingMessageConfig implements HashableConfig {
         to: HashableItemField.LONG_DESC
     }, {
         from: 'item.payment.type',
-        to: HashableItemField.PAYMENT_TYPE
+        to: HashableItemField.SALE_TYPE
     }, {
         from: 'item.payment.escrow.type',
         to: HashableItemField.ESCROW_TYPE

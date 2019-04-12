@@ -1,7 +1,7 @@
 import { Cryptocurrency } from './crypto';
 import { EscrowType, HashableBidField, HashableItemField } from './omp-enums';
 import { KVS } from './common';
-import { PaymentDataAccept, PaymentDataBid, PaymentDataLock, ShippingAddress } from './omp';
+import { ShippingAddress } from './omp';
 
 export interface BidConfiguration {
     cryptocurrency: Cryptocurrency;
