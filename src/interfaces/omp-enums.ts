@@ -60,5 +60,18 @@ export enum HashableItemField {
     PAYMENT_ADDRESS_TYPE = 'paymentAddressType',
     PAYMENT_ADDRESS_ADDRESS = 'paymentAddressAddress',
     PAYMENT_SHIPPING_PRICE_DOMESTIC = 'paymentShippingDomestic',
-    PAYMENT_SHIPPING_PRICE_INTL = 'paymentShippingInternational',
+    PAYMENT_SHIPPING_PRICE_INTL = 'paymentShippingInternational'
+}
+
+export enum HashableBidField {
+    GENERATED = 'generated',
+    ITEM_HASH = 'item',
+    BUYER_SHIPPING_FIRSTNAME = 'shippingFirstName',
+    BUYER_SHIPPING_LASTNAME = 'shippingLastName',
+    BUYER_SHIPPING_ADDRESS = 'shippingAddress',
+    BUYER_SHIPPING_CITY = 'shippingCity',
+    BUYER_SHIPPING_ZIP = 'shippingZip',
+    BUYER_SHIPPING_COUNTRY = 'shippingCountry',
+    PAYMENT_ESCROW_TYPE = 'paymentEscrowType',
+    PAYMENT_CRYPTO = 'paymentCrypto'
 }

@@ -1,13 +1,5 @@
-import { HashableItemField } from '../interfaces/omp-enums';
-
-export interface HashableConfig {
-    fields: HashableFieldConfig[];
-}
-
-export interface HashableFieldConfig {
-    from: string;
-    to: HashableItemField;
-}
+import { HashableItemField } from '../../interfaces/omp-enums';
+import { HashableConfig, HashableFieldConfig } from '../../interfaces/configs';
 
 export class HashableListingMessageConfig implements HashableConfig {
     public fields = [{
@@ -54,4 +46,3 @@ export class HashableListingMessageConfig implements HashableConfig {
         to: HashableItemField.PAYMENT_SHIPPING_PRICE_INTL
     }] as HashableFieldConfig[];
 }
-
