@@ -139,7 +139,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             // Buyer pregenerates the transaction blinding factor for the seller so he can sign earlier.
             // Currently not implemented because we're not checking ownership of the outputs.
             // TODO(security): fix
-            const blind = hash(buyer_output.blindFactor + cryptocurrency.address!.address);
+            const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
             // Generate a new CT output of the _exact_ amount.
             acceptPaymentData.prevouts = await lib.getBlindPrevouts(seller_requiredSatoshis + seller_fee, blind);
         }

@@ -152,7 +152,7 @@ export class OpenMarketProtocol implements OMP {
         // based on a cryptocurrency: Cryptocurrency
         this.container.bind<ILibrary>(TYPES.Library).toFactory<CtRpc | Rpc>(
             (ctx: interfaces.Context) => {
-                return (cryptocurrency: Cryptocurrency, isCt?: boolean) => {
+                return (cryptocurrency: Cryptocurrency, isCt: boolean = false) => {
                     let lib;
                     if (!isCt) {
                         lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
