@@ -1,10 +1,10 @@
 // tslint:disable:no-for-each-push
+import * as _ from 'lodash';
 import { sha256 } from 'js-sha256';
 import { isObject, isArray } from '../format-validators/util';
 import { MPA_LISTING_ADD, MPM } from '../interfaces/omp';
 import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
 import { HashableConfig } from '../interfaces/configs';
-import * as _ from 'lodash';
 
 export class Hasher {
     private static hash(objectToHash: any, config: HashableConfig): string {
