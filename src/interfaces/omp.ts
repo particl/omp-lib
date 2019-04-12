@@ -41,7 +41,6 @@ export interface MPA {
 export interface MPA_LISTING_ADD extends MPA {
     // type: MPAction.MPA_LISTING_ADD;
     item: Item;
-    // hash: string;               // item hash, used to verify on the receiving end
 }
 
 
@@ -67,7 +66,6 @@ export interface MPA_LISTING_ADD extends MPA {
 export interface MPA_BID extends MPA {
     // completely refactored, !implementation !protocol
     // type: MPAction.MPA_BID;
-    // hash: string;                // bid hash, used to verify on the receiving end
     item: string;                   // item hash
     buyer: BuyerData;               // buyer payment and other purchase details like shipping address
     // {
@@ -373,8 +371,8 @@ export interface PricePegging {
 export interface PaymentOption {
     currency: Cryptocurrency;
     basePrice: number;
-    shippingPrice?: ShippingPrice;  // some SaleTypes might not require this
-    address?: CryptoAddress;        // some SaleTypes might not require this
+    shippingPrice: ShippingPrice;  // some SaleTypes might not require this
+    address: CryptoAddress;        // some SaleTypes might not require this
 }
 
 /**

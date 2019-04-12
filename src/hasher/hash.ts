@@ -3,9 +3,34 @@ import { sha256 } from 'js-sha256';
 import { isObject, isArray } from '../format-validators/util';
 import { MPA_LISTING_ADD, MPM } from '../interfaces/omp';
 import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
+import { HashableConfig } from '../interfaces/configs';
+import * as _ from 'lodash';
 
-// TODO: should has only HashableObject, not any
-export function hash(v: any): string {
+export class Hasher {
+    private static hash(objectToHash: any, config: HashableConfig): string {
+        // TODO: validate that the result contains all the fields defined in config
+        return hash(toHashable(objectToHash, config));
+    }
+}
+
+export interface HashableObject {
+}
+
+/**
+ * creates a HashableObject based on HashableConfig
+ * @param objectToHash
+ * @param config
+ */
+export function toHashable(objectToHash: any, config: HashableConfig): HashableObject {
+    const hashable: HashableObject = {};
+    for (const configField of config.fields) {
+        const value = _.get(objectToHash, configField.from);
+        _.set(hashable, configField.to, value);
+    }
+    return hashable;
+}
+
+export function hash(v: HashableObject): string {
     if (typeof v === 'undefined') {
         throw new Error('hash(): value is undefined');
     }
@@ -15,7 +40,8 @@ export function hash(v: any): string {
     } else if (isObject(v)) {
         return hashObject(v);
     } else {
-        return sha256(v);
+        throw new Error('o_O');
+        // return sha256(v);
     }
 }
 
