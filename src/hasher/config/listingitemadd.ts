@@ -1,10 +1,10 @@
-import { HashableItemField } from '../../interfaces/omp-enums';
+import { HashableCommonField, HashableItemField } from '../../interfaces/omp-enums';
 import { HashableConfig, HashableFieldConfig } from '../../interfaces/configs';
 
 export class HashableListingMessageConfig implements HashableConfig {
     public fields = [{
         from: 'generated',
-        to: HashableItemField.GENERATED
+        to: HashableCommonField.GENERATED
     }, {
         from: 'item.information.title',
         to: HashableItemField.TITLE

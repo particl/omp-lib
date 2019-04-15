@@ -47,7 +47,6 @@ export enum MessagingProtocol {
  * ListingItem fields used for hashing
  */
 export enum HashableItemField {
-    GENERATED = 'generated',
     TITLE = 'title',
     SHORT_DESC = 'shortDescription',
     LONG_DESC = 'longDescription',
@@ -64,7 +63,6 @@ export enum HashableItemField {
 }
 
 export enum HashableBidField {
-    GENERATED = 'generated',
     ITEM_HASH = 'item',
     BUYER_SHIPPING_FIRSTNAME = 'shippingFirstName',
     BUYER_SHIPPING_LASTNAME = 'shippingLastName',
@@ -74,4 +72,9 @@ export enum HashableBidField {
     BUYER_SHIPPING_COUNTRY = 'shippingCountry',
     PAYMENT_ESCROW_TYPE = 'paymentEscrowType',
     PAYMENT_CRYPTO = 'paymentCrypto'
+}
+
+export enum HashableCommonField {
+    GENERATED = 'generated',
+    VERSION = 'version'
 }

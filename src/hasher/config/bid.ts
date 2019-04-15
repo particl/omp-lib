@@ -1,10 +1,10 @@
-import { HashableBidField } from '../../interfaces/omp-enums';
+import { HashableBidField, HashableCommonField } from '../../interfaces/omp-enums';
 import { HashableConfig, HashableFieldConfig } from '../../interfaces/configs';
 
 export class HashableBidMessageConfig implements HashableConfig {
     public fields = [{
         from: 'generated',
-        to: HashableBidField.GENERATED
+        to: HashableCommonField.GENERATED
     }, {
         from: 'item',
         to: HashableBidField.ITEM_HASH
