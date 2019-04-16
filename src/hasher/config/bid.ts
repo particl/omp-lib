@@ -36,7 +36,7 @@ export class HashableBidMessageConfig extends BaseHashableConfig {
 
     public values: HashableFieldValueConfig[] = [];
 
-    constructor(values: HashableFieldValueConfig[]) {
+    constructor(values?: HashableFieldValueConfig[]) {
         super(values);
     }
 }
