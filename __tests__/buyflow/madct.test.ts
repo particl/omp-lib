@@ -39,7 +39,6 @@ describe('Buyflow: mad ct', () => {
         seller.inject(Cryptocurrency.PART, node1);
     });
 
-    // todo: quicknuglyfixfor https://github.com/kentcdodds/react-testing-library/issues/36
     const extendedExpect: any = Object.assign(expect);
 
     extendedExpect.extend({
@@ -165,54 +164,54 @@ describe('Buyflow: mad ct', () => {
         jest.setTimeout(400000);
         let end = false;
 
-        try {
+        // try {
 
-            ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
-            // Step1: Buyer does bid
-            const bid = await buyer.bid(config, ok);
-            const bid_stripped = strip(bid);
+        ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
+        // Step1: Buyer does bid
+        const bid = await buyer.bid(config, ok);
+        const bid_stripped = strip(bid);
 
-            await delay(7000);
-            // Step 2: seller accepts
-            const accept = await seller.accept(ok, bid_stripped);
-            const accept_stripped = strip(accept);
-            extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+        await delay(7000);
+        // Step 2: seller accepts
+        const accept = await seller.accept(ok, bid_stripped);
+        const accept_stripped = strip(accept);
+        extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
 
-            // Step 3: buyer signs destroy txn (done), signs bid txn (half)
-            await delay(7000);
-            const lock = await buyer.lock(ok, bid, accept_stripped);
-            const lock_stripped = strip(lock);
+        // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        await delay(7000);
+        const lock = await buyer.lock(ok, bid, accept_stripped);
+        const lock_stripped = strip(lock);
 
-            extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+        extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
 
-            expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
+        expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
 
-            // Step 4: seller signs bid txn (full) and submits
-            const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            extendedExpect(complete).toBeCompletedTransaction();
+        // Step 4: seller signs bid txn (full) and submits
+        const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
+        extendedExpect(complete).toBeCompletedTransaction();
 
-            const completeTxid = await node0.sendRawTransaction(complete);
-            await node1.sendRawTransaction(complete);
-            expect(completeTxid).toBeDefined();
+        const completeTxid = await node0.sendRawTransaction(complete);
+        await node1.sendRawTransaction(complete);
+        expect(completeTxid).toBeDefined();
 
-            // Step 5: buyer signs release
-            await delay(10000);
-            const release = await buyer.release(ok, bid, accept);
-            extendedExpect(release).toBeCompletedTransaction();
+        // Step 5: buyer signs release
+        await delay(10000);
+        const release = await buyer.release(ok, bid, accept);
+        extendedExpect(release).toBeCompletedTransaction();
 
-            const releaseTxid = await node0.sendRawTransaction(release);
-            await node1.sendRawTransaction(release);
-            expect(releaseTxid).toBeDefined();
+        const releaseTxid = await node0.sendRawTransaction(release);
+        await node1.sendRawTransaction(release);
+        expect(releaseTxid).toBeDefined();
 
-            await delay(10000);
-            extendedExpect(releaseTxid).toBeUtxoWithAmount(node0, 2);
-            extendedExpect(releaseTxid).toBeUtxoWithAmount(node1, 3.99995000);
+        await delay(10000);
+        extendedExpect(releaseTxid).toBeUtxoWithAmount(node0, 2);
+        extendedExpect(releaseTxid).toBeUtxoWithAmount(node1, 3.99995000);
 
 
-            end = true;
-        } catch (e) {
-            console.log(e);
-        }
+        end = true;
+        // } catch (e) {
+        //    console.log(e);
+        // }
         expect(end).toEqual(true);
     });
 
@@ -220,55 +219,54 @@ describe('Buyflow: mad ct', () => {
         jest.setTimeout(400000);
         let end = false;
 
-        try {
+        // try {
+        ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
+        // Step1: Buyer does bid
+        const bid = await buyer.bid(config, ok);
+        const bid_stripped = strip(bid);
 
-            ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
-            // Step1: Buyer does bid
-            const bid = await buyer.bid(config, ok);
-            const bid_stripped = strip(bid);
+        await delay(7000);
+        // Step 2: seller accepts
+        const accept = await seller.accept(ok, bid_stripped);
+        const accept_stripped = strip(accept);
 
-            await delay(7000);
-            // Step 2: seller accepts
-            const accept = await seller.accept(ok, bid_stripped);
-            const accept_stripped = strip(accept);
+        extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
 
-            extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+        // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        await delay(7000);
+        const lock = await buyer.lock(ok, bid, accept_stripped);
+        const lock_stripped = strip(lock);
 
-            // Step 3: buyer signs destroy txn (done), signs bid txn (half)
-            await delay(7000);
-            const lock = await buyer.lock(ok, bid, accept_stripped);
-            const lock_stripped = strip(lock);
+        extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
 
-            extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+        expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
 
-            expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
+        // Step 4: seller signs bid txn (full) and submits
+        const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
+        extendedExpect(complete).toBeCompletedTransaction();
 
-            // Step 4: seller signs bid txn (full) and submits
-            const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            extendedExpect(complete).toBeCompletedTransaction();
+        const completeTxid = await node0.sendRawTransaction(complete);
+        await node1.sendRawTransaction(complete);
+        expect(completeTxid).toBeDefined();
 
-            const completeTxid = await node0.sendRawTransaction(complete);
-            await node1.sendRawTransaction(complete);
-            expect(completeTxid).toBeDefined();
+        // Step 5: seller signs refund
+        await delay(10000);
+        const refund = await seller.refund(ok, bid, accept, lock);
+        extendedExpect(refund).toBeCompletedTransaction();
 
-            // Step 5: seller signs refund
-            await delay(10000);
-            const refund = await seller.refund(ok, bid, accept, lock);
-            extendedExpect(refund).toBeCompletedTransaction();
+        const refundTxid = await node0.sendRawTransaction(refund);
+        await node1.sendRawTransaction(refund);
+        expect(refundTxid).toBeDefined();
 
-            const refundTxid = await node0.sendRawTransaction(refund);
-            await node1.sendRawTransaction(refund);
-            expect(refundTxid).toBeDefined();
-
-            await delay(10000);
-            extendedExpect(refundTxid).toBeUtxoWithAmount(node0, 4);
-            extendedExpect(refundTxid).toBeUtxoWithAmount(node1, 1.99995000);
+        await delay(10000);
+        extendedExpect(refundTxid).toBeUtxoWithAmount(node0, 4);
+        extendedExpect(refundTxid).toBeUtxoWithAmount(node1, 1.99995000);
 
 
-            end = true;
-        } catch (e) {
-            console.log(e);
-        }
+        end = true;
+        // } catch (e) {
+        //    console.log(e);
+        // }
         expect(end).toEqual(true);
     });
 
@@ -276,71 +274,71 @@ describe('Buyflow: mad ct', () => {
         jest.setTimeout(400000);
         let end = false;
 
+        // try {
+
+        ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
+        // Step1: Buyer does bid
+        const bid = await buyer.bid(config, ok);
+        const bid_stripped = strip(bid);
+
+        await delay(10000);
+        // Step 2: seller accepts
+        const accept = await seller.accept(ok, bid_stripped);
+        const accept_stripped = strip(accept);
+
+        extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+
+        // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        await delay(10000);
+        const lock = await buyer.lock(ok, bid_stripped, accept_stripped);
+        const lock_stripped = strip(lock);
+
+        extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+
+        // Step 4: seller signs bid txn (full) and submits
+        await delay(7000);
+        const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
+        extendedExpect(complete).toBeCompletedTransaction();
+
+        const completeTxid = await node0.sendRawTransaction(complete);
+        expect(completeTxid).toBeDefined();
+
+        // Can not destroy the funds before the timer has been reached
+        let shouldFailToDestroy = false;
         try {
+            await node0.sendRawTransaction(lock.action['_rawdesttx']);
+        } catch (e) {
+            shouldFailToDestroy = (e['message'] === 'non-BIP68-final (code 64)');
+        }
+        expect(shouldFailToDestroy).toEqual(true);
 
-            ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
-            // Step1: Buyer does bid
-            const bid = await buyer.bid(config, ok);
-            const bid_stripped = strip(bid);
+        // Use daemon as a source of truth for what the current time is.
+        const now = (await node0.call('getblockchaininfo', []))['mediantime'];
+        const feasibleFrom = (now + 2880);
 
-            await delay(10000);
-            // Step 2: seller accepts
-            const accept = await seller.accept(ok, bid_stripped);
-            const accept_stripped = strip(accept);
+        // Travelling through time, 3000s in the future!
+        await Promise.all([
+            timeTravel(feasibleFrom, node0),
+            timeTravel(feasibleFrom, node1),
+            timeTravel(feasibleFrom, node2)
+        ]);
 
-            extendedExpect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+        // Let a few blocks mine
+        await waitTillJumped(feasibleFrom, node0);
 
-            // Step 3: buyer signs destroy txn (done), signs bid txn (half)
-            await delay(10000);
-            const lock = await buyer.lock(ok, bid_stripped, accept_stripped);
-            const lock_stripped = strip(lock);
-
-            extendedExpect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
-
-            // Step 4: seller signs bid txn (full) and submits
-            await delay(7000);
-            const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            extendedExpect(complete).toBeCompletedTransaction();
-
-            const completeTxid = await node0.sendRawTransaction(complete);
-            expect(completeTxid).toBeDefined();
-
-            // Can not destroy the funds before the timer has been reached
-            let shouldFailToDestroy = false;
-            try {
-                await node0.sendRawTransaction(lock.action['_rawdesttx']);
-            } catch (e) {
-                shouldFailToDestroy = (e['message'] === 'non-BIP68-final (code 64)');
-            }
-            expect(shouldFailToDestroy).toEqual(true);
-
-            // Use daemon as a source of truth for what the current time is.
-            const now = (await node0.call('getblockchaininfo', []))['mediantime'];
-            const feasibleFrom = (now + 2880);
-
-            // Travelling through time, 3000s in the future!
-            await Promise.all([
-                timeTravel(feasibleFrom, node0),
-                timeTravel(feasibleFrom, node1),
-                timeTravel(feasibleFrom, node2)
-            ]);
-
-            // Let a few blocks mine
-            await waitTillJumped(feasibleFrom, node0);
-
-            // Should be able to destroy them now
-            let destroytxid: string;
-            try {
-                destroytxid = await node0.sendRawTransaction(lock.action['_rawdesttx']);
-            } catch (e) {
-                console.log('ERROR: ' + e);
-            }
-            expect(destroytxid).toBeDefined();
-
-            end = true;
+        // Should be able to destroy them now
+        let destroytxid: string;
+        try {
+            destroytxid = await node0.sendRawTransaction(lock.action['_rawdesttx']);
         } catch (e) {
             console.log('ERROR: ' + e);
         }
+        expect(destroytxid).toBeDefined();
+
+        end = true;
+        // } catch (e) {
+        //    console.log('ERROR: ' + e);
+        // }
         expect(end).toEqual(true);
     });
 });

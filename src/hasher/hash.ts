@@ -60,8 +60,7 @@ export function hash(v: any): string {
     } else if (isObject(v)) {
         return hashObject(v);
     } else {
-        throw new Error('o_O');
-        // return sha256(v);
+        return sha256(v);
     }
 }
 

@@ -1,7 +1,9 @@
 import * from 'jest';
-import { hash, hashListing, deepSortObject } from '../src/hasher/hash';
+import { hash, deepSortObject, ConfigurableHasher } from '../src/hasher/hash';
 import { clone, strip, log } from '../src/util';
 import { sha256 } from 'js-sha256';
+import { HashableListingMessageConfig } from '../src/hasher/config/listingitemadd';
+import { HashableValidator } from '../src/format-validators/hashable';
 
 describe('Hash', () => {
 
@@ -47,10 +49,15 @@ describe('Hash', () => {
 
 
 
+    let config: HashableListingMessageConfig;
+    let validator: HashableValidator;
+
     beforeAll(async () => {
         // todo: do all the setup for suite tests here
-    });
+        config = new HashableListingMessageConfig();
+        validator = new HashableValidator(config);
 
+    });
 
     test('normalize and hash', () => {
 
@@ -138,6 +145,7 @@ describe('Hash', () => {
         expect(output).toBe(three);
     });
 
+    // note: images are not part of the listing hash currently
     test('compare hashes of two listings full vs less local images', () => {
         const data_image = 'fdgnihdqfgojsodhgofjsgishdfgihsdfpoghsidghipfghidshgyiyriehrtsugquregfudfugbfugd';
 
@@ -171,8 +179,10 @@ describe('Hash', () => {
         let output = 'one';
         let two = 'two';
         try {
-            output = hashListing(ok_full_img_data);
-            two = hashListing(ok_less_img_data);
+            output = ConfigurableHasher.hash(ok_full_img_data.action, config);
+            two = ConfigurableHasher.hash(ok_less_img_data.action, config);
+            // output = hashListing(ok_full_img_data);
+            // two = hashListing(ok_less_img_data);
         } catch (e) {
             console.log(e);
         }
