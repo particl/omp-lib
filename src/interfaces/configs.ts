@@ -12,14 +12,17 @@ export interface BidConfiguration {
 
 export interface HashableConfig {
     fields: HashableFieldConfig[];
+    values: HashableFieldValueConfig[];
 }
 
 export abstract class BaseHashableConfig {
-    public fields: HashableFieldConfig[];
-    public values: HashableFieldValueConfig[];
-    constructor(fields: HashableFieldConfig[] = [], values: HashableFieldValueConfig[] = []) {
-        this.fields = fields;
-        this.values = values;
+    public abstract fields: HashableFieldConfig[];
+    public values: HashableFieldValueConfig[] = [];
+
+    constructor(values?: HashableFieldValueConfig[]) {
+        if (values) {
+            this.values = values;
+        }
     }
 }
 

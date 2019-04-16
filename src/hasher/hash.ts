@@ -29,9 +29,14 @@ export class ConfigurableHasher {
      */
     private static toHashable(objectToHash: any, config: HashableConfig): HashableObject {
         const hashable = new HashableObject();
+        // first copy the fields from objectToHash to hashable
         for (const configField of config.fields) {
             const value = _.get(objectToHash, configField.from);
             _.set(hashable, configField.to, value);
+        }
+        // then set the extra values passed in config to hashable
+        for (const configField of config.values) {
+            _.set(hashable, configField.to, configField.value);
         }
         return hashable;
     }
