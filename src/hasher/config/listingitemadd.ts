@@ -1,7 +1,8 @@
 import { HashableCommonField, HashableItemField } from '../../interfaces/omp-enums';
-import { HashableConfig, HashableFieldConfig } from '../../interfaces/configs';
+import { BaseHashableConfig, HashableFieldConfig, HashableFieldValueConfig } from '../../interfaces/configs';
 
-export class HashableListingMessageConfig implements HashableConfig {
+export class HashableListingMessageConfig extends BaseHashableConfig {
+
     public fields = [{
         from: 'generated',
         to: HashableCommonField.GENERATED
@@ -45,4 +46,10 @@ export class HashableListingMessageConfig implements HashableConfig {
         from: 'item.payment.options[0].shippingPrice.international',
         to: HashableItemField.PAYMENT_SHIPPING_PRICE_INTL
     }] as HashableFieldConfig[];
+
+    public values: HashableFieldValueConfig[] = [];
+
+    constructor(values: HashableFieldValueConfig[]) {
+        super(values);
+    }
 }

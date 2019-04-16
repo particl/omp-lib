@@ -1,7 +1,7 @@
 import { HashableBidField, HashableCommonField } from '../../interfaces/omp-enums';
-import { HashableConfig, HashableFieldConfig } from '../../interfaces/configs';
+import { BaseHashableConfig, HashableFieldConfig, HashableFieldValueConfig } from '../../interfaces/configs';
 
-export class HashableBidMessageConfig implements HashableConfig {
+export class HashableBidMessageConfig extends BaseHashableConfig {
     public fields = [{
         from: 'generated',
         to: HashableCommonField.GENERATED
@@ -33,5 +33,11 @@ export class HashableBidMessageConfig implements HashableConfig {
         from: 'buyer.payment.cryptocurrency',
         to: HashableBidField.PAYMENT_CRYPTO
     }] as HashableFieldConfig[];
+
+    public values: HashableFieldValueConfig[] = [];
+
+    constructor(values: HashableFieldValueConfig[]) {
+        super(values);
+    }
 }
 
