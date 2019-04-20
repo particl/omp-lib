@@ -327,12 +327,7 @@ describe('Buyflow: mad ct', () => {
         await waitTillJumped(feasibleFrom, node0);
 
         // Should be able to destroy them now
-        let destroytxid: string;
-        try {
-            destroytxid = await node0.sendRawTransaction(lock.action['_rawdesttx']);
-        } catch (e) {
-            console.log('ERROR: ' + e);
-        }
+        const destroytxid = await node0.sendRawTransaction(lock.action['_rawdesttx']);
         expect(destroytxid).toBeDefined();
 
         end = true;

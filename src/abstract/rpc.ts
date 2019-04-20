@@ -276,7 +276,7 @@ export abstract class CtRpc extends Rpc {
     // public abstract async signRawTransactionForBlindInputs(tx: TransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]>;
     public abstract async verifyCommitment(commitment: string, blindFactor: string, amount: number): Promise<boolean>;
 
-    public abstract async createRawTransaction(inputs: BlindPrevout, outputs: any): Promise<any>;
+    public abstract async createRawTransaction(inputs: BlindPrevout[], outputs: any[]): Promise<any>;
 
 
     public async createBlindPrevoutFromAnon(satoshis: number, blind?: string): Promise<BlindPrevout> {

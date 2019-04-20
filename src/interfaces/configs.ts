@@ -1,5 +1,5 @@
 import { Cryptocurrency } from './crypto';
-import { EscrowType, HashableBidField, HashableItemField } from './omp-enums';
+import { EscrowType, HashableBidField, HashableCommonField, HashableItemField } from './omp-enums';
 import { KVS } from './common';
 import { ShippingAddress } from './omp';
 
@@ -26,14 +26,14 @@ export abstract class BaseHashableConfig {
     }
 }
 
-export type HashableFieldTypes = HashableItemField | HashableBidField;
-
+// export type HashableFieldTypes = HashableCommonField | HashableItemField | HashableBidField;
+// todo: find a working way to extend this on the mp side
 export interface HashableFieldConfig {
     from: string;
-    to: HashableFieldTypes;
+    to: string; // HashableFieldTypes;
 }
 
 export interface HashableFieldValueConfig {
     value: string;
-    to: HashableFieldTypes;
+    to: string; // HashableFieldTypes;
 }

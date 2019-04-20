@@ -16,7 +16,8 @@ import { KVS } from './common';
 export interface MPM {
     version: string;
     action: MPA;
-    _rawtx?: string;
+    _rawtx?: string;            // TODO: is this in the wrong place, also, digging into code, it looks like _rawtx is not string?
+                                // for example in multisig.test: lock.action['_rawbidtx'];
 }
 
 export interface MPA {
