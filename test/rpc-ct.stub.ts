@@ -139,11 +139,13 @@ export class CtCoreRpcService extends CtRpc {
 
                 const jsonRpcResponse = JSON.parse(response.content);
                 if (response.statusCode !== 200) {
-                    const message = response.content ? JSON.parse(response.content) : response.statusMessage;
+                    const message = response.content
+                        ? response.statusCode + ': ' + response.content // JSON.parse(response.content)
+                        : response.statusCode + ': ' + response.statusMessage;
                     if (this.DEBUG) {
                         console.error('method:', method);
                         console.error('params:', params);
-                        console.error(message);
+                        console.error(JSON.stringify(message, null, 2));
                     }
                     throw message['error'];
                 }
