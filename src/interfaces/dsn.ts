@@ -1,4 +1,3 @@
-import { Cryptocurrency } from './crypto';
 
 /**
  * Data Storage Network Refence.

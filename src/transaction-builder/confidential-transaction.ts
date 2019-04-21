@@ -1,16 +1,7 @@
-import { injectable, inject, named } from 'inversify';
-
-import { TYPES } from '../types';
 import * as bitcore from 'particl-bitcore-lib';
-
-import { Rpc, ILibrary } from '../abstract/rpc';
-
-import { Prevout, ToBeNormalOutput, ISignature, BlindPrevout } from '../interfaces/crypto';
-
-import { TransactionBuilder, publicKeyToAddress, getSerializedInteger } from './transaction';
-import { deepSortObject } from '../hasher/hash';
+import { Prevout, ISignature, BlindPrevout } from '../interfaces/crypto';
+import { TransactionBuilder } from './transaction';
 import { CryptoAddress } from '../interfaces/crypto';
-import { clone, fromSatoshis, log } from '../util';
 
 
 export class ConfidentialTransactionBuilder extends TransactionBuilder {

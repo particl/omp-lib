@@ -1,13 +1,9 @@
 import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
-
 import { CtRpc, RpcBlindSendToOutput } from '../src/abstract/rpc';
-
-import { Prevout, ISignature, BlindPrevout, CryptoAddressType, CryptoAddress, ToBeBlindOutput } from '../src/interfaces/crypto';
-import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone, log } from '../src/util';
-import { TransactionBuilder } from '../src/transaction-builder/transaction';
-import { ConfidentialTransactionBuilder } from '../src/transaction-builder/confidential-transaction';
+import { Prevout, BlindPrevout, CryptoAddressType, CryptoAddress } from '../src/interfaces/crypto';
+import { fromSatoshis } from '../src/util';
 import { RpcAddressInfo, RpcRawTx, RpcUnspentOutput } from '../src/interfaces/rpc';
 
 

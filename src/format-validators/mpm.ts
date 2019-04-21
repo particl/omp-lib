@@ -1,4 +1,4 @@
-import { MPA, MPM } from '../interfaces/omp';
+import { MPM } from '../interfaces/omp';
 import { MPAction } from '../interfaces/omp-enums';
 
 

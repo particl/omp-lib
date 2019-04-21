@@ -1,4 +1,3 @@
-import { injectable, inject, named } from 'inversify';
 import 'reflect-metadata';
 import * as bitcore from 'particl-bitcore-lib';
 import { Prevout, ToBeOutput, ToBeNormalOutput, ISignature } from '../interfaces/crypto';

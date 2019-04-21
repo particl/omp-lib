@@ -1,5 +1,5 @@
 import { Cryptocurrency } from './crypto';
-import { EscrowType, HashableBidField, HashableCommonField, HashableItemField } from './omp-enums';
+import { EscrowType } from './omp-enums';
 import { KVS } from './common';
 import { ShippingAddress } from './omp';
 

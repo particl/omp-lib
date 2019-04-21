@@ -2,13 +2,11 @@ import { inject, injectable } from 'inversify';
 import { TYPES } from '../types';
 
 import { CryptoAddressType } from '../interfaces/crypto';
-import { Rpc, ILibrary } from '../abstract/rpc';
+import { ILibrary } from '../abstract/rpc';
 import { IMultiSigBuilder } from '../abstract/transactions';
 
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import {
-    MPM,
-    MPA,
     MPA_BID,
     MPA_LISTING_ADD,
     MPA_ACCEPT,

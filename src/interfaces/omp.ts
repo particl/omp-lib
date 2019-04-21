@@ -69,10 +69,6 @@ export interface MPA_BID extends MPA {
     // type: MPAction.MPA_BID;
     item: string;                   // item hash
     buyer: BuyerData;               // buyer payment and other purchase details like shipping address
-    // {
-    //     payment: PaymentDataBid;             // MPA_BID, MPA_ACCEPT, MPA_LOCK
-    //     shippingAddress?: ShippingAddress;   // MPA_BID
-    // };
 }
 
 /**
@@ -114,9 +110,6 @@ export interface MPA_LOCK extends MPA {
     // type: MPAction.MPA_LOCK;
     bid: string;                // hash of MPA_BID
     buyer: BuyerData;
-    // {
-    //    payment: PaymentDataLock;
-    // };
     info: LockInfo;
 }
 

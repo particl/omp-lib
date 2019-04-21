@@ -32,6 +32,7 @@ dist/
 # Yarn Integrity file
 .yarn-integrity
 
+.DS_Store
 **/.DS_Store
 bins/*.tar.gz
 bins/*.zip

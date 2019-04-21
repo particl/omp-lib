@@ -9,73 +9,6 @@ import { Rpc } from '../../src/abstract/rpc';
 
 describe('Buyflow: mad ct', () => {
 
-    const delay = ms => {
-        return new Promise(resolve => {
-            return setTimeout(resolve, ms);
-        });
-    };
-
-    // const expect2: any = Object.assign(expect);
-
-    expect.extend({
-        async toBeCompletedTransaction(rawtx: any): Promise<any> {
-            const verify = await buyerNode0.call('verifyrawtransaction', [rawtx]);
-            const completed = verify['complete'];
-            if (completed) {
-                return {
-                    message: () =>
-                        `expected ${rawtx} to be completed.`,
-                    pass: true
-                };
-            } else {
-                return {
-                    message: () =>
-                        `expected ${rawtx} to be completed but received ${completed} instead`,
-                    pass: false
-                };
-            }
-        }
-    });
-
-    expect.extend({
-        async toBeUtxoWithAmount(txid: string, node: Rpc, amount: number): Promise<any> {
-            const found = (await node.call('listunspentanon', [0])).find(utxo => (utxo.txid === txid && utxo.amount === amount));
-            if (found) {
-                return {
-                    message: () =>
-                        `expected ${txid} to be found on the node with amount ${amount}.`,
-                    pass: true
-                };
-            } else {
-                return {
-                    message: () =>
-                        `expected ${txid} to be found on the node but didn't find it.`,
-                    pass: false
-                };
-            }
-        }
-    });
-
-    const timeTravel = (expectedUnixTime: number, node: Rpc) => {
-        return node.call('setmocktime', [expectedUnixTime, true]);
-    };
-
-    const waitTillJumped = async (expectedUnixTime: number, node: Rpc) => {
-        return new Promise(async resolve => {
-            let wait = true;
-
-            while (wait) {
-                const currentTime = (await node.call('getblockchaininfo', []))['mediantime'];
-                wait = (currentTime <= expectedUnixTime);
-                // console.log(wait ? 'waiting..' : ('finished! ' + currentTime + ' > ' + expectedUnixTime ));
-                await delay(1000);
-            }
-
-            resolve();
-        });
-
-    };
-
     const ok = JSON.parse(
         `{
         "version": "0.1.0.0",
@@ -300,4 +233,72 @@ describe('Buyflow: mad ct', () => {
         expect(destroytxid).toBeDefined();
 
     });
+
+
+    const delay = ms => {
+        return new Promise(resolve => {
+            return setTimeout(resolve, ms);
+        });
+    };
+
+    // const expect2: any = Object.assign(expect);
+
+    expect.extend({
+        async toBeCompletedTransaction(rawtx: any): Promise<any> {
+            const verify = await buyerNode0.call('verifyrawtransaction', [rawtx]);
+            const completed = verify['complete'];
+            if (completed) {
+                return {
+                    message: () =>
+                        `expected ${rawtx} to be completed.`,
+                    pass: true
+                };
+            } else {
+                return {
+                    message: () =>
+                        `expected ${rawtx} to be completed but received ${completed} instead`,
+                    pass: false
+                };
+            }
+        }
+    });
+
+    expect.extend({
+        async toBeUtxoWithAmount(txid: string, node: Rpc, amount: number): Promise<any> {
+            const found = (await node.call('listunspentanon', [0])).find(utxo => (utxo.txid === txid && utxo.amount === amount));
+            if (found) {
+                return {
+                    message: () =>
+                        `expected ${txid} to be found on the node with amount ${amount}.`,
+                    pass: true
+                };
+            } else {
+                return {
+                    message: () =>
+                        `expected ${txid} to be found on the node but didn't find it.`,
+                    pass: false
+                };
+            }
+        }
+    });
+
+    const timeTravel = (expectedUnixTime: number, node: Rpc) => {
+        return node.call('setmocktime', [expectedUnixTime, true]);
+    };
+
+    const waitTillJumped = async (expectedUnixTime: number, node: Rpc) => {
+        return new Promise(async resolve => {
+            let wait = true;
+
+            while (wait) {
+                const currentTime = (await node.call('getblockchaininfo', []))['mediantime'];
+                wait = (currentTime <= expectedUnixTime);
+                // console.log(wait ? 'waiting..' : ('finished! ' + currentTime + ' > ' + expectedUnixTime ));
+                await delay(1000);
+            }
+
+            resolve();
+        });
+
+    };
 });
