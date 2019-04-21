@@ -9,13 +9,15 @@ import {
     PaymentDataBid, PaymentDataLockCT
 } from './interfaces/omp';
 import { MPAction, EscrowType } from './interfaces/omp-enums';
-import { hash } from './hasher/hash';
+import { ConfigurableHasher } from './hasher/hash';
 import { BidConfiguration } from './interfaces/configs';
 
 import { inject, injectable } from 'inversify';
 import { IMadCTBuilder, IMultiSigBuilder } from './abstract/transactions';
 import { TYPES } from './types';
 import { ompVersion } from './omp';
+import { HashableListingMessageConfig } from './hasher/config/listingitemadd';
+import { HashableBidMessageConfig } from './hasher/config/bid';
 
 // tslint:disable:no-small-switch
 
@@ -45,11 +47,13 @@ export class Bid {
         const mpa_listing = <MPA_LISTING_ADD> listing.action;
         config.escrow = mpa_listing.item.payment.escrow!.type;
 
+        const hashedItem = ConfigurableHasher.hash(listing.action, new HashableListingMessageConfig());
+
         const bid = <MPA_BID> {
             type: MPAction.MPA_BID,
             hash: '',
             generated: +new Date(), // timestamp
-            item: hash(listing), // item hash
+            item: hashedItem, // hash(listing), // item hash
             buyer: {
                 payment: {
                     cryptocurrency: config.cryptocurrency,
@@ -100,14 +104,15 @@ export class Bid {
      */
     public async accept(listing: MPM, bid: MPM): Promise<MPM> {
         const mpa_bid = <MPA_BID> bid.action;
-
         const payment = mpa_bid.buyer.payment;
+
+        const hashedBid = ConfigurableHasher.hash(bid.action, new HashableBidMessageConfig());
 
         const accept = <MPA_ACCEPT> {
             type: MPAction.MPA_ACCEPT,
             hash: '',
             generated: +new Date(), // timestamp
-            bid: hash(bid), // item hash
+            bid: hashedBid, // hash(bid), // bid hash
             seller: {
                 payment: {
                     escrow: payment.escrow,
@@ -165,11 +170,13 @@ export class Bid {
         const mpa_bid = bid.action as MPA_BID;
         const payment = mpa_bid.buyer.payment as PaymentDataBid;
 
+        const hashedBid = ConfigurableHasher.hash(bid.action, new HashableBidMessageConfig());
+
         const lock: MPA_LOCK = {
             type: MPAction.MPA_LOCK,
             hash: '',
             generated: +new Date(), // timestamp
-            bid: hash(bid), // item hash
+            bid: hashedBid, // hash(bid), // bid hash
             buyer: {
                 payment: {
                     escrow: payment.escrow,

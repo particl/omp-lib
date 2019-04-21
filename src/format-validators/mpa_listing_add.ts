@@ -143,6 +143,7 @@ export class FV_MPA_LISTING {
             // it must contain some payment information.
             // TODO: FREE
             // TODO: RENT?
+            // TODO: replace with the SaleType enum
             if (['SALE', 'RENT'].indexOf(payment.type) !== -1) {
 
                 if (!payment.escrow  || !isObject(payment.escrow)) {
