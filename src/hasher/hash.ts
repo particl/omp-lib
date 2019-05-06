@@ -17,7 +17,7 @@ export class ConfigurableHasher {
      * @param config
      */
     public static hash(objectToHash: any, config: HashableConfig): string {
-        const hashable = ConfigurableHasher.toHashable(objectToHash, config);
+        const hashable: HashableObject = ConfigurableHasher.toHashable(objectToHash, config);
         new HashableValidator(config).valid(hashable);
         return this.hashInner(hashable);
     }

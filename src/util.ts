@@ -8,7 +8,9 @@ export function isString(v: any): boolean {
 }
 
 export function isArray(v: any): boolean {
-    return v && Array.isArray(v) && v.length > 0;
+    // v.length > 0 will cause false in case of empty arrays !!!
+    // return v && Array.isArray(v) && v.length > 0;
+    return v && Array.isArray(v);
 }
 
 export function isNumber(v: any): boolean {

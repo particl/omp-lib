@@ -89,12 +89,12 @@ export class FV_MPA_LISTING {
                         throw new Error('action.item.information.location.gps.lng: not a number');
                     }
 
-                    if (!isString(location.gps.title)) {
-                        throw new Error('action.item.information.location.gps.markerTitle: not a string');
+                    if (location.gps.title && !isString(location.gps.title)) {
+                        throw new Error('action.item.information.location.gps.title: not a string');
                     }
 
-                    if (!isString(location.gps.description)) {
-                        throw new Error('action.item.information.location.gps.markerText: not a string');
+                    if (location.gps.description && !isString(location.gps.description)) {
+                        throw new Error('action.item.information.location.gps.description: not a string');
                     }
                 }
             }
