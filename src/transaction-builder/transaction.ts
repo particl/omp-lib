@@ -191,7 +191,7 @@ export class TransactionBuilder {
      * Return the utxo for the multisig prevout
      * @param publicKeyToSignFor
      */
-    public getMultisigUtxo(publicKeyToSignFor: string): Prevout {
+    public getMultisigUtxo(publicKeyToSignFor: string, network: string): Prevout {
         const utxo = {
             txid: this.txid
         } as Prevout;
@@ -207,7 +207,7 @@ export class TransactionBuilder {
                 // TODO: technically this should be the address of the multisig
                 // but for signing purposes we're putting in the address to sign for.
                 // should refactor this!
-                utxo._address = publicKeyToAddress(publicKeyToSignFor);
+                utxo._address = publicKeyToAddress(publicKeyToSignFor, network);
                 return true;
             }
             return false;
@@ -251,9 +251,9 @@ export function getTxidFrom(hex: string): string {
 }
 
 // TODO: testnet flag to mainnet
-export function publicKeyToAddress(publicKey: string): string {
+export function publicKeyToAddress(publicKey: string, network: string): string {
     const pk = bitcore.PublicKey.fromString(publicKey);
-    return bitcore.Address(pk, 'testnet').toString();
+    return bitcore.Address(pk, network).toString();
 }
 
 export function getSerializedInteger(n: number): Buffer {

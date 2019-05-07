@@ -1,5 +1,6 @@
 
 const TYPES = {
+    Config: Symbol.for('Config'),
     Processor: Symbol.for('Processor'),
 
     Library: Symbol.for('Library'),

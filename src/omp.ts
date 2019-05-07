@@ -18,6 +18,7 @@ import { strip } from './util';
 import { Format } from './format-validators/validate';
 import { Sequence } from './sequence-verifier/verify';
 import { EscrowType } from './interfaces/omp-enums';
+import { Config } from './abstract/config';
 
 export { Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
 
@@ -40,12 +41,10 @@ export class OpenMarketProtocol implements OMP {
         return true;
     }
 
-    // public TxLibs: Object = {};
-    private container: Container;
+    private container: Container = new Container();
 
-    constructor() {
-        this.container = new Container();
-        this.setup();
+    constructor(config: Config) {
+        this.setup(config);
     }
 
 
@@ -144,7 +143,7 @@ export class OpenMarketProtocol implements OMP {
     /**
      *  Setup the container.
      */
-    private setup(): void {
+    private setup(config: Config): void {
         // This is our library factory
         // it returns the Rpc libraries that we injected below (cfr. inject() ).
         // based on a cryptocurrency: Cryptocurrency
@@ -162,6 +161,7 @@ export class OpenMarketProtocol implements OMP {
             });
 
         this.container.bind<OMP>(TYPES.Processor).to(Processor);
+        this.container.bind<Config>(TYPES.Config).toConstantValue(config);
         this.container.bind<IMultiSigBuilder>(TYPES.MultiSigBuilder).to(MultiSigBuilder);
         this.container.bind<IMadCTBuilder>(TYPES.MadCTBuilder).to(MadCTBuilder);
     }
