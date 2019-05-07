@@ -5,7 +5,7 @@ import { Rpc, ILibrary, CtRpc } from './abstract/rpc';
 import { MPM } from './interfaces/omp';
 import { BidConfiguration } from './interfaces/configs';
 import { OMP } from './abstract/omp';
-import { Bid } from './bid';
+import { Processor } from './processor';
 import { Cryptocurrency } from './interfaces/crypto';
 
 // Escrow buyflows
@@ -71,7 +71,7 @@ export class OpenMarketProtocol implements OMP {
     public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
         Format.validate(listing);
 
-        const bid = this.container.get<OMP>(TYPES.Bid);
+        const bid = this.container.get<OMP>(TYPES.Processor);
         return await bid.bid(config, listing);
     }
 
@@ -84,7 +84,7 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate([cloned_listing, cloned_bid]);
 
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return await action.accept(cloned_listing, cloned_bid);
     }
 
@@ -99,12 +99,12 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate([cloned_listing, cloned_bid, cloned_accept]);
 
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return await action.lock(cloned_listing, cloned_bid, cloned_accept);
     }
 
     public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return action.complete(listing, bid, accept, lock);
     }
 
@@ -117,7 +117,7 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate(chain);
 
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return await action.release(chain[0], chain[1], chain[2]);
     }
 
@@ -132,7 +132,7 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate(chain);
 
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return await action.refund(chain[0], chain[1], chain[2], chain[3]);
     }
 
@@ -161,7 +161,7 @@ export class OpenMarketProtocol implements OMP {
                 };
             });
 
-        this.container.bind<OMP>(TYPES.Bid).to(Bid);
+        this.container.bind<OMP>(TYPES.Processor).to(Processor);
         this.container.bind<IMultiSigBuilder>(TYPES.MultiSigBuilder).to(MultiSigBuilder);
         this.container.bind<IMadCTBuilder>(TYPES.MadCTBuilder).to(MadCTBuilder);
     }

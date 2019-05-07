@@ -1,6 +1,6 @@
 
 const TYPES = {
-    Bid: Symbol.for('Bid'),
+    Processor: Symbol.for('Processor'),
 
     Library: Symbol.for('Library'),
 
