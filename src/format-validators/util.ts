@@ -31,22 +31,6 @@ export function isNonNegativeNaturalNumber(t: any): boolean {
     return isNaturalNumber(t) && t >= 0;
 }
 
-export function isValidPrice(v: any): boolean {
-    return isNaturalNumber(v) && v > 0; // perhaps more checks.
-}
-
-export function isValidPercentage(v: any): boolean {
-    return isNaturalNumber(v) && (v >= 0 && v <= 100);
-}
-
-export function isSHA256Hash(h: any): boolean {
-    return typeof h === 'string' && (h.length === 64);
-}
-
-export function isTxid(txid: any): boolean {
-    return isSHA256Hash(txid);
-}
-
 // TODO: better checking (is it on the curve?)
 export function isPublicKey(pk: string): boolean {
     return isString(pk);
@@ -54,12 +38,4 @@ export function isPublicKey(pk: string): boolean {
 
 export function isPrivateKey(pk: string): boolean {
     return isString(pk);
-}
-
-export function isTimestamp(t: any): boolean {
-    return isNonNegativeNaturalNumber(t);
-}
-
-export function isCountry(c: any): boolean {
-    return isString(c); // TODO: check the list of country code
 }

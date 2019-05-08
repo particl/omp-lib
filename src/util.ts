@@ -35,8 +35,7 @@ export function isNonNegativeNaturalNumber(t: any): boolean {
 }
 
 export function isValidPrice(v: any): boolean {
-    return isNumber(v) && v > 0;    // TODO: not forcing natural numbers for now, we might want to change this later
-//    return isNaturalNumber(v) && v > 0; // perhaps more checks.
+    return isNaturalNumber(v) && v > 0; // perhaps more checks.
 }
 
 export function isValidPercentage(v: any): boolean {
