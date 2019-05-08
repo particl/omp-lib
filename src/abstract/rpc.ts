@@ -397,7 +397,12 @@ export abstract class CtRpc extends Rpc {
 
             const o = {
                 type: out._type || 'blind',
-                amount: fromSatoshis(out._satoshis)
+                amount: fromSatoshis(out._satoshis),
+                rangeproof_params: {
+                    ct_exponent: 2,
+                    ct_bits: 32,
+                    min_value: 0
+                }
             };
 
             // Stealth address with pubkey and ephemeral chosen upfront (bidtxn)
