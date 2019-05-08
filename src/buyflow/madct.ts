@@ -45,7 +45,8 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         const requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, false);
 
-        bid.buyer.payment.prevouts = await lib.getBlindPrevouts(requiredSatoshis);
+        const type = (this.network === 'testnet') ? 'anon' : 'blind';
+        bid.buyer.payment.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
 
         if (!bid.buyer.payment.outputs) {
             bid.buyer.payment.outputs = [];
@@ -134,7 +135,8 @@ export class MadCTBuilder implements IMadCTBuilder {
             // TODO(security): fix
             const blind = hash(buyer_output.blindFactor + cryptocurrency.address!.address);
             // Generate a new CT output of the _exact_ amount.
-            accept.seller.payment.prevouts = await lib.getBlindPrevouts(seller_requiredSatoshis + seller_fee, blind);
+            const type = (this.network === 'testnet') ? 'anon' : 'blind';
+            accept.seller.payment.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
         }
 
         const seller_prevout = (<BlindPrevout> accept.seller.payment.prevouts[0]);
@@ -582,9 +584,10 @@ export class MadCTBuilder implements IMadCTBuilder {
     }
 
     private getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
+        const type = (this.network === 'testnet') ? 'anon' : 'blind';
         return {
             address,
-            _type: 'anon',
+            _type: type,
             _satoshis: satoshis,
             blindFactor: blind
         };

@@ -78,10 +78,10 @@ describe('Bid', () => {
         node1.setup('localhost', 19793, 'rpcuser1', 'rpcpass1');
         node1.setup('localhost', 19794, 'rpcuser2', 'rpcpass2');
 
-        buyer = new OpenMarketProtocol({ network: "testnet"});
+        buyer = new OpenMarketProtocol({ network: 'testnet'});
         buyer.inject(Cryptocurrency.PART, node0);
 
-        seller = new OpenMarketProtocol({ network: "testnet"});
+        seller = new OpenMarketProtocol({ network: 'testnet'});
         seller.inject(Cryptocurrency.PART, node1);
 
     });

@@ -32,10 +32,10 @@ import { Rpc } from '../../src/abstract/rpc';
         node2 = new CtCoreRpcService();
         node2.setup('localhost', 19794, 'rpcuser2', 'rpcpass2');
 
-        buyer = new OpenMarketProtocol({ network: "testnet"});
+        buyer = new OpenMarketProtocol({ network: 'testnet'});
         buyer.inject(Cryptocurrency.PART, node0);
 
-        seller = new OpenMarketProtocol({ network: "testnet"});
+        seller = new OpenMarketProtocol({ network: 'testnet'});
         seller.inject(Cryptocurrency.PART, node1);
     });
 
