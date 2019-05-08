@@ -24,13 +24,13 @@ describe('Rpc', () => {
         rpc2.setup('localhost', 19794, 'rpcuser2', 'rpcpass2');
 
         // setup OMP's
-        omp0 = new OpenMarketProtocol();
+        omp0 = new OpenMarketProtocol({ network: 'testnet'});
         omp0.inject(Cryptocurrency.PART, rpc0);
 
-        omp1 = new OpenMarketProtocol();
+        omp1 = new OpenMarketProtocol({ network: 'testnet'});
         omp1.inject(Cryptocurrency.PART, rpc1);
 
-        omp2 = new OpenMarketProtocol();
+        omp2 = new OpenMarketProtocol({ network: 'testnet'});
         omp2.inject(Cryptocurrency.PART, rpc2);
 
     });

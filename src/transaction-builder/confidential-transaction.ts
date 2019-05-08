@@ -89,7 +89,7 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
  * @param addressTo
  * @param secondsToLock
  */
-export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAddress, secondsToLock: number): any {
+export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAddress, secondsToLock: number, network: string): any {
     // commitment: string, ephem: EphemeralKey,
     const publicKeyFrom =  bitcore.PublicKey.fromString(addressFrom.pubKey).toDER();
     const publicKeyTo = bitcore.PublicKey.fromString(addressTo.pubKey).toDER();
@@ -103,10 +103,10 @@ export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAd
 
     // transform into p2sh script
     // console.log('p2sh bid=', redeemScript.toScriptHashOut().toHex())
-    // console.log('address bid=', bitcore.Address.payingTo(redeemScript, 'testnet').toString())
+    // console.log('address bid=', bitcore.Address.payingTo(redeemScript, network).toString())
     // console.log('redeem=', redeemScript.toHex())
     return {
-        address: bitcore.Address.payingTo(redeemScript, 'testnet').toString(),
+        address: bitcore.Address.payingTo(redeemScript, network).toString(),
         p2sh: redeemScript.toScriptHashOut().toHex(),
         redeemScript: redeemScript.toHex()
     };
@@ -135,25 +135,25 @@ export function getExpectedSequence(seconds: number): number {
 /**
  * Creates a destroy script for the bid txn.
  */
-export function buildDestroyTxScript(): any {
+export function buildDestroyTxScript(network: string): any {
     // create a multisig redeemScript
     const redeemScript = bitcore.Script('OP_RETURN');
 
     // transform into p2sh script
     return {
-        address: bitcore.Address.payingTo(redeemScript, 'testnet').toString(),
+        address: bitcore.Address.payingTo(redeemScript, network).toString(),
         p2sh: redeemScript.toScriptHashOut().toHex(),
         redeemScript: redeemScript.toHex()
     };
 }
 
-export function buildReleaseTxScript(addr: CryptoAddress): any {
+export function buildReleaseTxScript(addr: CryptoAddress, network: string): any {
     // create a multisig redeemScript
     const redeemScript = bitcore.Script.buildPublicKeyHashOut(bitcore.PublicKey.fromString(addr.pubKey).toAddress());
 
     // transform into p2sh script
     return {
-        address: bitcore.Address.payingTo(redeemScript, 'testnet').toString(),
+        address: bitcore.Address.payingTo(redeemScript, network).toString(),
         p2sh: redeemScript.toScriptHashOut().toHex(),
         redeemScript: redeemScript.toHex()
     };
