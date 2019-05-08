@@ -70,6 +70,8 @@ export class Bid {
             objects: config.objects
         };
 
+        bid.hash = ConfigurableHasher.hash(bid, new HashableBidMessageConfig());
+
         // Pick correct route for configuration
         // add the data to the bid object.
         switch (config.escrow) {
