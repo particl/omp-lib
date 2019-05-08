@@ -83,10 +83,10 @@ describe('Buyflow: multisig', () => {
         node1 = new CoreRpcService();
         node1.setup('localhost', 19793, 'rpcuser1', 'rpcpass1');
 
-        buyer = new OpenMarketProtocol();
+        buyer = new OpenMarketProtocol({ network: 'testnet'});
         buyer.inject(Cryptocurrency.PART, node0);
 
-        seller = new OpenMarketProtocol();
+        seller = new OpenMarketProtocol({ network: 'testnet'});
         seller.inject(Cryptocurrency.PART, node1);
     });
 

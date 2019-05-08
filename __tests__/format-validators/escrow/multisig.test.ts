@@ -166,7 +166,7 @@ describe('Multisig', () => {
         } catch (e) {
             error = e.toString();
         }
-        expect(error).toEqual(expect.stringContaining('payment.changeAddress: missing or not an object'));
+        expect(error).toEqual(expect.stringContaining('changeAddress: missing or not an object'));
     });
 
     test('MPA_BID: validate empty prevouts', () => {
@@ -239,7 +239,7 @@ describe('Multisig', () => {
         } catch (e) {
             error = e.toString();
         }
-        expect(error).toEqual(expect.stringContaining('payment.changeAddress: missing or not an object'));
+        expect(error).toEqual(expect.stringContaining('changeAddress: missing or not an object'));
     });
 
     test('MPA_ACCEPT: validate empty prevouts', () => {

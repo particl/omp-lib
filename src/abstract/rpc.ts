@@ -269,7 +269,7 @@ export abstract class CtRpc extends Rpc {
     // Retrieving information of prevouts
     public abstract async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]>;
 
-    public abstract async getBlindPrevouts(satoshis: number, blind?: string): Promise<BlindPrevout[]>;
+    public abstract async getBlindPrevouts(type: string, satoshis: number, blind?: string): Promise<BlindPrevout[]>;
     // public abstract async getLastMatchingBlindFactor(prevouts: Prevout[] | ToBeBlindOutput[], outputs: ToBeBlindOutput[]): Promise<string>;
 
     // Importing and signing
@@ -279,7 +279,7 @@ export abstract class CtRpc extends Rpc {
     public abstract async createRawTransaction(inputs: BlindPrevout[], outputs: any[]): Promise<any>;
 
 
-    public async createBlindPrevoutFromAnon(satoshis: number, blind?: string): Promise<BlindPrevout> {
+    public async createBlindPrevoutFrom(type: string, satoshis: number, blind?: string): Promise<BlindPrevout> {
         let prevout: BlindPrevout;
         const sx = await this.getNewStealthAddress();
         const amount = fromSatoshis(satoshis);
@@ -289,7 +289,7 @@ export abstract class CtRpc extends Rpc {
             blind = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
         }
 
-        const txid = await this.sendTypeTo('anon', 'blind', [{ address: sx.address, amount, blindingfactor: blind }]);
+        const txid = await this.sendTypeTo(type, 'blind', [{ address: sx.address, amount, blindingfactor: blind }]);
 
         const unspent: any = await this.listUnspentBlind(0);
         const found = unspent.find(tmpVout => (tmpVout.txid === txid && tmpVout.amount === fromSatoshis(satoshis)));
@@ -397,7 +397,12 @@ export abstract class CtRpc extends Rpc {
 
             const o = {
                 type: out._type || 'blind',
-                amount: fromSatoshis(out._satoshis)
+                amount: fromSatoshis(out._satoshis),
+                rangeproof_params: {
+                    ct_exponent: 2,
+                    ct_bits: 32,
+                    min_value: 0
+                }
             };
 
             // Stealth address with pubkey and ephemeral chosen upfront (bidtxn)

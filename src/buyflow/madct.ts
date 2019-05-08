@@ -5,6 +5,7 @@ import { BlindPrevout, ToBeBlindOutput, Prevout, CryptoAddress, EphemeralKey } f
 
 import { ILibrary, CtRpc } from '../abstract/rpc';
 import { IMadCTBuilder } from '../abstract/transactions';
+import { Config } from '../abstract/config';
 
 import { ConfidentialTransactionBuilder, buildBidTxScript, buildDestroyTxScript, getExpectedSequence } from '../transaction-builder/confidential-transaction';
 
@@ -22,11 +23,14 @@ import { hash } from '../hasher/hash';
 export class MadCTBuilder implements IMadCTBuilder {
 
     private _libs: ILibrary;
+    private network = 'testnet';
 
     constructor(
-        @inject(TYPES.Library) libs: ILibrary
+        @inject(TYPES.Library) libs: ILibrary,
+        @inject(TYPES.Config) config: Config
     ) {
         this._libs = libs;
+        this.network = config.network;
     }
 
     /**
@@ -47,7 +51,8 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         const requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, false);
 
-        paymentData.prevouts = await lib.getBlindPrevouts(requiredSatoshis);
+        const type = (this.network === 'testnet') ? 'anon' : 'blind';
+        paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
 
         if (!paymentData.outputs) {
             paymentData.outputs = [];
@@ -139,7 +144,8 @@ export class MadCTBuilder implements IMadCTBuilder {
             // TODO(security): fix
             const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
             // Generate a new CT output of the _exact_ amount.
-            acceptPaymentData.prevouts = await lib.getBlindPrevouts(seller_requiredSatoshis + seller_fee, blind);
+            const type = (this.network === 'testnet') ? 'anon' : 'blind';
+            acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
         }
 
         const seller_prevout = acceptPaymentData.prevouts[0];
@@ -555,7 +561,7 @@ export class MadCTBuilder implements IMadCTBuilder {
                 _scriptPubKey: bidtx.getPubKeyScriptForVout(1),
                 _commitment: bidtx.getCommitmentForVout(1),
                 blindFactor: seller_output.blindFactor,
-                _redeemScript: buildBidTxScript(seller_output.address, buyer_output.address, 2880).redeemScript,
+                _redeemScript: buildBidTxScript(seller_output.address, buyer_output.address, 2880, this.network).redeemScript,
                 _sequence: getExpectedSequence(secondsToLock)
             },
             {
@@ -565,7 +571,7 @@ export class MadCTBuilder implements IMadCTBuilder {
                 _scriptPubKey: bidtx.getPubKeyScriptForVout(2),
                 _commitment: bidtx.getCommitmentForVout(2),
                 blindFactor: buyer_output.blindFactor,
-                _redeemScript: buildBidTxScript(seller_output.address, buyer_output.address, 2880).redeemScript,
+                _redeemScript: buildBidTxScript(seller_output.address, buyer_output.address, 288, this.network).redeemScript,
                 _sequence: getExpectedSequence(secondsToLock)
             }
         ];
@@ -581,7 +587,7 @@ export class MadCTBuilder implements IMadCTBuilder {
 
     private getBidOutput(seller_output: any, buyer_output: any, secondsToLock: number, satoshis: number, seller: boolean = false): any {
         const output = clone(seller ? seller_output : buyer_output);
-        const s = buildBidTxScript(seller_output.address, buyer_output.address, secondsToLock);
+        const s = buildBidTxScript(seller_output.address, buyer_output.address, secondsToLock, this.network);
         output._redeemScript = s.redeemScript;
         output._address = s.address;
         output._satoshis = satoshis;
@@ -590,7 +596,7 @@ export class MadCTBuilder implements IMadCTBuilder {
 
     // TODO: add proper return type
     private getDestroyOutput(bidtx: ConfidentialTransactionBuilder, satoshis: number, blind: string): any[] {
-        const destroy_redeemScript = buildDestroyTxScript().redeemScript;
+        const destroy_redeemScript = buildDestroyTxScript(this.network).redeemScript;
         return [{
             _redeemScript: 'OP_RETURN', // TODO: fix particl-core, ASM only?
             _type: 'blind',
@@ -602,9 +608,10 @@ export class MadCTBuilder implements IMadCTBuilder {
     }
 
     private getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
+        const type = (this.network === 'testnet') ? 'anon' : 'blind';
         return {
             address,
-            _type: 'anon',
+            _type: type,
             _satoshis: satoshis,
             blindFactor: blind
         };

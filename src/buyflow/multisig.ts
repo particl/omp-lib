@@ -4,6 +4,7 @@ import { TYPES } from '../types';
 import { CryptoAddressType } from '../interfaces/crypto';
 import { ILibrary } from '../abstract/rpc';
 import { IMultiSigBuilder } from '../abstract/transactions';
+import { Config } from '../abstract/config';
 
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import {
@@ -15,15 +16,19 @@ import {
 } from '../interfaces/omp';
 import { asyncMap, clone, isArray, isObject } from '../util';
 
+
 @injectable()
 export class MultiSigBuilder implements IMultiSigBuilder {
 
     private _libs: ILibrary;
+    private network = 'testnet';
 
     constructor(
-        @inject(TYPES.Library) libs: ILibrary
+        @inject(TYPES.Library) libs: ILibrary,
+        @inject(TYPES.Config) config: Config
     ) {
         this._libs = libs;
+        this.network = config.network;
     }
 
     /**
@@ -150,7 +155,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Release: build the release signatures for the seller!
         {
             const releaseTx = new TransactionBuilder();
-            const multisigUtxo = bidtx.getMultisigUtxo(acceptPaymentData.pubKey);
+            const multisigUtxo = bidtx.getMultisigUtxo(acceptPaymentData.pubKey, this.network);
 
             releaseTx.addMultisigInput(multisigUtxo, [
                 bidPaymentData.pubKey,
@@ -224,7 +229,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // Refund: build the release signatures for the buyer!
         {
             const refundTx = new TransactionBuilder();
-            const multisigUtxo = bidtx.getMultisigUtxo(bidPaymentData.pubKey);
+            const multisigUtxo = bidtx.getMultisigUtxo(bidPaymentData.pubKey, this.network);
 
             refundTx.addMultisigInput(multisigUtxo, [
                 bidPaymentData.pubKey,
@@ -281,7 +286,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             let satoshis = payment.basePrice;
 
             if (listing.item.information.location && payment.shippingPrice) {
-                if (bid.buyer.shippingAddress.country === listing.item.information.location.country) {
+                if (bid.buyer.shippingAddress!.country === listing.item.information.location.country) {
                     satoshis += payment.shippingPrice.domestic;
                 } else {
                     satoshis += payment.shippingPrice.international;
@@ -313,7 +318,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const releaseTx: TransactionBuilder = rebuilt['_releasetx'];
 
         // sign for buyer
-        const multisigUtxo = bidTx.getMultisigUtxo(bidPaymentData.pubKey);
+        const multisigUtxo = bidTx.getMultisigUtxo(bidPaymentData.pubKey, this.network);
         await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
 
         return releaseTx.build();
@@ -360,7 +365,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const refundTx: TransactionBuilder = rebuilt['_refundtx'];
 
         // sign for seller
-        const multisigUtxo = bidTx.getMultisigUtxo(acceptPaymentData.pubKey);
+        const multisigUtxo = bidTx.getMultisigUtxo(acceptPaymentData.pubKey, this.network);
         await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
 
         return refundTx.build();

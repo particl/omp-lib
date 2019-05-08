@@ -9,6 +9,26 @@ import { Rpc } from '../../src/abstract/rpc';
 
 describe('Buyflow: mad ct', () => {
 
+    let buyer: OpenMarketProtocol;
+    let seller: OpenMarketProtocol;
+
+    let buyerNode0: CtCoreRpcService;
+    let sellerNode1: CtCoreRpcService;
+
+    beforeAll(async () => {
+        buyerNode0 = new CtCoreRpcService();
+        buyerNode0.setup('localhost', 19792, 'rpcuser0', 'rpcpass0');
+
+        sellerNode1 = new CtCoreRpcService();
+        sellerNode1.setup('localhost', 19793, 'rpcuser1', 'rpcpass1');
+
+        buyer = new OpenMarketProtocol({ network: 'testnet'});
+        buyer.inject(Cryptocurrency.PART, buyerNode0);
+
+        seller = new OpenMarketProtocol({ network: 'testnet'});
+        seller.inject(Cryptocurrency.PART, sellerNode1);
+    });
+
     const ok = JSON.parse(
         `{
         "version": "0.1.0.0",
@@ -68,28 +88,6 @@ describe('Buyflow: mad ct', () => {
             country: 'string'
         }
     };
-
-    let buyer: OpenMarketProtocol;
-    let seller: OpenMarketProtocol;
-
-    let buyerNode0: CtCoreRpcService;
-    let sellerNode1: CtCoreRpcService;
-
-    beforeAll(async () => {
-        buyerNode0 = new CtCoreRpcService();
-        buyerNode0.setup('localhost', 19792, 'rpcuser0', 'rpcpass0');
-
-        sellerNode1 = new CtCoreRpcService();
-        sellerNode1.setup('localhost', 19793, 'rpcuser1', 'rpcpass1');
-
-        buyer = new OpenMarketProtocol();
-        buyer.inject(Cryptocurrency.PART, buyerNode0);
-
-        seller = new OpenMarketProtocol();
-        seller.inject(Cryptocurrency.PART, sellerNode1);
-
-        ok.action.item.payment.options[0].address = await buyerNode0.getNewStealthAddress();
-    });
 
     it('buyflow release', async () => {
         jest.setTimeout(400000);

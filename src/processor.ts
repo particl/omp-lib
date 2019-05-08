@@ -22,7 +22,7 @@ import { HashableBidMessageConfig } from './hasher/config/bid';
 // tslint:disable:no-small-switch
 
 @injectable()
-export class Bid {
+export class Processor {
 
     private _msb: IMultiSigBuilder;
     private _madct: IMadCTBuilder;

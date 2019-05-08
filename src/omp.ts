@@ -5,7 +5,7 @@ import { Rpc, ILibrary, CtRpc } from './abstract/rpc';
 import { MPM } from './interfaces/omp';
 import { BidConfiguration } from './interfaces/configs';
 import { OMP } from './abstract/omp';
-import { Bid } from './bid';
+import { Processor } from './processor';
 import { Cryptocurrency } from './interfaces/crypto';
 
 // Escrow buyflows
@@ -18,6 +18,7 @@ import { strip } from './util';
 import { Format } from './format-validators/validate';
 import { Sequence } from './sequence-verifier/verify';
 import { EscrowType } from './interfaces/omp-enums';
+import { Config } from './abstract/config';
 
 export { Cryptocurrency, BidConfiguration, EscrowType, MPM, Rpc};
 
@@ -43,12 +44,10 @@ export class OpenMarketProtocol implements OMP {
         return true;
     }
 
-    // public TxLibs: Object = {};
-    private container: Container;
+    private container: Container = new Container();
 
-    constructor() {
-        this.container = new Container();
-        this.setup();
+    constructor(config: Config) {
+        this.setup(config);
     }
 
 
@@ -73,7 +72,7 @@ export class OpenMarketProtocol implements OMP {
     public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
         Format.validate(listing);
 
-        const bid = this.container.get<OMP>(TYPES.Bid);
+        const bid = this.container.get<OMP>(TYPES.Processor);
         return await bid.bid(config, listing);
     }
 
@@ -86,7 +85,7 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate([cloned_listing, cloned_bid]);
 
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return await action.accept(cloned_listing, cloned_bid);
     }
 
@@ -101,12 +100,12 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate([cloned_listing, cloned_bid, cloned_accept]);
 
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return await action.lock(cloned_listing, cloned_bid, cloned_accept);
     }
 
     public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return action.complete(listing, bid, accept, lock);
     }
 
@@ -119,7 +118,7 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate(chain);
 
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return await action.release(chain[0], chain[1], chain[2]);
     }
 
@@ -134,7 +133,7 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate(chain);
 
-        const action = this.container.get<OMP>(TYPES.Bid);
+        const action = this.container.get<OMP>(TYPES.Processor);
         return await action.refund(chain[0], chain[1], chain[2], chain[3]);
     }
 
@@ -146,7 +145,7 @@ export class OpenMarketProtocol implements OMP {
     /**
      *  Setup the container.
      */
-    private setup(): void {
+    private setup(config: Config): void {
         // This is our library factory
         // it returns the Rpc libraries that we injected below (cfr. inject() ).
         // based on a cryptocurrency: Cryptocurrency
@@ -163,7 +162,8 @@ export class OpenMarketProtocol implements OMP {
                 };
             });
 
-        this.container.bind<OMP>(TYPES.Bid).to(Bid);
+        this.container.bind<OMP>(TYPES.Processor).to(Processor);
+        this.container.bind<Config>(TYPES.Config).toConstantValue(config);
         this.container.bind<IMultiSigBuilder>(TYPES.MultiSigBuilder).to(MultiSigBuilder);
         this.container.bind<IMadCTBuilder>(TYPES.MadCTBuilder).to(MadCTBuilder);
     }

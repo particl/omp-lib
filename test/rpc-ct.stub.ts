@@ -98,8 +98,8 @@ export class CtCoreRpcService extends CtRpc {
         } as CryptoAddress;
     }
 
-    public async getBlindPrevouts(satoshis: number, blind?: string): Promise<BlindPrevout[]> {
-        return [await this.createBlindPrevoutFromAnon(satoshis, blind)];
+    public async getBlindPrevouts(type: string, satoshis: number, blind?: string): Promise<BlindPrevout[]> {
+        return [await this.createBlindPrevoutFrom(type, satoshis, blind)];
     }
 
     /**
