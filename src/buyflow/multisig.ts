@@ -286,7 +286,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             let satoshis = payment.basePrice;
 
             if (listing.item.information.location && payment.shippingPrice) {
-                if (bid.buyer.shippingAddress!.country === listing.item.information.location.country) {
+                if (bid.buyer.shippingAddress.country === listing.item.information.location.country) {
                     satoshis += payment.shippingPrice.domestic;
                 } else {
                     satoshis += payment.shippingPrice.international;
