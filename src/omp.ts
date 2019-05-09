@@ -154,7 +154,11 @@ export class OpenMarketProtocol implements OMP {
                 return (cryptocurrency: Cryptocurrency, isCt: boolean = false) => {
                     let lib;
                     if (!isCt) {
-                        lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
+                        try {
+                            lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
+                        } catch(e) {
+                            lib = ctx.container.getNamed<CtRpc>(TYPES.CtRpc, cryptocurrency);
+                        }
                     } else {
                         lib = ctx.container.getNamed<CtRpc>(TYPES.CtRpc, cryptocurrency);
                     }
