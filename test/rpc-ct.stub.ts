@@ -114,7 +114,7 @@ export class CtCoreRpcService extends CtRpc {
         return (await this.call('verifycommitment', [commitment, blind, fromSatoshis(satoshis)])).result;
     }
 
-    public async createRawTransaction(inputs: BlindPrevout, outputs: any): Promise<any> {
+    public async createRawTransaction(inputs: BlindPrevout[], outputs: any[]): Promise<any> {
         return await this.call('createrawtransaction', [inputs, outputs]);
     }
 
