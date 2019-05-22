@@ -289,10 +289,15 @@ export abstract class CtRpc extends Rpc {
             blind = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
         }
 
-        const txid = await this.sendTypeTo(type, 'blind', [{ address: sx.address, amount, blindingfactor: blind }]);
+        const txid = await this.sendTypeTo(type, 'blind', [{ address: sx.address, amount, blindingfactor: blind}]);
+        const unspent: RpcUnspentOutput[] = await this.listUnspentBlind(0);
 
-        const unspent: any = await this.listUnspentBlind(0);
-        const found = unspent.find(tmpVout => (tmpVout.txid === txid && tmpVout.amount === fromSatoshis(satoshis)));
+        console.log('OMP_LIB: looking for txid: ' + txid + ', amount: ' + fromSatoshis(satoshis));
+        const found = unspent.find(tmpVout => {
+            console.log('OMP_LIB: tmpVout.txid: ' + tmpVout.txid + ', tmpVout.amount: ' + tmpVout.amount);
+            return (tmpVout.txid === txid && tmpVout.amount === fromSatoshis(satoshis));
+        });
+
         if (!found) {
             throw new Error('Not enough blind inputs!');
         }
