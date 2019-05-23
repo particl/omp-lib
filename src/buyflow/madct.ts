@@ -103,8 +103,6 @@ export class MadCTBuilder implements IMadCTBuilder {
         const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
         const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
 
-        console.log('OMP_LIB: acceptPaymentData: ', JSON.stringify(acceptPaymentData, null, 2));
-
         // If seller is accepting, initialize the array
         if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
             acceptPaymentData.outputs = [];
@@ -138,7 +136,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             throw new Error('Currently only supports one input from the buyer.');
         }
 
-        if (!isArray(acceptPaymentData.prevouts) && acceptPaymentData.prevouts.length > 0) {
+        if (!isArray(acceptPaymentData.prevouts) && acceptPaymentData.prevouts.length === 0) {
 
             const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
             if (!cryptocurrency) {
@@ -155,7 +153,7 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         }
 
-        console.log('OMP_LIB: acceptPaymentData2: ', JSON.stringify(acceptPaymentData, null, 2));
+        console.log('OMP_LIB: acceptPaymentData: ', JSON.stringify(acceptPaymentData, null, 2));
 
         const seller_prevout = acceptPaymentData.prevouts[0];
         const buyer_prevout = bidPaymentData.prevouts[0];
