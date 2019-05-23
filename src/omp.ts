@@ -72,8 +72,8 @@ export class OpenMarketProtocol implements OMP {
     public async bid(config: BidConfiguration, listing: MPM): Promise<MPM> {
         Format.validate(listing);
 
-        const bid = this.container.get<OMP>(TYPES.Processor);
-        return await bid.bid(config, listing);
+        const actionProcessor = this.container.get<OMP>(TYPES.Processor);
+        return await actionProcessor.bid(config, listing);
     }
 
     public async accept(listing: MPM, bid: MPM): Promise<MPM> {
@@ -85,8 +85,8 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate([cloned_listing, cloned_bid]);
 
-        const action = this.container.get<OMP>(TYPES.Processor);
-        return await action.accept(cloned_listing, cloned_bid);
+        const actionProcessor = this.container.get<OMP>(TYPES.Processor);
+        return await actionProcessor.accept(cloned_listing, cloned_bid);
     }
 
     public async lock(listing: MPM, bid: MPM, accept: MPM): Promise<MPM> {
@@ -100,13 +100,13 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate([cloned_listing, cloned_bid, cloned_accept]);
 
-        const action = this.container.get<OMP>(TYPES.Processor);
-        return await action.lock(cloned_listing, cloned_bid, cloned_accept);
+        const actionProcessor = this.container.get<OMP>(TYPES.Processor);
+        return await actionProcessor.lock(cloned_listing, cloned_bid, cloned_accept);
     }
 
     public async complete(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
-        const action = this.container.get<OMP>(TYPES.Processor);
-        return action.complete(listing, bid, accept, lock);
+        const actionProcessor = this.container.get<OMP>(TYPES.Processor);
+        return actionProcessor.complete(listing, bid, accept, lock);
     }
 
     public async release(listing: MPM, bid: MPM, accept: MPM): Promise<string> {
@@ -118,8 +118,8 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate(chain);
 
-        const action = this.container.get<OMP>(TYPES.Processor);
-        return await action.release(chain[0], chain[1], chain[2]);
+        const actionProcessor = this.container.get<OMP>(TYPES.Processor);
+        return await actionProcessor.release(chain[0], chain[1], chain[2]);
     }
 
     public async refund(listing: MPM, bid: MPM, accept: MPM, lock: MPM): Promise<string> {
@@ -133,8 +133,8 @@ export class OpenMarketProtocol implements OMP {
 
         Sequence.validate(chain);
 
-        const action = this.container.get<OMP>(TYPES.Processor);
-        return await action.refund(chain[0], chain[1], chain[2], chain[3]);
+        const actionProcessor = this.container.get<OMP>(TYPES.Processor);
+        return await actionProcessor.refund(chain[0], chain[1], chain[2], chain[3]);
     }
 
 

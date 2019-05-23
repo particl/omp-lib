@@ -135,20 +135,24 @@ export class MadCTBuilder implements IMadCTBuilder {
             throw new Error('Currently only supports one input from the buyer.');
         }
 
-        if (!isArray(acceptPaymentData.prevouts)) {
-            const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
-            if (!cryptocurrency) {
-                throw new Error('Missing buyer outputs.');
-            }
+        // actionProcessor seems to always set the acceptM sg.seller.payment.prevouts to []
+        // so the following is _NEVER_ true
+        // if (!isArray(acceptPaymentData.prevouts)) {
 
-            // Buyer pregenerates the transaction blinding factor for the seller so he can sign earlier.
-            // Currently not implemented because we're not checking ownership of the outputs.
-            // TODO(security): fix
-            const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
-            // Generate a new CT output of the _exact_ amount.
-            const type = (this.network === 'testnet') ? 'anon' : 'blind';
-            acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
+        const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
+        if (!cryptocurrency) {
+            throw new Error('Missing buyer outputs.');
         }
+
+        // Buyer pregenerates the transaction blinding factor for the seller so he can sign earlier.
+        // Currently not implemented because we're not checking ownership of the outputs.
+        // TODO(security): fix
+        const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
+        // Generate a new CT output of the _exact_ amount.
+        const type = (this.network === 'testnet') ? 'anon' : 'blind';
+        acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
+
+        // }
 
         console.log('OMP_LIB: acceptPaymentData2: ', JSON.stringify(acceptPaymentData, null, 2));
 
