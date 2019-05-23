@@ -136,35 +136,38 @@ export class MadCTBuilder implements IMadCTBuilder {
         }
 
         // actionProcessor seems to always set the acceptM sg.seller.payment.prevouts to []
-        // so the following is _NEVER_ true
-        // if (!isArray(acceptPaymentData.prevouts)) {
+        // so the following is NEVER true
+        if (!isArray(acceptPaymentData.prevouts)) {
 
-        const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
-        if (!cryptocurrency) {
-            throw new Error('Missing buyer outputs.');
+            const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
+            if (!cryptocurrency) {
+                throw new Error('Missing buyer outputs.');
+            }
+
+            // Buyer pregenerates the transaction blinding factor for the seller so he can sign earlier.
+            // Currently not implemented because we're not checking ownership of the outputs.
+            // TODO(security): fix
+            const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
+            // Generate a new CT output of the _exact_ amount.
+            const type = (this.network === 'testnet') ? 'anon' : 'blind';
+            acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
+
         }
-
-        // Buyer pregenerates the transaction blinding factor for the seller so he can sign earlier.
-        // Currently not implemented because we're not checking ownership of the outputs.
-        // TODO(security): fix
-        const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
-        // Generate a new CT output of the _exact_ amount.
-        const type = (this.network === 'testnet') ? 'anon' : 'blind';
-        acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
-
-        // }
 
         console.log('OMP_LIB: acceptPaymentData2: ', JSON.stringify(acceptPaymentData, null, 2));
 
         const seller_prevout = acceptPaymentData.prevouts[0];
         const buyer_prevout = bidPaymentData.prevouts[0];
 
-        if (acceptPaymentData.prevouts.length !== 1) {
-            throw new Error('Currently only supports one input from the seller.');
-        } else {
-            seller_prevout._satoshis = seller_requiredSatoshis + seller_fee;
-            buyer_prevout._satoshis = buyer_requiredSatoshis;
-        }
+        // actionProcessor seems to always set the acceptM sg.seller.payment.prevouts to []
+        // so the following is ALWAYS true
+
+        // if (acceptPaymentData.prevouts.length !== 1) {
+        //     throw new Error('Currently only supports one input from the seller.');
+        // } else {
+        seller_prevout._satoshis = seller_requiredSatoshis + seller_fee;
+        buyer_prevout._satoshis = buyer_requiredSatoshis;
+        // }
 
         if (!seller_output.blindFactor) {
             seller_output.blindFactor = await lib.getLastMatchingBlindFactor([seller_prevout, buyer_prevout], [buyer_output]);
