@@ -51,6 +51,9 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         const requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, false);
 
+        console.log('OMP_LIB: bid() paymentData: ', JSON.stringify(paymentData, null, 2));
+        console.log('OMP_LIB: bid() requiredSatoshis: ', requiredSatoshis);
+
         const type = (this.network === 'testnet') ? 'anon' : 'blind';
         paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
 
@@ -63,13 +66,13 @@ export class MadCTBuilder implements IMadCTBuilder {
         const buyer_prevout = paymentData.prevouts[0];
         const buyer_output = paymentData.outputs[0];
 
-        buyer_output.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+        buyer_output.blindFactor = lib.getRandomBlindFactor();
         buyer_output.address = await lib.getNewStealthAddressWithEphem();
 
 
         const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(buyer_output.address);
         // TODO (security): randomize value and PRESENCE. Can be undefined! -> randomizes index too
-        const blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+        const blindFactor = lib.getRandomBlindFactor();
         // const blindFactor = undefined;
 
         paymentData.release = {
@@ -267,7 +270,7 @@ export class MadCTBuilder implements IMadCTBuilder {
                 [{blindFactor: bidPaymentData.release.blindFactor} as ToBeBlindOutput]);
         } else {
             // TODO(security): random
-            acceptPaymentData.release.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+            acceptPaymentData.release.blindFactor = lib.getRandomBlindFactor();
             lastBlindFactor = await lib.getLastMatchingBlindFactor(
                 bid_utxos,
                 [{blindFactor: acceptPaymentData.release.blindFactor} as ToBeBlindOutput]);

@@ -3,6 +3,7 @@ import { TransactionBuilder } from '../transaction-builder/transaction';
 import { toSatoshis, fromSatoshis, clone } from '../util';
 import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout } from '../interfaces/rpc';
 import { ConfidentialTransactionBuilder } from '../transaction-builder/confidential-transaction';
+import { randomBytes } from 'crypto';
 
 // tslint:disable max-classes-per-file bool-param-default
 
@@ -286,7 +287,7 @@ export abstract class CtRpc extends Rpc {
 
         if (!blind) {
             // TODO(security): random!
-            blind = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+            blind = this.getRandomBlindFactor();
         }
 
         const txid = await this.sendTypeTo(type, 'blind', [{ address: sx.address, amount, blindingfactor: blind}]);
@@ -484,6 +485,10 @@ export abstract class CtRpc extends Rpc {
         return sx;
     }
 
+    public getRandomBlindFactor(): string {
+        return randomBytes(32).toString('hex');
+    }
+
     public async getLastMatchingBlindFactor(inputs: (Array<{ blindFactor: string; }>), outputs: ToBeBlindOutput[]): Promise<string> {
         const inp = inputs.map(i => i.blindFactor);
         let out = outputs.map(i => i.blindFactor);
@@ -494,8 +499,9 @@ export abstract class CtRpc extends Rpc {
         // If no other outputs, then push a fake input and output
         // they will be added and substracted and not affect anything.
         if (out.length === 0) {
-            out.push('7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490');
-            inp.push('7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490');
+            const blindFactor = this.getRandomBlindFactor();
+            out.push(blindFactor);
+            inp.push(blindFactor);
         }
         const b = (await this.call('generatematchingblindfactor', [inp, out])).blind;
         // console.log('generated b =', b);
