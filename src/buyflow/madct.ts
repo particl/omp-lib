@@ -136,7 +136,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             throw new Error('Currently only supports one input from the buyer.');
         }
 
-        if (!isArray(acceptPaymentData.prevouts) && acceptPaymentData.prevouts.length === 0) {
+        if (!isArray(acceptPaymentData.prevouts) || acceptPaymentData.prevouts.length === 0) {
 
             const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
             if (!cryptocurrency) {
