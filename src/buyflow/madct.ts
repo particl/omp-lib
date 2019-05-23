@@ -135,9 +135,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             throw new Error('Currently only supports one input from the buyer.');
         }
 
-        // actionProcessor seems to always set the acceptM sg.seller.payment.prevouts to []
-        // so the following is NEVER true
-        if (!isArray(acceptPaymentData.prevouts)) {
+        if (!isArray(acceptPaymentData.prevouts) && acceptPaymentData.prevouts.length > 0) {
 
             const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
             if (!cryptocurrency) {
@@ -159,15 +157,12 @@ export class MadCTBuilder implements IMadCTBuilder {
         const seller_prevout = acceptPaymentData.prevouts[0];
         const buyer_prevout = bidPaymentData.prevouts[0];
 
-        // actionProcessor seems to always set the acceptM sg.seller.payment.prevouts to []
-        // so the following is ALWAYS true
-
-        // if (acceptPaymentData.prevouts.length !== 1) {
-        //     throw new Error('Currently only supports one input from the seller.');
-        // } else {
-        seller_prevout._satoshis = seller_requiredSatoshis + seller_fee;
-        buyer_prevout._satoshis = buyer_requiredSatoshis;
-        // }
+        if (acceptPaymentData.prevouts.length !== 1) {
+            throw new Error('Currently only supports one input from the seller.');
+        } else {
+            seller_prevout._satoshis = seller_requiredSatoshis + seller_fee;
+            buyer_prevout._satoshis = buyer_requiredSatoshis;
+        }
 
         if (!seller_output.blindFactor) {
             seller_output.blindFactor = await lib.getLastMatchingBlindFactor([seller_prevout, buyer_prevout], [buyer_output]);
