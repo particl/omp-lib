@@ -57,6 +57,10 @@ function validateBasic(payment: PaymentDataBidCT | PaymentDataAcceptCT): boolean
  */
 function validateReleaseRefundDestroy(exit: any, expectEphem: boolean = true, expectSignatures: boolean = true): boolean {
 
+    console.log('validateReleaseRefundDestroy(), exit: ', JSON.stringify(exit, null, 2));
+    console.log('validateReleaseRefundDestroy(), expectEphem: ', expectEphem);
+    console.log('validateReleaseRefundDestroy(), expectSignatures: ', expectSignatures);
+
     if (!isObject(exit)) {
         throw ('missing or not an object');
     }
