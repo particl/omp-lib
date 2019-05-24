@@ -14,7 +14,7 @@ import {
     MPA_LOCK,
     PaymentDataBidMultisig, PaymentDataAcceptMultisig, PaymentDataLockMultisig
 } from '../interfaces/omp';
-import { asyncMap, clone, isArray, isObject } from '../util';
+import { asyncMap, clone, isArrayAndContains, isObject } from '../util';
 
 
 @injectable()
@@ -100,7 +100,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             acceptPaymentData.fee = seller_fee;
         }
 
-        if (!isArray(acceptPaymentData.prevouts)) {
+        if (!isArrayAndContains(acceptPaymentData.prevouts)) {
             // add chosen prevouts to cover amount (MPA_ACCEPT)
             acceptPaymentData.prevouts = await lib.getNormalPrevouts(seller_requiredSatoshis + seller_fee);
         }
@@ -139,7 +139,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         }
 
 
-        if (isArray(acceptPaymentData.signatures)) {
+        if (isArrayAndContains(acceptPaymentData.signatures)) {
             // add signatures to inputs
             const signature = acceptPaymentData.signatures;
             acceptPaymentData.prevouts.forEach((out, i) => bidtx.addSignature(out, signature[i]));
@@ -172,7 +172,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             releaseTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
 
             // Sign the transaction if required (seller), and add the sellers signatures
-            if (!isObject(acceptPaymentData.release) || !isArray(acceptPaymentData.release.signatures)) {
+            if (!isObject(acceptPaymentData.release) || !isArrayAndContains(acceptPaymentData.release.signatures)) {
                 acceptPaymentData.release = {
                     signatures: []
                 };
@@ -214,7 +214,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // rebuild from accept message
         const bidtx: TransactionBuilder = (await this.accept(listing, bid, clone(accept)))['_bidtx'];
 
-        if (isArray(lockPaymentData.signatures)) {
+        if (isArrayAndContains(lockPaymentData.signatures)) {
             // add signatures to inputs
             const signature = lockPaymentData.signatures;
             bidPaymentData.prevouts.forEach((out, i) => bidtx.addSignature(out, signature[i]));
@@ -247,7 +247,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             refundTx.newNormalOutput(seller_address, seller_releaseSatoshis - seller_fee);
 
             // Sign the transaction if required (seller), and add the sellers signatures
-            if (!isObject(lockPaymentData.refund) || !isArray(lockPaymentData.refund.signatures)) {
+            if (!isObject(lockPaymentData.refund) || !isArrayAndContains(lockPaymentData.refund.signatures)) {
                 lockPaymentData.refund = {
                     signatures: []
                 };

@@ -1,6 +1,6 @@
 import { Item, ItemInfo, MPA_LISTING_ADD, MPM, PaymentDataBid, PaymentInfoEscrow, PaymentOption } from '../interfaces/omp';
 import { SaleType, MPAction, EscrowType } from '../interfaces/omp-enums';
-import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry, isNonNegativeNaturalNumber } from '../util';
+import { isString, isObject, isArrayAndContains, isNumber, isValidPrice, isValidPercentage, isCountry, isNonNegativeNaturalNumber, isArray } from '../util';
 import { FV_MPM } from './mpm';
 import { FV_CRYPTO } from './crypto';
 import { Cryptocurrency } from '../interfaces/crypto';
@@ -51,7 +51,7 @@ export class FV_MPA_LISTING {
             }
 
 
-            if (!isArray(information.category)) {
+            if (!isArrayAndContains(information.category)) {
                 throw new Error('action.item.information.category: not an array');
             }
 
@@ -100,7 +100,7 @@ export class FV_MPA_LISTING {
             }
 
             if (information.shippingDestinations) {
-                if (!isArray(information.shippingDestinations)) {
+                if (!isArrayAndContains(information.shippingDestinations)) {
                     throw new Error('action.item.information.shippingDestinations: not an array');
                 }
 
@@ -171,7 +171,7 @@ export class FV_MPA_LISTING {
                     throw new Error('action.item.payment.escrow.ratio: missing or invalid percentages');
                 }
 
-                if (!isArray(payment.options)) {
+                if (!isArrayAndContains(payment.options)) {
                     throw new Error('action.item.payment.options: not an array');
                 }
 
@@ -231,7 +231,7 @@ export class FV_MPA_LISTING {
                 throw new Error('action.item.messaging: not an object');
             }
 
-            if (!isArray(item.messaging.options)) {
+            if (!isArrayAndContains(item.messaging.options)) {
                 throw new Error('action.item.messaging.options: not an array');
             }
 

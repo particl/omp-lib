@@ -1,5 +1,5 @@
 import { ToBeBlindOutput } from '../../interfaces/crypto';
-import { isObject, isNumber, isString, isTxid, isArray, isBlindFactor, isNonNegativeNaturalNumber } from '../../util';
+import { isObject, isNumber, isString, isTxid, isArrayAndContains, isBlindFactor, isNonNegativeNaturalNumber } from '../../util';
 import { FV_CRYPTO } from '../crypto';
 import { EscrowType } from '../../interfaces/omp-enums';
 import { isPublicKey, isPrivateKey } from '../util';
@@ -18,7 +18,7 @@ function validateBasic(payment: PaymentDataBidCT | PaymentDataAcceptCT): boolean
         throw ('escrow: expected MAD_CT, received=' + payment.escrow);
     }
 
-    if (!isArray(payment.prevouts)) {
+    if (!isArrayAndContains(payment.prevouts)) {
         throw ('prevouts: not an array');
     }
 
@@ -34,7 +34,7 @@ function validateBasic(payment: PaymentDataBidCT | PaymentDataAcceptCT): boolean
         }
     });
 
-    if (!isArray(payment.outputs) || !payment.outputs) {
+    if (!isArrayAndContains(payment.outputs) || !payment.outputs) {
         throw ('outputs: not an array');
     }
 
@@ -66,7 +66,7 @@ function validateReleaseRefundDestroy(exit: any, expectEphem: boolean = true, ex
     }
 
     if (expectSignatures) {
-        if (!isArray(exit.signatures)) {
+        if (!isArrayAndContains(exit.signatures)) {
             throw ('signatures: missing or not an array');
         }
 
@@ -169,7 +169,7 @@ export class FV_MPA_LOCK_ESCROW_MAD_CT {
 
     public static validate(payment: PaymentDataLockCT): boolean {
 
-        if (!isArray(payment.signatures)) {
+        if (!isArrayAndContains(payment.signatures)) {
             throw ('action.buyer.payment.signatures: missing or not an array');
         }
 

@@ -1,6 +1,6 @@
 import { MPA_LOCK, MPM, PaymentDataLock, PaymentDataLockCT, PaymentDataLockMultisig } from '../interfaces/omp';
 import { MPAction, EscrowType } from '../interfaces/omp-enums';
-import { isObject, isArray, isString, isSHA256Hash } from '../util';
+import { isObject, isArrayAndContains, isString, isSHA256Hash } from '../util';
 
 import { FV_MPM} from './mpm';
 import { FV_MPA_LOCK_ESCROW_MULTISIG } from './escrow/multisig';

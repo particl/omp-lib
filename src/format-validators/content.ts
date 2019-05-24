@@ -1,4 +1,4 @@
-import { isObject, isNumber, isString, isTxid, isSHA256Hash, isArray } from '../util';
+import { isObject, isNumber, isString, isTxid, isSHA256Hash, isArrayAndContains } from '../util';
 import { ContentReference, DSN, ProtocolDSN } from '../interfaces/dsn';
 
 export class FV_CONTENT {
@@ -13,7 +13,7 @@ export class FV_CONTENT {
             throw new Error('content.hash: not a SHA256 hash!');
         }
 
-        if (!isArray(content.data)) {
+        if (!isArrayAndContains(content.data)) {
             throw new Error('content.data: not an array!');
         }
 

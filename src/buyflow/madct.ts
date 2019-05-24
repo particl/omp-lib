@@ -16,7 +16,7 @@ import {
     MPA_LISTING_ADD,
     PaymentDataAcceptCT, PaymentDataBidCT, PaymentDataLockCT
 } from '../interfaces/omp';
-import { asyncForEach, asyncMap, clone, isArray, fromSatoshis, log, isObject } from '../util';
+import { asyncForEach, asyncMap, clone, isArrayAndContains, fromSatoshis, log, isObject } from '../util';
 import { hash } from '../hasher/hash';
 
 @injectable()
@@ -136,7 +136,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             throw new Error('Currently only supports one input from the buyer.');
         }
 
-        if (!isArray(acceptPaymentData.prevouts)) {
+        if (!isArrayAndContains(acceptPaymentData.prevouts)) {
 
             const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
             if (!cryptocurrency) {
@@ -211,7 +211,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         const rawdesttx = await lib.generateRawConfidentialTx(bid_utxos, destroy_output, acceptPaymentData.fee);
         const desttx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawdesttx);
 
-        if (!acceptPaymentData.destroy || !isArray(acceptPaymentData.destroy.signatures)) {
+        if (!acceptPaymentData.destroy || !isArrayAndContains(acceptPaymentData.destroy.signatures)) {
             acceptPaymentData.destroy = {
                 signatures: []
             };
@@ -316,7 +316,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         accept['_rawrefundtxunsigned'] = rawrefundtx;
 
         // Not rebuilding, seller signs release tx
-        if (!isArray(acceptPaymentData.release.signatures)) {
+        if (!isArrayAndContains(acceptPaymentData.release.signatures)) {
             // const seller_release_input = bid_utxos[0];
             // [seller_release_input]
             acceptPaymentData.release.signatures = await lib.signRawTransactionForBlindInputs(releasetx, bid_utxos, seller_output.address);
@@ -374,7 +374,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             throw new Error('Missing seller outputs.');
         }
 
-        if (isArray(lockPaymentData.signatures)) {
+        if (isArrayAndContains(lockPaymentData.signatures)) {
             // add signatures to inputs
             const signature = lockPaymentData.signatures;
             bidPaymentData.prevouts.forEach((out, i) => bidtx.setWitness(out, signature[i]));
@@ -404,7 +404,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         const desttx: ConfidentialTransactionBuilder = rebuilt['_desttx'];
 
         // Buyer signs the destroy txn
-        if (!lockPaymentData.destroy || !isArray(lockPaymentData.destroy.signatures)) {
+        if (!lockPaymentData.destroy || !isArrayAndContains(lockPaymentData.destroy.signatures)) {
             lockPaymentData.destroy = {
                 signatures: []
             };
@@ -428,7 +428,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         buyer_output = this.getBidOutput(seller_output, buyer_output, 2880, buyer_requiredSatoshis);
 
         // Buyer signs the refund txn
-        if (!lockPaymentData.refund || !isArray(lockPaymentData.refund.signatures)) {
+        if (!lockPaymentData.refund || !isArrayAndContains(lockPaymentData.refund.signatures)) {
             lockPaymentData.refund = {
                 signatures: []
             };

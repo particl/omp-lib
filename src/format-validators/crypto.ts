@@ -1,5 +1,5 @@
 import { Prevout, CryptoAddress, CryptoAddressType, ISignature, BlindPrevout, ToBeBlindOutput } from '../interfaces/crypto';
-import { isObject, isNumber, isString, isTxid, isArray, isBlindFactor } from '../util';
+import { isObject, isNumber, isString, isTxid, isArrayAndContains, isBlindFactor } from '../util';
 import { isPublicKey, isPrivateKey } from './util';
 
 export class FV_CRYPTO {

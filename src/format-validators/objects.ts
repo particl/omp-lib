@@ -1,11 +1,11 @@
-import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage } from '../util';
+import { isString, isObject, isArrayAndContains, isNumber, isValidPrice, isValidPercentage } from '../util';
 
 export class FV_OBJECTS {
 
     public static validate(objects: any): boolean {
 
         if (objects) {
-            if (!isArray(objects)) {
+            if (!isArrayAndContains(objects)) {
                 throw new Error('objects: not an array');
             }
 
