@@ -153,8 +153,6 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         }
 
-        console.log('OMP_LIB: acceptPaymentData: ', JSON.stringify(acceptPaymentData, null, 2));
-
         const seller_prevout = acceptPaymentData.prevouts[0];
         const buyer_prevout = bidPaymentData.prevouts[0];
 
@@ -465,16 +463,20 @@ export class MadCTBuilder implements IMadCTBuilder {
         // Don't trigger the signing of releasetx for buyer when rebuilding
         const cloned_accept = clone(accept);
 
-        const rebuilt = (await this.lock(listing, bid, cloned_accept, clone(lock)));
+        const rebuiltLockMessage = (await this.lock(listing, bid, cloned_accept, clone(lock)));
+        console.log('OMP_LIB: rebuiltLockMessage: ', JSON.stringify(rebuiltLockMessage, null, 2));
 
         // rebuild from accept message
-        const bidtx: ConfidentialTransactionBuilder = rebuilt['_bidtx'];
+        const bidtx: ConfidentialTransactionBuilder = rebuiltLockMessage['_bidtx'];
 
         const seller_inputs = clone(acceptPaymentData.prevouts);
 
         const seller_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, true);
         const seller_fee = acceptPaymentData.fee;
         seller_inputs[0]._satoshis = seller_requiredSatoshis + seller_fee;
+
+        console.log('OMP_LIB: seller_requiredSatoshis: ', seller_requiredSatoshis);
+        console.log('OMP_LIB: seller_fee: ', seller_fee);
 
         await asyncMap(seller_inputs, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
 

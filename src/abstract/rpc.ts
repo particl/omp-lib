@@ -334,20 +334,26 @@ export abstract class CtRpc extends Rpc {
      * @param utxo the output to load the fields for.
      */
     public async loadTrustedFieldsForBlindUtxo(utxo: BlindPrevout): Promise<BlindPrevout> {
+        console.log('OMP_LIB: loadTrustedFieldsForBlindUtxo, utxo: ', JSON.stringify(utxo, null, 2));
+
         const tx: RpcRawTx = await this.getRawTransaction(utxo.txid);
         const found: RpcVout | undefined = tx.vout.find(i => i.n === utxo.vout);
 
         if (!found) {
+            console.error('Could not find matching vout from transaction.');
             throw new Error('Could not find matching vout from transaction.');
         }
         if (!found.valueCommitment) {
+            console.error('Missing vout valueCommitment.');
             throw new Error('Missing vout valueCommitment.');
         }
         if (!utxo.blindFactor) {
-            throw new Error('Missing utxo blindFactor.');
+            console.error('Could not find matching vout from transaction.');
+            throw new Error('Could not find matching vout from transaction.');
         }
         if (!utxo._satoshis) {
-            throw new Error('Missing utxo _satoshis.');
+            console.error('Could not find matching vout from transaction.');
+            throw new Error('Could not find matching vout from transaction.');
         }
 
         const commitment = found.valueCommitment;
@@ -356,6 +362,7 @@ export abstract class CtRpc extends Rpc {
 
         const ok = await this.verifyCommitment(commitment, utxo.blindFactor, utxo._satoshis);
         if (!ok) {
+            console.error('Commitment is not matching amount or blindfactor.');
             throw new Error('Commitment is not matching amount or blindfactor.');
         }
 
