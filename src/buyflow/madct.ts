@@ -268,7 +268,7 @@ export class MadCTBuilder implements IMadCTBuilder {
                 [{blindFactor: bidPaymentData.release.blindFactor} as ToBeBlindOutput]);
         } else {
             // TODO(security): random
-            acceptPaymentData.release.blindFactor = lib.getRandomBlindFactor();
+            acceptPaymentData.release.blindFactor = acceptPaymentData.release.blindFactor || lib.getRandomBlindFactor();
             lastBlindFactor = await lib.getLastMatchingBlindFactor(
                 bid_utxos,
                 [{blindFactor: acceptPaymentData.release.blindFactor} as ToBeBlindOutput]);
