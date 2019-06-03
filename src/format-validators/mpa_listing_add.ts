@@ -100,7 +100,7 @@ export class FV_MPA_LISTING {
             }
 
             if (information.shippingDestinations) {
-                if (!isArrayAndContains(information.shippingDestinations)) {
+                if (!isArray(information.shippingDestinations)) {
                     throw new Error('action.item.information.shippingDestinations: not an array');
                 }
 
