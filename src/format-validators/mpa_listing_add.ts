@@ -231,13 +231,14 @@ export class FV_MPA_LISTING {
                 throw new Error('action.item.messaging: not an object');
             }
 
-            if (!isArrayAndContains(item.messaging.options)) {
+            if (!isArray(item.messaging.options)) {
                 throw new Error('action.item.messaging.options: not an array');
             }
 
-            if (item.messaging.options.length === 0) {
-                throw new Error('action.item.messaging.options: length of array is 0, missing?');
-            }
+            // TODO: not required for now
+            // if (item.messaging.options.length === 0) {
+            //    throw new Error('action.item.messaging.options: length of array is 0, missing?');
+            // }
 
             item.messaging.options.forEach((elem, i) => {
                 if (!isObject(elem)) {
