@@ -251,9 +251,11 @@ export class FV_MPA_LISTING {
             });
 
 
-        } else {
-            throw new Error('action.item.messaging: missing');
         }
+        // action.item.messaging is optional for now
+        // else {
+        //    throw new Error('action.item.messaging: missing');
+        // }
 
         if (item.objects) {
             FV_OBJECTS.validate(item.objects);
