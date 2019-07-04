@@ -1,7 +1,7 @@
 import { Cryptocurrency, ISignature, Prevout, BlindPrevout, ToBeBlindOutput, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { toSatoshis, fromSatoshis, clone } from '../util';
-import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout } from '../interfaces/rpc';
+import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout, RpcWalletDir } from '../interfaces/rpc';
 import { ConfidentialTransactionBuilder } from '../transaction-builder/confidential-transaction';
 import { randomBytes } from 'crypto';
 
@@ -60,6 +60,10 @@ export abstract class Rpc {
     public abstract async createSignatureWithWallet(hex: string, prevtx: RpcOutput, address: string): Promise<string>; // signature
     public abstract async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx>;
     public abstract async sendRawTransaction(rawtx: string): Promise<string>; // returns txid
+
+    public async listWalletDir(): Promise<RpcWalletDir> {
+        return await this.call('listwalletdir', []);
+    }
 
     public async getNewPubkey(): Promise<string> {
         const address = await this.getNewAddress();

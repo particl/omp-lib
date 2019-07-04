@@ -1,6 +1,14 @@
 /*
  * Interfaces which the Rpc class needs to implement
  */
+export interface RpcWalletDir {
+    wallets: RpcWallet[];
+}
+
+export interface RpcWallet {
+    name: string;
+}
+
 export interface RpcAddressInfo {
     address: string;
     scriptPubKey: string;
