@@ -156,7 +156,7 @@ export class OpenMarketProtocol implements OMP {
                     if (!isCt) {
                         try {
                             lib = ctx.container.getNamed<Rpc>(TYPES.Rpc, cryptocurrency);
-                        } catch(e) {
+                        } catch (e) {
                             lib = ctx.container.getNamed<CtRpc>(TYPES.CtRpc, cryptocurrency);
                         }
                     } else {
