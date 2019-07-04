@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { Cryptocurrency, ISignature, Prevout, BlindPrevout, ToBeBlindOutput, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { toSatoshis, fromSatoshis, clone } from '../util';
@@ -63,6 +64,16 @@ export abstract class Rpc {
 
     public async listWalletDir(): Promise<RpcWalletDir> {
         return await this.call('listwalletdir', []);
+    }
+
+    public async walletExists(name: string): Promise<boolean> {
+        return await this.listWalletDir()
+            .then(result => {
+                const found = _.find(result.wallets, wallet => {
+                    return wallet.name === name;
+                });
+                return !!found;
+            });
     }
 
     public async getNewPubkey(): Promise<string> {
