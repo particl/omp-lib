@@ -7,6 +7,7 @@ export interface RpcWalletDir {
 
 export interface RpcWallet {
     name: string;
+    warning: string;
 }
 
 export interface RpcAddressInfo {

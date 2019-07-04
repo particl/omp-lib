@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { Cryptocurrency, ISignature, Prevout, BlindPrevout, ToBeBlindOutput, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { toSatoshis, fromSatoshis, clone } from '../util';
-import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout, RpcWalletDir } from '../interfaces/rpc';
+import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout, RpcWallet, RpcWalletDir } from '../interfaces/rpc';
 import { ConfidentialTransactionBuilder } from '../transaction-builder/confidential-transaction';
 import { randomBytes } from 'crypto';
 
@@ -74,6 +74,10 @@ export abstract class Rpc {
                 });
                 return !!found;
             });
+    }
+
+    public async createWallet(name: string, disablePrivateKeys: boolean = false, blank: boolean = false): Promise<RpcWallet> {
+        return await this.call('createwallet', [name, disablePrivateKeys, blank]);
     }
 
     public async getNewPubkey(): Promise<string> {
