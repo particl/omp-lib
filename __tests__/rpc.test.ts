@@ -2,6 +2,7 @@ import * from 'jest';
 import { CoreRpcService } from '../test/rpc.stub';
 import { OpenMarketProtocol } from '../src/omp';
 import { Cryptocurrency } from '../src/interfaces/crypto';
+import { log } from '../src/util';
 
 describe('Rpc', () => {
 
@@ -40,4 +41,16 @@ describe('Rpc', () => {
         expect(omp1.rpc(Cryptocurrency.PART)).toEqual(rpc1);
         expect(omp2.rpc(Cryptocurrency.PART)).toEqual(rpc2);
     });
+
+    test('listwalletdir', async () => {
+        const data = await rpc0.listWalletDir();
+        expect(data.wallets[0].name).toBe('');
+    });
+
+    test('walletexists', async () => {
+        const exists = await rpc0.walletExists('');
+        expect(exists).toEqual(true);
+    });
+
+
 });
