@@ -62,24 +62,6 @@ export abstract class Rpc {
     public abstract async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx>;
     public abstract async sendRawTransaction(rawtx: string): Promise<string>; // returns txid
 
-    public async listWalletDir(): Promise<RpcWalletDir> {
-        return await this.call('listwalletdir', []);
-    }
-
-    public async walletExists(name: string): Promise<boolean> {
-        return await this.listWalletDir()
-            .then(result => {
-                const found = _.find(result.wallets, wallet => {
-                    return wallet.name === name;
-                });
-                return !!found;
-            });
-    }
-
-    public async createWallet(name: string, disablePrivateKeys: boolean = false, blank: boolean = false): Promise<RpcWallet> {
-        return await this.call('createwallet', [name, disablePrivateKeys, blank]);
-    }
-
     public async getNewPubkey(): Promise<string> {
         const address = await this.getNewAddress();
         return (await this.getAddressInfo(address)).pubkey;

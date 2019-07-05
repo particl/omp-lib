@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 
 import { Rpc } from '../src/abstract/rpc';
-import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from '../src/interfaces/rpc';
+import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcWalletDir } from '../src/interfaces/rpc';
 
 @injectable()
 export class CoreRpcService extends Rpc {
@@ -125,4 +125,5 @@ export class CoreRpcService extends Rpc {
 
         return rpcOpts;
     }
+
 }

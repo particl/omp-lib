@@ -4,7 +4,7 @@ import * as WebRequest from 'web-request';
 import { CtRpc, RpcBlindSendToOutput } from '../src/abstract/rpc';
 import { Prevout, BlindPrevout, CryptoAddressType, CryptoAddress } from '../src/interfaces/crypto';
 import { fromSatoshis } from '../src/util';
-import { RpcAddressInfo, RpcRawTx, RpcUnspentOutput } from '../src/interfaces/rpc';
+import { RpcAddressInfo, RpcRawTx, RpcUnspentOutput, RpcWalletDir } from '../src/interfaces/rpc';
 
 
 @injectable()
