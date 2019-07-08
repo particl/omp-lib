@@ -131,7 +131,7 @@ describe('Buyflow: mad ct', () => {
         expect(releaseTxid).toBeUtxoWithAmount(buyerNode0, 2);
         expect(releaseTxid).toBeUtxoWithAmount(sellerNode1, 3.99995000);
 
-    });
+    }, 600000);
 
     it('buyflow refund', async () => {
         jest.setTimeout(400000);
@@ -174,7 +174,7 @@ describe('Buyflow: mad ct', () => {
         expect(refundTxid).toBeUtxoWithAmount(buyerNode0, 4);
         expect(refundTxid).toBeUtxoWithAmount(sellerNode1, 1.99995000);
 
-    });
+    }, 600000);
 
     it('buyflow destroy (& prevent early mining)', async () => {
         jest.setTimeout(400000);
@@ -230,7 +230,7 @@ describe('Buyflow: mad ct', () => {
         const destroytxid = await buyerNode0.sendRawTransaction(lock.action['_rawdesttx']);
         expect(destroytxid).toBeDefined();
 
-    });
+    }, 600000);
 
 
     const delay = ms => {

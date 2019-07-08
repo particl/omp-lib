@@ -289,6 +289,18 @@ export abstract class CtRpc extends Rpc {
 
     public abstract async createRawTransaction(inputs: BlindPrevout[], outputs: any[]): Promise<any>;
 
+    public async nastyDelay(ms: number): Promise<number> {
+        const timeStart = new Date().getTime();
+        const timeEnd = new Date().getTime() + ms;
+        console.log('delay started: ' + new Date().getTime());
+        console.log('timeEnd: ' + timeEnd);
+
+        while (new Date().getTime() < timeEnd) {
+            const doSomethingHeavyInJavaScript = 1 + 2 + 3;
+        }
+        return timeEnd - timeStart;
+    }
+
     public async createPrevoutFrom(typeFrom: OutputType, typeTo: OutputType, satoshis: number, blindingfactor?: string): Promise<BlindPrevout> {
         let prevout: BlindPrevout;
         const sx = await this.getNewStealthAddress();
@@ -300,13 +312,16 @@ export abstract class CtRpc extends Rpc {
         }
 
         const txid = await this.sendTypeTo(typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor}]);
-        console.log('OMP_LIB: typeFrom: ' + typeFrom);
-        console.log('OMP_LIB: typeTo: ' + typeTo);
+        console.log('OMP_LIB: typeFrom: ' + typeFrom + ', OMP_LIB: typeTo: ' + typeTo);
+        console.log('OMP_LIB: looking for txid: ' + txid + ', amount: ' + fromSatoshis(satoshis));
+
+        await this.nastyDelay(15000)
+            .then((delay) => {
+                console.log('delayed: ' + delay);
+            });
 
         const unspent: RpcUnspentOutput[] = await this.listUnspent(typeTo, 0);
         console.log('OMP_LIB: unspent: ' + JSON.stringify(unspent, null, 2));
-
-        console.log('OMP_LIB: looking for txid: ' + txid + ', amount: ' + fromSatoshis(satoshis));
 
         const found = unspent.find(tmpVout => {
             console.log('OMP_LIB: tmpVout.txid: ' + tmpVout.txid + ', tmpVout.amount: ' + tmpVout.amount);
@@ -411,13 +426,17 @@ export abstract class CtRpc extends Rpc {
             console.error('Missing vout valueCommitment.');
             throw new Error('Missing vout valueCommitment.');
         }
+        if (!found.scriptPubKey) {
+            console.error('Missing vout scriptPubKey.');
+            throw new Error('Missing vout scriptPubKey.');
+        }
         if (!utxo.blindFactor) {
-            console.error('Could not find matching vout from transaction.');
-            throw new Error('Could not find matching vout from transaction.');
+            console.error('Missing utxo blindFactor.');
+            throw new Error('Missing utxo blindFactor.');
         }
         if (!utxo._satoshis) {
-            console.error('Could not find matching vout from transaction.');
-            throw new Error('Could not find matching vout from transaction.');
+            console.error('Missing utxo _satoshis.');
+            throw new Error('Missing utxo _satoshis.');
         }
 
         const commitment = found.valueCommitment;
