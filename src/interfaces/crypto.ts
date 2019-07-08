@@ -73,6 +73,12 @@ export enum CryptoAddressType {
     STEALTH = 'STEALTH'
 }
 
+export enum OutputType {
+    PART = 'PART',
+    BLIND = 'BLIND',
+    ANON = 'ANON'
+}
+
 /**
  * An address for a cryptocurrency.
  */

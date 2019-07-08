@@ -1,7 +1,6 @@
-import * as _ from 'lodash';
-import { Cryptocurrency, ISignature, Prevout, BlindPrevout, ToBeBlindOutput, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
+import { BlindPrevout, CryptoAddress, Cryptocurrency, EphemeralKey, ISignature, OutputType, Prevout, ToBeBlindOutput } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
-import { toSatoshis, fromSatoshis, clone } from '../util';
+import { clone, fromSatoshis, toSatoshis } from '../util';
 import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout, RpcWallet, RpcWalletDir } from '../interfaces/rpc';
 import { ConfidentialTransactionBuilder } from '../transaction-builder/confidential-transaction';
 import { randomBytes } from 'crypto';
@@ -39,7 +38,6 @@ export interface RpcCtFeeOutput extends RpcBlindOrFeeBase {
     data_ct_fee: number;
 }
 
-
 export interface RpcBlindSendToOutput {
     address: string;
     amount: number;
@@ -52,10 +50,17 @@ export interface RpcBlindSendToOutput {
 export abstract class Rpc {
 
     public abstract async call(method: string, params: any[]): Promise<any>;
+
+    public abstract async createWallet(name: string, disablePrivateKeys: boolean, blank: boolean): Promise<RpcWallet>;
+    public abstract async loadWallet(name: string): Promise<RpcWallet>;
+    public abstract async smsgSetWallet(name?: string): Promise<RpcWallet>;
+    public abstract async listLoadedWallets(): Promise<string[]>;
+    public abstract async listWalletDir(): Promise<RpcWalletDir>;
+
     public abstract async getNewAddress(): Promise<string>; // returns address
     public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
     public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>; // returns txid
-    public abstract async listUnspent(minconf: number): Promise<RpcUnspentOutput[]>;
+    public abstract async listUnspent(type: OutputType, minconf: number): Promise<RpcUnspentOutput[]>;
     public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>; // successful
     public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>; // returns nothing
     public abstract async createSignatureWithWallet(hex: string, prevtx: RpcOutput, address: string): Promise<string>; // signature
@@ -68,6 +73,7 @@ export abstract class Rpc {
     }
 
     // TODO: refactor this, cognitive-complexity 39
+    // TODO: use getPrevouts() from the CtRpc?
     // tslint:disable:cognitive-complexity
     public async getNormalPrevouts(reqSatoshis: number): Promise<Prevout[]> {
         const chosen: Prevout[] = [];
@@ -77,7 +83,7 @@ export abstract class Rpc {
         let chosenSatoshis = 0;
         const defaultIdxs: number[] = [];
 
-        const unspent: RpcUnspentOutput[] = await this.listUnspent(0);
+        const unspent: RpcUnspentOutput[] = await this.listUnspent(OutputType.PART, 0);
 
         const filtered = unspent.filter(
             (output: RpcUnspentOutput, outIdx: number) => {
@@ -265,13 +271,15 @@ export abstract class CtRpc extends Rpc {
 
     // WALLET - generating keys, addresses.
     public abstract async getNewStealthAddress(): Promise<CryptoAddress>;
-    // todo: enum for typeIn/typeOut
-    public abstract async sendTypeTo(typeIn: string, typeOut: string, outputs: RpcBlindSendToOutput[]): Promise<string>;
+    public abstract async sendTypeTo(typeIn: OutputType, typeOut: OutputType, outputs: RpcBlindSendToOutput[]): Promise<string>;
 
     // Retrieving information of prevouts
-    public abstract async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]>;
+    // public abstract async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]>;
+    // public abstract async listUnspentAnon(minconf: number): Promise<RpcUnspentOutput[]>;
 
-    public abstract async getBlindPrevouts(type: string, satoshis: number, blind?: string): Promise<BlindPrevout[]>;
+    // public abstract async getBlindPrevouts(type: string, satoshis: number, blind?: string): Promise<BlindPrevout[]>;
+    public abstract async getPrevouts(typeIn: OutputType, typeOut: OutputType, satoshis: number, blind?: string): Promise<BlindPrevout[]>;
+
     // public abstract async getLastMatchingBlindFactor(prevouts: Prevout[] | ToBeBlindOutput[], outputs: ToBeBlindOutput[]): Promise<string>;
 
     // Importing and signing
@@ -280,7 +288,58 @@ export abstract class CtRpc extends Rpc {
 
     public abstract async createRawTransaction(inputs: BlindPrevout[], outputs: any[]): Promise<any>;
 
+    public async createPrevoutFrom(typeFrom: OutputType, typeTo: OutputType, satoshis: number, blind?: string): Promise<BlindPrevout> {
+        let prevout: BlindPrevout;
+        const sx = await this.getNewStealthAddress();
+        const amount = fromSatoshis(satoshis);
 
+        if (!blind) {
+            // TODO(security): random!
+            blind = this.getRandomBlindFactor();
+        }
+
+        const txid = await this.sendTypeTo(typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor: blind}]);
+
+        let unspent: RpcUnspentOutput[] = [];
+        unspent = await this.listUnspent(typeTo, 0);
+
+        console.log('OMP_LIB: looking for txid: ' + txid + ', amount: ' + fromSatoshis(satoshis));
+        const found = unspent.find(tmpVout => {
+            console.log('OMP_LIB: tmpVout.txid: ' + tmpVout.txid + ', tmpVout.amount: ' + tmpVout.amount);
+            return (tmpVout.txid === txid && tmpVout.amount === fromSatoshis(satoshis));
+        });
+
+        if (!found) {
+            throw new Error('Not enough inputs!');
+        }
+
+        // Retrieve the commitment from the transaction
+        // TODO: use bitcorelib for this
+        const tx: RpcRawTx = await this.getRawTransaction(txid);
+        const vout: RpcVout | undefined = tx.vout.find(i => i.n === found.vout);
+
+        if (!vout) {
+            throw new Error('Could not find matching vout from transaction.');
+        }
+
+        prevout = {
+            txid: found.txid,
+            vout: found.vout,
+            _commitment: vout.valueCommitment,
+            _satoshis: toSatoshis(found.amount),
+            _scriptPubKey: found.scriptPubKey,
+            _address: found.address,
+            blindFactor: blind
+        } as BlindPrevout;
+
+        // Permanently lock the unspent output
+        await this.lockUnspent(false, [prevout], true);
+
+        return prevout;
+    }
+
+    // TODO: use createPrevoutFrom and get rid of this
+/*
     public async createBlindPrevoutFrom(type: string, satoshis: number, blind?: string): Promise<BlindPrevout> {
         let prevout: BlindPrevout;
         const sx = await this.getNewStealthAddress();
@@ -291,8 +350,8 @@ export abstract class CtRpc extends Rpc {
             blind = this.getRandomBlindFactor();
         }
 
-        const txid = await this.sendTypeTo(type, 'blind', [{ address: sx.address, amount, blindingfactor: blind}]);
-        const unspent: RpcUnspentOutput[] = await this.listUnspentBlind(0);
+        const txid = await this.sendTypeTo(type, OutputType.BLIND.toString().toLowerCase(), [{ address: sx.address, amount, blindingfactor: blind}]);
+        const unspent: RpcUnspentOutput[] = await this.listUnspent(OutputType.BLIND, 0);
 
         console.log('OMP_LIB: looking for txid: ' + txid + ', amount: ' + fromSatoshis(satoshis));
         const found = unspent.find(tmpVout => {
@@ -328,7 +387,7 @@ export abstract class CtRpc extends Rpc {
 
         return prevout;
     }
-
+*/
     /**
      * Load a set of trusted fields for a blind (u)txo.
      * also validates the satoshis entered in the utxo against the commitment!
