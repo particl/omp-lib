@@ -41,7 +41,7 @@ describe('Rpc', () => {
         expect(omp1.rpc(Cryptocurrency.PART)).toEqual(rpc1);
         expect(omp2.rpc(Cryptocurrency.PART)).toEqual(rpc2);
     });
-
+/*
     test('listwalletdir', async () => {
         const data = await rpc0.listWalletDir();
         expect(data.wallets[0].name).toBe('');
@@ -51,6 +51,6 @@ describe('Rpc', () => {
         const exists = await rpc0.walletExists('');
         expect(exists).toEqual(true);
     });
-
+*/
 
 });
