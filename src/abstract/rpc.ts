@@ -51,13 +51,13 @@ export interface RpcBlindSendToOutput {
 export abstract class Rpc {
 
     public abstract async call(method: string, params: any[]): Promise<any>;
-
+/*
     public abstract async createWallet(name: string, disablePrivateKeys: boolean, blank: boolean): Promise<RpcWallet>;
     public abstract async loadWallet(name: string): Promise<RpcWallet>;
     public abstract async smsgSetWallet(name?: string): Promise<RpcWallet>;
     public abstract async listLoadedWallets(): Promise<string[]>;
     public abstract async listWalletDir(): Promise<RpcWalletDir>;
-
+*/
     public abstract async getNewAddress(): Promise<string>; // returns address
     public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
     public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>; // returns txid
