@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import { BlindPrevout, CryptoAddress, Cryptocurrency, EphemeralKey, ISignature, OutputType, Prevout, ToBeBlindOutput } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { clone, fromSatoshis, toSatoshis } from '../util';
@@ -288,22 +289,25 @@ export abstract class CtRpc extends Rpc {
 
     public abstract async createRawTransaction(inputs: BlindPrevout[], outputs: any[]): Promise<any>;
 
-    public async createPrevoutFrom(typeFrom: OutputType, typeTo: OutputType, satoshis: number, blind?: string): Promise<BlindPrevout> {
+    public async createPrevoutFrom(typeFrom: OutputType, typeTo: OutputType, satoshis: number, blindingfactor?: string): Promise<BlindPrevout> {
         let prevout: BlindPrevout;
         const sx = await this.getNewStealthAddress();
         const amount = fromSatoshis(satoshis);
 
-        if (!blind) {
+        if (!blindingfactor) {
             // TODO(security): random!
-            blind = this.getRandomBlindFactor();
+            blindingfactor = this.getRandomBlindFactor();
         }
 
-        const txid = await this.sendTypeTo(typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor: blind}]);
+        const txid = await this.sendTypeTo(typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor}]);
+        console.log('OMP_LIB: typeFrom: ' + typeFrom);
+        console.log('OMP_LIB: typeTo: ' + typeTo);
 
-        let unspent: RpcUnspentOutput[] = [];
-        unspent = await this.listUnspent(typeTo, 0);
+        const unspent: RpcUnspentOutput[] = await this.listUnspent(typeTo, 0);
+        console.log('OMP_LIB: unspent: ' + JSON.stringify(unspent, null, 2));
 
         console.log('OMP_LIB: looking for txid: ' + txid + ', amount: ' + fromSatoshis(satoshis));
+
         const found = unspent.find(tmpVout => {
             console.log('OMP_LIB: tmpVout.txid: ' + tmpVout.txid + ', tmpVout.amount: ' + tmpVout.amount);
             return (tmpVout.txid === txid && tmpVout.amount === fromSatoshis(satoshis));
@@ -329,7 +333,7 @@ export abstract class CtRpc extends Rpc {
             _satoshis: toSatoshis(found.amount),
             _scriptPubKey: found.scriptPubKey,
             _address: found.address,
-            blindFactor: blind
+            blindFactor: blindingfactor
         } as BlindPrevout;
 
         // Permanently lock the unspent output

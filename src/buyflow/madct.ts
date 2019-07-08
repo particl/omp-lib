@@ -1,22 +1,16 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types';
 
-import { BlindPrevout, ToBeBlindOutput, Prevout, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
+import { BlindPrevout, CryptoAddress, EphemeralKey, OutputType, ToBeBlindOutput } from '../interfaces/crypto';
 
-import { ILibrary, CtRpc } from '../abstract/rpc';
+import { CtRpc, ILibrary } from '../abstract/rpc';
 import { IMadCTBuilder } from '../abstract/transactions';
 import { Config } from '../abstract/config';
 
-import { ConfidentialTransactionBuilder, buildBidTxScript, buildDestroyTxScript, getExpectedSequence } from '../transaction-builder/confidential-transaction';
+import { buildBidTxScript, buildDestroyTxScript, ConfidentialTransactionBuilder, getExpectedSequence } from '../transaction-builder/confidential-transaction';
 
-import {
-    MPA_BID,
-    MPA_ACCEPT,
-    MPA_LOCK,
-    MPA_LISTING_ADD,
-    PaymentDataAcceptCT, PaymentDataBidCT, PaymentDataLockCT
-} from '../interfaces/omp';
-import { asyncForEach, asyncMap, clone, isArrayAndContains, fromSatoshis, log, isObject } from '../util';
+import { MPA_ACCEPT, MPA_BID, MPA_LISTING_ADD, MPA_LOCK, PaymentDataAcceptCT, PaymentDataBidCT, PaymentDataLockCT } from '../interfaces/omp';
+import { asyncMap, clone, isArrayAndContains, isObject } from '../util';
 import { hash } from '../hasher/hash';
 
 @injectable()
@@ -54,8 +48,11 @@ export class MadCTBuilder implements IMadCTBuilder {
         console.log('OMP_LIB: bid() paymentData: ', JSON.stringify(paymentData, null, 2));
         console.log('OMP_LIB: bid() requiredSatoshis: ', requiredSatoshis);
 
-        const type = (this.network === 'testnet') ? 'anon' : 'blind';
-        paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
+        // for now, we are forcing anon
+        // const type = (this.network === 'testnet') ? 'anon' : 'blind';
+        // paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
+        // todo: why have getPrevouts and createPrevoutFrom?
+        paymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.ANON, requiredSatoshis);
 
         if (!paymentData.outputs) {
             paymentData.outputs = [];
@@ -147,9 +144,13 @@ export class MadCTBuilder implements IMadCTBuilder {
             // Currently not implemented because we're not checking ownership of the outputs.
             // TODO(security): fix
             const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
+
             // Generate a new CT output of the _exact_ amount.
-            const type = (this.network === 'testnet') ? 'anon' : 'blind';
-            acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
+            // const type = (this.network === 'testnet') ? 'anon' : 'blind';
+            // for now, we are forcing anon
+            // acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
+            // todo: why have getPrevouts and createPrevoutFrom?
+            acceptPaymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.ANON, seller_requiredSatoshis + seller_fee, blind);
 
         }
 

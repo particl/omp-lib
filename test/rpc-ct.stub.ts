@@ -73,10 +73,10 @@ export class CtCoreRpcService extends CtRpc {
 
     public async listUnspent(type: OutputType, minconf: number): Promise<RpcUnspentOutput[]> {
         switch (type) {
-            case OutputType.BLIND:
-                return await this.call('listunspentblind', [minconf]);
             case OutputType.ANON:
                 return await this.call('listunspentanon', [minconf]);
+            case OutputType.BLIND:
+                return await this.call('listunspentblind', [minconf]);
             case OutputType.PART:
                 return await this.call('listunspent', [minconf]);
             default:
