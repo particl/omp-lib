@@ -17,13 +17,13 @@ cache:
 before_script:
   # - ./bins/download-particl-core.sh 0.18.0.5
   - cd ./bins/particl-core
-  - wget https://github.com/particl/particl-core/releases/download/v0.18.0.5rc1/particl-0.18.0.5-x86_64-linux-gnu.tar.gz
-  - tar -xvf particl-0.18.0.5-x86_64-linux-gnu.tar.gz
+  - wget https://github.com/particl/particl-core/releases/download/v0.18.0.11/particl-0.18.0.11-x86_64-linux-gnu.tar.gz
+  - tar -xvf particl-0.18.0.11-x86_64-linux-gnu.tar.gz
   - cd ../..
   - yarn install
 
 script: 
   # download binaries
-  - PARTICL_BINDIR=./bins/particl-core/particl-0.18.0.5/bin/ yarn run test:setup &
+  - PARTICL_BINDIR=./bins/particl-core/particl-0.18.0.11/bin/ yarn run test:setup &
   - sleep 60
   - yarn run test
