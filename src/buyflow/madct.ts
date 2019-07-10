@@ -52,7 +52,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         // const type = (this.network === 'testnet') ? 'anon' : 'blind';
         // paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
         // todo: why have getPrevouts and createPrevoutFrom?
-        paymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.ANON, requiredSatoshis);
+        paymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.BLIND, requiredSatoshis);
 
         if (!paymentData.outputs) {
             paymentData.outputs = [];
@@ -150,7 +150,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             // for now, we are forcing anon
             // acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
             // todo: why have getPrevouts and createPrevoutFrom?
-            acceptPaymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.ANON, seller_requiredSatoshis + seller_fee, blind);
+            acceptPaymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.BLIND, seller_requiredSatoshis + seller_fee, blind);
 
         }
 
