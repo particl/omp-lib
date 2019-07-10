@@ -334,56 +334,6 @@ export abstract class CtRpc extends Rpc {
         return prevout;
     }
 
-    // TODO: use createPrevoutFrom and get rid of this
-/*
-    public async createBlindPrevoutFrom(type: string, satoshis: number, blind?: string): Promise<BlindPrevout> {
-        let prevout: BlindPrevout;
-        const sx = await this.getNewStealthAddress();
-        const amount = fromSatoshis(satoshis);
-
-        if (!blind) {
-            // TODO(security): random!
-            blind = this.getRandomBlindFactor();
-        }
-
-        const txid = await this.sendTypeTo(type, OutputType.BLIND.toString().toLowerCase(), [{ address: sx.address, amount, blindingfactor: blind}]);
-        const unspent: RpcUnspentOutput[] = await this.listUnspent(OutputType.BLIND, 0);
-
-        console.log('OMP_LIB: looking for txid: ' + txid + ', amount: ' + fromSatoshis(satoshis));
-        const found = unspent.find(tmpVout => {
-            console.log('OMP_LIB: tmpVout.txid: ' + tmpVout.txid + ', tmpVout.amount: ' + tmpVout.amount);
-            return (tmpVout.txid === txid && tmpVout.amount === fromSatoshis(satoshis));
-        });
-
-        if (!found) {
-            throw new Error('Not enough blind inputs!');
-        }
-
-        // Retrieve the commitment from the transaction
-        // TODO: use bitcorelib for this
-        const tx: RpcRawTx = await this.getRawTransaction(txid);
-        const vout: RpcVout | undefined = tx.vout.find(i => i.n === found.vout);
-
-        if (!vout) {
-            throw new Error('Could not find matching vout from transaction.');
-        }
-
-        prevout = {
-            txid: found.txid,
-            vout: found.vout,
-            _commitment: vout.valueCommitment,
-            _satoshis: toSatoshis(found.amount),
-            _scriptPubKey: found.scriptPubKey,
-            _address: found.address,
-            blindFactor: blind
-        } as BlindPrevout;
-
-        // Permanently lock the unspent output
-        await this.lockUnspent(false, [prevout], true);
-
-        return prevout;
-    }
-*/
     /**
      * Load a set of trusted fields for a blind (u)txo.
      * also validates the satoshis entered in the utxo against the commitment!
