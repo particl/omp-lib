@@ -92,17 +92,20 @@ describe('Buyflow: mad ct', () => {
     it('buyflow release', async () => {
         jest.setTimeout(400000);
 
-        // Step1: Buyer does bid
+        // Step 1: Buyer does bid
+        log(' >>>>> Step 1: Buyer does bid');
         const bid = await buyer.bid(config, ok);
         const bid_stripped = strip(bid);
         await delay(7000);
 
         // Step 2: seller accepts
+        log(' >>>>> Step 2: seller accepts');
         const accept = await seller.accept(ok, bid_stripped);
         const accept_stripped = strip(accept);
         expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
 
         // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        log(' >>>>> Step 3: buyer signs destroy txn (done), signs bid txn (half)');
         await delay(7000);
         const lock = await buyer.lock(ok, bid, accept_stripped);
         const lock_stripped = strip(lock);
@@ -111,6 +114,7 @@ describe('Buyflow: mad ct', () => {
         expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
 
         // Step 4: seller signs bid txn (full) and submits
+        log(' >>>>> Step 4: seller signs bid txn (full) and submits');
         const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
         expect(complete).toBeCompletedTransaction();
 
@@ -119,6 +123,7 @@ describe('Buyflow: mad ct', () => {
         expect(completeTxid).toBeDefined();
 
         // Step 5: buyer signs release
+        log(' >>>>> Step 5: buyer signs release');
         await delay(10000);
         const release = await buyer.release(ok, bid, accept);
         expect(release).toBeCompletedTransaction();
@@ -137,23 +142,27 @@ describe('Buyflow: mad ct', () => {
         jest.setTimeout(400000);
 
         // Step1: Buyer does bid
+        log(' >>>>> Step 1: Buyer does bid');
         const bid = await buyer.bid(config, ok);
         const bid_stripped = strip(bid);
         await delay(7000);
 
         // Step 2: seller accepts
+        log(' >>>>> Step 2: seller accepts');
         const accept = await seller.accept(ok, bid_stripped);
         const accept_stripped = strip(accept);
         expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
         await delay(7000);
 
         // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        log(' >>>>> Step 3: buyer signs destroy txn (done), signs bid txn (half)');
         const lock = await buyer.lock(ok, bid, accept_stripped);
         const lock_stripped = strip(lock);
         expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
         expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
 
         // Step 4: seller signs bid txn (full) and submits
+        log(' >>>>> Step 4: seller signs bid txn (full) and submits');
         const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
         expect(complete).toBeCompletedTransaction();
 
@@ -163,6 +172,7 @@ describe('Buyflow: mad ct', () => {
         await delay(10000);
 
         // Step 5: seller signs refund
+        log(' >>>>> Step 5: seller signs refund');
         const refund = await seller.refund(ok, bid, accept, lock);
         expect(refund).toBeCompletedTransaction();
 
@@ -179,12 +189,14 @@ describe('Buyflow: mad ct', () => {
     it('buyflow destroy (& prevent early mining)', async () => {
         jest.setTimeout(400000);
 
-        // Step1: Buyer does bid
+        // Step 1: Buyer does bid
+        log(' >>>>> Step 1: Buyer does bid');
         const bid = await buyer.bid(config, ok);
         const bid_stripped = strip(bid);
         await delay(10000);
 
         // Step 2: seller accepts
+        log(' >>>>> Step 2: seller accepts');
         const accept = await seller.accept(ok, bid_stripped);
         const accept_stripped = strip(accept);
 
@@ -192,6 +204,7 @@ describe('Buyflow: mad ct', () => {
         await delay(10000);
 
         // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        log(' >>>>> Step 3: buyer signs destroy txn (done), signs bid txn (half)');
         const lock = await buyer.lock(ok, bid_stripped, accept_stripped);
         const lock_stripped = strip(lock);
 
@@ -199,6 +212,7 @@ describe('Buyflow: mad ct', () => {
         await delay(7000);
 
         // Step 4: seller signs bid txn (full) and submits
+        log(' >>>>> Step 4: seller signs bid txn (full) and submits');
         const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
         expect(complete).toBeCompletedTransaction();
 

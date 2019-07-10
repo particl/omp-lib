@@ -26,7 +26,7 @@ cd ..
 
 cp -rf bins/particl-$VERSION/bin/particld bins/particl-core/particld
 cp -rf bins/particl-$VERSION/bin/particl-cli bins/particl-core/particl-cli
-cp -rf bins/particl-$VERSION/bin/particl-tx bins/particl-core/particl-cli
+cp -rf bins/particl-$VERSION/bin/particl-tx bins/particl-core/particl-tx
 rm -rf bins/particl-$VERSION
 
 bins/particl-core/particl-cli -version
