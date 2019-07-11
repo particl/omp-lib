@@ -205,12 +205,12 @@ export class FV_MPA_LISTING {
                         }
 
                         const s = paymentOption.shippingPrice;
-                        if (!isValidPrice(s.domestic)) {
+                        if (!isValidPrice(s.domestic, true)) {
                             throw new Error('action.item.payment.options.shippingPrice.domestic: faulty domestic shipping price (< 0, fractional '
                                 + 'or overflow), fault in element');
                         }
 
-                        if (!isValidPrice(s.international)) {
+                        if (!isValidPrice(s.international, true)) {
                             throw new Error('action.item.payment.options.shippingPrice.international: faulty international shipping price (< 0,'
                                 + ' fractional or overflow), fault in element');
                         }

@@ -38,8 +38,10 @@ export function isNonNegativeNaturalNumber(t: any): boolean {
     return isNaturalNumber(t) && t >= 0;
 }
 
-export function isValidPrice(v: any): boolean {
-    return isNaturalNumber(v) && v > 0; // perhaps more checks.
+export function isValidPrice(v: any, canBeFree: boolean = false): boolean {
+    return canBeFree
+        ? (isNaturalNumber(v) && v >= 0)
+        : (isNaturalNumber(v) && v > 0);
 }
 
 export function isValidPercentage(v: any): boolean {
