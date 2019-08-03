@@ -1,6 +1,6 @@
 import * from 'jest';
 import * as semver from 'semver';
-import { OMPVERSION } from '../src/util';
+import { ompVersion } from '../src/omp';
 
 describe('Util', () => {
 
@@ -9,6 +9,6 @@ describe('Util', () => {
     });
 
     test('should get version', async () => {
-        expect(semver.gte(OMPVERSION, '0.1.0')).toBe(true);
+        expect(semver.gt(ompVersion(), '0.1.0')).toBe(true);
     });
 });

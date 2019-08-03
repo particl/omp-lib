@@ -1,7 +1,9 @@
 import * from 'jest';
-import { hash } from '../../src/hasher/hash';
+import { ConfigurableHasher, hash } from '../../src/hasher/hash';
 import { Sequence } from '../../src/sequence-verifier/verify';
 import { clone } from '../../src/util';
+import { HashableListingMessageConfig } from '../../src/hasher/config/listingitemadd';
+import { HashableBidMessageConfig } from '../../src/hasher/config/bid';
 
 describe('SequenceValidator', () => {
 
@@ -48,6 +50,7 @@ describe('SequenceValidator', () => {
         }
     }`);
 
+    const hashedListing = ConfigurableHasher.hash(listing_ok.action, new HashableListingMessageConfig());
 
     const bid_ok = JSON.parse(
         `{
@@ -55,7 +58,7 @@ describe('SequenceValidator', () => {
             "action": {
                 "type": "MPA_BID",
                 "generated": ${+new Date().getTime()},
-                "item": "${hash(listing_ok)}",
+                "item": "${hashedListing}",
                 "buyer": {
                   "payment": {
                     "cryptocurrency": "PART",
@@ -87,12 +90,14 @@ describe('SequenceValidator', () => {
             }
         }`);
 
+    const hashedBid = ConfigurableHasher.hash(bid_ok.action, new HashableBidMessageConfig());
+
     const accept_ok = JSON.parse(
         `{
         "version": "0.1.0.0",
         "action": {
             "type": "MPA_ACCEPT",
-                "bid": "${hash(bid_ok)}",
+                "bid": "${hashedBid}",
                 "seller": {
                     "payment": {
                     "escrow": "MULTISIG",
@@ -127,12 +132,13 @@ describe('SequenceValidator', () => {
         }
     }`);
 
+
     const lock_ok = JSON.parse(
         `{
             "version": "0.1.0.0",
             "action": {
                 "type": "MPA_LOCK",
-                "bid": "${hash(bid_ok)}",
+                "bid": "${hashedBid}",
                 "buyer": {
                   "payment": {
                     "escrow": "MULTISIG",
@@ -206,7 +212,7 @@ describe('SequenceValidator', () => {
             error = e.toString();
         }
         // TODO: should fail once MAD validation format is added. Fix it
-        expect(error).toEqual(expect.stringContaining('expected MAD_CT, received=MAD'));
+        expect(error).toEqual(expect.stringContaining('unknown validation format, unknown value, received=MAD'));
     });
 
     const wrong_escrow_accept = clone(accept_ok);
@@ -220,7 +226,7 @@ describe('SequenceValidator', () => {
             error = e.toString();
         }
         // TODO: should fail once MAD validation format is added. Fix it
-        expect(error).toEqual(expect.stringContaining('expected MAD_CT, received=MAD'));
+        expect(error).toEqual(expect.stringContaining('unknown validation format, unknown value, received=MAD'));
     });
 
     const wrong_escrow_lock = clone(bid_ok);
@@ -234,7 +240,7 @@ describe('SequenceValidator', () => {
             error = e.toString();
         }
         // TODO: should fail once MAD validation format is added. Fix it
-        expect(error).toEqual(expect.stringContaining('expected MAD_CT, received=MAD'));
+        expect(error).toEqual(expect.stringContaining('unknown validation format, unknown value, received=MAD'));
     });
 
     const wrong_currency_bid = clone(bid_ok);

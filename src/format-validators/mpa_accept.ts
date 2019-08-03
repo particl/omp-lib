@@ -1,4 +1,4 @@
-import { MPA_ACCEPT, MPM } from '../interfaces/omp';
+import { MPA_ACCEPT, MPM, PaymentDataAccept, PaymentDataAcceptCT, PaymentDataAcceptMultisig } from '../interfaces/omp';
 import { MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isObject, isString, isSHA256Hash, isValidPrice } from '../util';
 
@@ -31,7 +31,7 @@ export class FV_MPA_ACCEPT {
         }
 
         if (isObject(action.seller.payment)) {
-            const paymentDataAccept = action.seller.payment;
+            const paymentDataAccept = action.seller.payment as PaymentDataAccept;
 
             if (!(paymentDataAccept.escrow in EscrowType)) {
                 throw new Error('action.buyer.payment.escrow: expecting escrow type, unknown value, received=' + paymentDataAccept.escrow);
@@ -40,15 +40,15 @@ export class FV_MPA_ACCEPT {
             // TODO: implement all validators
             switch (paymentDataAccept.escrow) {
                 case EscrowType.MULTISIG:
-                    FV_MPA_ACCEPT_ESCROW_MULTISIG.validate(paymentDataAccept);
+                    FV_MPA_ACCEPT_ESCROW_MULTISIG.validate(paymentDataAccept as PaymentDataAcceptMultisig);
+                    break;
+                case EscrowType.MAD_CT:
+                    FV_MPA_ACCEPT_ESCROW_MAD_CT.validate(paymentDataAccept as PaymentDataAcceptCT);
                     break;
                 case EscrowType.FE:
                     // TODO: not implemented
                 case EscrowType.MAD:
                     // TODO: not implemented
-                case EscrowType.MAD_CT:
-                    FV_MPA_ACCEPT_ESCROW_MAD_CT.validate(paymentDataAccept);
-                    break;
                 default:
                     throw new Error('action.seller.payment.escrow: unknown validation format, unknown value, received=' + paymentDataAccept.escrow);
             }

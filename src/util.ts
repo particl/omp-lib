@@ -1,6 +1,4 @@
 
-export const OMPVERSION = '0.1.0';
-
 export function isObject(v: any): boolean {
     return v && typeof v === 'object';
 }
@@ -9,8 +7,14 @@ export function isString(v: any): boolean {
     return v && typeof v === 'string';
 }
 
+export function isArrayAndContains(v: any): boolean {
+    // v.length > 0 will cause false in case of empty arrays !!!
+    return isArray(v) && v.length > 0;
+    // return v && Array.isArray(v);
+}
+
 export function isArray(v: any): boolean {
-    return v && Array.isArray(v) && v.length > 0;
+    return v && Array.isArray(v);
 }
 
 export function isNumber(v: any): boolean {
@@ -34,8 +38,10 @@ export function isNonNegativeNaturalNumber(t: any): boolean {
     return isNaturalNumber(t) && t >= 0;
 }
 
-export function isValidPrice(v: any): boolean {
-    return isNaturalNumber(v) && v > 0; // perhaps more checks.
+export function isValidPrice(v: any, canBeFree: boolean = false): boolean {
+    return canBeFree
+        ? (isNaturalNumber(v) && v >= 0)
+        : (isNaturalNumber(v) && v > 0);
 }
 
 export function isValidPercentage(v: any): boolean {
@@ -86,7 +92,7 @@ export async function asyncMap(array: any[], callback: (value: any, index: numbe
 }
 
 function _strip(obj: any): any {
-    if (isArray(obj)) {
+    if (isArrayAndContains(obj)) {
         obj.forEach((e, i) => {
             if (isString(e) && e.startsWith('_')) {
                 obj.splice(i, 1);

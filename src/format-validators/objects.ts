@@ -1,4 +1,4 @@
-import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage } from '../util';
+import { isString, isObject, isArrayAndContains, isNumber, isValidPrice, isValidPercentage, isArray } from '../util';
 
 export class FV_OBJECTS {
 
@@ -14,7 +14,7 @@ export class FV_OBJECTS {
                     throw new Error('objects: not an object element=' + i);
                 }
 
-                if (!isString(elem.id) || !(isString(elem.value) || isNumber(elem.value))) {
+                if (!isString(elem.key) || !(isString(elem.value) || isNumber(elem.value))) {
                     throw new Error('objects: missing elements in element=' + i);
                 }
             });

@@ -42,3 +42,39 @@ export enum EscrowType {
 export enum MessagingProtocol {
     SMSG = 'SMSG'
 }
+
+/**
+ * ListingItem fields used for hashing
+ */
+export enum HashableItemField {
+    TITLE = 'title',
+    SHORT_DESC = 'shortDescription',
+    LONG_DESC = 'longDescription',
+    SALE_TYPE = 'saleType',
+    ESCROW_TYPE = 'escrowType',
+    ESCROW_RATIO_BUYER = 'escrowRatioBuyer',
+    ESCROW_RATIO_SELLER = 'escrowRatioSeller',
+    PAYMENT_CURRENCY = 'paymentCurrency',
+    PAYMENT_BASE_PRICE = 'paymentBasePrice',
+    PAYMENT_ADDRESS_TYPE = 'paymentAddressType',
+    PAYMENT_ADDRESS_ADDRESS = 'paymentAddressAddress',
+    PAYMENT_SHIPPING_PRICE_DOMESTIC = 'paymentShippingDomestic',
+    PAYMENT_SHIPPING_PRICE_INTL = 'paymentShippingInternational'
+}
+
+export enum HashableBidField {
+    ITEM_HASH = 'item',
+    BUYER_SHIPPING_FIRSTNAME = 'shippingFirstName',
+    BUYER_SHIPPING_LASTNAME = 'shippingLastName',
+    BUYER_SHIPPING_ADDRESS = 'shippingAddress',
+    BUYER_SHIPPING_CITY = 'shippingCity',
+    BUYER_SHIPPING_ZIP = 'shippingZip',
+    BUYER_SHIPPING_COUNTRY = 'shippingCountry',
+    PAYMENT_ESCROW_TYPE = 'paymentEscrowType',
+    PAYMENT_CRYPTO = 'paymentCrypto'
+}
+
+export enum HashableCommonField {
+    GENERATED = 'generated',
+    VERSION = 'version'
+}

@@ -1,6 +1,6 @@
 import { Item, ItemInfo, MPA_LISTING_ADD, MPM, PaymentDataBid, PaymentInfoEscrow, PaymentOption } from '../interfaces/omp';
 import { SaleType, MPAction, EscrowType } from '../interfaces/omp-enums';
-import { isString, isObject, isArray, isNumber, isValidPrice, isValidPercentage, isCountry, isNonNegativeNaturalNumber } from '../util';
+import { isString, isObject, isArrayAndContains, isNumber, isValidPrice, isValidPercentage, isCountry, isNonNegativeNaturalNumber, isArray } from '../util';
 import { FV_MPM } from './mpm';
 import { FV_CRYPTO } from './crypto';
 import { Cryptocurrency } from '../interfaces/crypto';
@@ -51,7 +51,7 @@ export class FV_MPA_LISTING {
             }
 
 
-            if (!isArray(information.category)) {
+            if (!isArrayAndContains(information.category)) {
                 throw new Error('action.item.information.category: not an array');
             }
 
@@ -89,12 +89,12 @@ export class FV_MPA_LISTING {
                         throw new Error('action.item.information.location.gps.lng: not a number');
                     }
 
-                    if (!isString(location.gps.title)) {
-                        throw new Error('action.item.information.location.gps.markerTitle: not a string');
+                    if (location.gps.title && !isString(location.gps.title)) {
+                        throw new Error('action.item.information.location.gps.title: not a string');
                     }
 
-                    if (!isString(location.gps.description)) {
-                        throw new Error('action.item.information.location.gps.markerText: not a string');
+                    if (location.gps.description && !isString(location.gps.description)) {
+                        throw new Error('action.item.information.location.gps.description: not a string');
                     }
                 }
             }
@@ -143,6 +143,7 @@ export class FV_MPA_LISTING {
             // it must contain some payment information.
             // TODO: FREE
             // TODO: RENT?
+            // TODO: replace with the SaleType enum
             if (['SALE', 'RENT'].indexOf(payment.type) !== -1) {
 
                 if (!payment.escrow  || !isObject(payment.escrow)) {
@@ -170,7 +171,7 @@ export class FV_MPA_LISTING {
                     throw new Error('action.item.payment.escrow.ratio: missing or invalid percentages');
                 }
 
-                if (!isArray(payment.options)) {
+                if (!isArrayAndContains(payment.options)) {
                     throw new Error('action.item.payment.options: not an array');
                 }
 
@@ -204,12 +205,12 @@ export class FV_MPA_LISTING {
                         }
 
                         const s = paymentOption.shippingPrice;
-                        if (!isValidPrice(s.domestic)) {
+                        if (!isValidPrice(s.domestic, true)) {
                             throw new Error('action.item.payment.options.shippingPrice.domestic: faulty domestic shipping price (< 0, fractional '
                                 + 'or overflow), fault in element');
                         }
 
-                        if (!isValidPrice(s.international)) {
+                        if (!isValidPrice(s.international, true)) {
                             throw new Error('action.item.payment.options.shippingPrice.international: faulty international shipping price (< 0,'
                                 + ' fractional or overflow), fault in element');
                         }
@@ -234,9 +235,10 @@ export class FV_MPA_LISTING {
                 throw new Error('action.item.messaging.options: not an array');
             }
 
-            if (item.messaging.options.length === 0) {
-                throw new Error('action.item.messaging.options: length of array is 0, missing?');
-            }
+            // TODO: not required for now
+            // if (item.messaging.options.length === 0) {
+            //    throw new Error('action.item.messaging.options: length of array is 0, missing?');
+            // }
 
             item.messaging.options.forEach((elem, i) => {
                 if (!isObject(elem)) {
@@ -249,9 +251,11 @@ export class FV_MPA_LISTING {
             });
 
 
-        } else {
-            throw new Error('action.item.messaging: missing');
         }
+        // action.item.messaging is optional for now
+        // else {
+        //    throw new Error('action.item.messaging: missing');
+        // }
 
         if (item.objects) {
             FV_OBJECTS.validate(item.objects);

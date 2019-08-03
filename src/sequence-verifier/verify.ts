@@ -13,8 +13,10 @@ import {
 import { isObject } from '../util';
 import { Format } from '../format-validators/validate';
 import { EscrowType, MPAction } from '../interfaces/omp-enums';
-import { hash } from '../hasher/hash';
+import { ConfigurableHasher } from '../hasher/hash';
 import { Cryptocurrency } from '../interfaces/crypto';
+import { HashableListingMessageConfig } from '../hasher/config/listingitemadd';
+import { HashableBidMessageConfig } from '../hasher/config/bid';
 
 
 export class Sequence {
@@ -25,8 +27,8 @@ export class Sequence {
         sequence.forEach((action: MPM) => Format.validate(action));
 
         let listing: MPA_LISTING_ADD;
-        let listingHash: string;
 
+        let listingHash: string;
         let bidHash: string;
 
         // loop through each MPM in the sequence
@@ -37,14 +39,16 @@ export class Sequence {
             switch (index) {
                 case 0: // must be an MPA_LISTING
                     listing = <MPA_LISTING_ADD> mpm.action;
-                    listingHash = hash(mpm);
+                    // listingHash = hash(mpm);
+                    listingHash = ConfigurableHasher.hash(listing, new HashableListingMessageConfig());
+
                     break;
 
                 case 1: { // must be an MPA_BID
                     const action: MPA_BID = <MPA_BID> mpm.action;
                     const prevType: MPAction = sequence[index - 1].action.type;
 
-                    const paymentDataBid = action.buyer.payment;
+                    const paymentDataBid = action.buyer.payment as PaymentDataBid;
                     const options: PaymentOption[] = listing.item.payment.options || [];
                     const paymentInfo = listing.item.payment as PaymentInfoEscrow;
 
@@ -52,7 +56,9 @@ export class Sequence {
                     Sequence.validateHash(type, action.item, listingHash);
                     Sequence.validateCurrency(type, paymentDataBid.cryptocurrency, options);
                     Sequence.validateEscrow(type, action.buyer.payment.escrow, paymentInfo.escrow.type);
-                    bidHash = hash(mpm);
+                    // bidHash = hash(mpm);
+                    bidHash = ConfigurableHasher.hash(mpm.action, new HashableBidMessageConfig());
+
                     break;
                 }
                 case 2: { // must be an MPA_ACCEPT, MPA_REJECT, MPA_CANCEL

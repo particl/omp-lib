@@ -1,17 +1,15 @@
 import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
-
-import { CtRpc, RpcAddressInfo, RpcRawTx, RpcUnspentOutput, RpcBlindSendToOutput } from '../src/abstract/rpc';
-
-import { Prevout, ISignature, BlindPrevout, CryptoAddressType, CryptoAddress, ToBeBlindOutput } from "../src/interfaces/crypto";
-import { toSatoshis, fromSatoshis, asyncMap, asyncForEach, clone, log } from "../src/util";
-import { TransactionBuilder } from '../src/transaction-builder/transaction';
-import { ConfidentialTransactionBuilder } from '../src/transaction-builder/confidential-transaction';
+import * as _ from 'lodash';
+import { CtRpc, RpcBlindSendToOutput } from '../src/abstract/rpc';
+import { Prevout, BlindPrevout, CryptoAddressType, CryptoAddress, OutputType } from '../src/interfaces/crypto';
+import { fromSatoshis } from '../src/util';
+import { RpcAddressInfo, RpcRawTx, RpcUnspentOutput, RpcWallet, RpcWalletDir } from '../src/interfaces/rpc';
 
 
 @injectable()
-class CtCoreRpcService extends CtRpc {
+export class CtCoreRpcService extends CtRpc {
 
     private RPC_REQUEST_ID = 1;
     private DEBUG = true;
@@ -48,10 +46,11 @@ class CtCoreRpcService extends CtRpc {
         return await this.call('sendtoaddress', [address, amount, comment]);
     }
 
-    public async sendTypeTo(typeIn: string, typeOut: string, outputs: RpcBlindSendToOutput[]): Promise<string>{
-        return await this.call('sendtypeto', [typeIn, typeOut, outputs]);
+    public async sendTypeTo(typeIn: OutputType, typeOut: OutputType, outputs: RpcBlindSendToOutput[]): Promise<string> {
+        return await this.call('sendtypeto', [typeIn.toString().toLowerCase(), typeOut.toString().toLowerCase(), outputs]);
     }
 
+    // TODO: Prevout doesn't look correct, based on the help command output
     public async createSignatureWithWallet(hex: string, prevtx: Prevout, address: string): Promise<string> {
         return await this.call('createsignaturewithwallet', [hex, prevtx, address]);
     }
@@ -72,17 +71,28 @@ class CtCoreRpcService extends CtRpc {
         return await this.call('getrawtransaction', [txid, true]);
     }
 
-    public async listUnspent(minconf: number): Promise<RpcUnspentOutput[]> {
-        return await this.call('listunspent', [minconf]);
+    public async listUnspent(type: OutputType, minconf: number): Promise<RpcUnspentOutput[]> {
+        switch (type) {
+            case OutputType.ANON:
+                return await this.call('listunspentanon', [minconf]);
+            case OutputType.BLIND:
+                return await this.call('listunspentblind', [minconf]);
+            case OutputType.PART:
+                return await this.call('listunspent', [minconf]);
+            default:
+                throw Error('Invalid Output type.');
+        }
     }
 
-    public async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]>{
-        return await this.call('listunspentblind', [minconf]);
-    }
+    // public async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]> {
+    //    return await this.call('listunspentblind', [minconf]);
+    // }
 
     /**
      * Permanently locks outputs until unlocked or spent.
-     * @param prevout an array of outputs to lock
+     * @param unlock
+     * @param prevouts
+     * @param permanent
      */
     public async lockUnspent(unlock: boolean, prevouts: Prevout[], permanent: boolean): Promise<boolean> {
         return await this.call('lockunspent', [unlock, prevouts, permanent]);
@@ -98,8 +108,12 @@ class CtCoreRpcService extends CtRpc {
         } as CryptoAddress;
     }
 
-    public async getBlindPrevouts(type: string, satoshis: number, blind?: string): Promise<BlindPrevout[]> {
-        return [await this.createBlindPrevoutFrom(type, satoshis, blind)];
+    // public async getBlindPrevouts(type: string, satoshis: number, blind?: string): Promise<BlindPrevout[]> {
+    //    return [await this.createBlindPrevoutFrom(type, satoshis, blind)];
+    // }
+
+    public async getPrevouts(typeIn: OutputType, typeOut: OutputType, satoshis: number, blind?: string): Promise<BlindPrevout[]> {
+        return [await this.createPrevoutFrom(typeIn, typeOut, satoshis, blind)];
     }
 
     /**
@@ -112,6 +126,92 @@ class CtCoreRpcService extends CtRpc {
      */
     public async verifyCommitment(commitment: string, blind: string, satoshis: number): Promise<boolean> {
         return (await this.call('verifycommitment', [commitment, blind, fromSatoshis(satoshis)])).result;
+    }
+
+    public async createRawTransaction(inputs: BlindPrevout[], outputs: any[]): Promise<any> {
+        return await this.call('createrawtransaction', [inputs, outputs]);
+    }
+
+    /**
+     * Returns a list of wallets in the wallet directory.
+     *
+     * @returns {Promise<RpcWalletDir>}
+     */
+    public async listLoadedWallets(): Promise<string[]> {
+        return await this.call('listwallets');
+    }
+
+    /**
+     * Returns a list of wallets in the wallet directory.
+     *
+     * @returns {Promise<RpcWalletDir>}
+     */
+    public async listWalletDir(): Promise<RpcWalletDir> {
+        return await this.call('listwalletdir');
+    }
+
+    /**
+     *
+     * @returns {Promise<boolean>}
+     */
+    public async walletLoaded(name: string): Promise<boolean> {
+        return await this.listLoadedWallets()
+            .then(result => {
+                const found = _.find(result, wallet => {
+                    return wallet === name;
+                });
+                const loaded = found ? true : false;
+                return loaded;
+            });
+    }
+
+    /**
+     *
+     * @returns {Promise<boolean>}
+     */
+    public async walletExists(name: string): Promise<boolean> {
+        return await this.listWalletDir()
+            .then(result => {
+                const found = _.find(result.wallets, wallet => {
+                    return wallet.name === name;
+                });
+                const exists = found ? true : false;
+                return exists;
+            });
+    }
+
+    /**
+     * Creates and loads a new wallet.
+     *
+     * @returns {Promise<RpcWallet>}
+     */
+    public async createWallet(name: string, disablePrivateKeys: boolean = false, blank: boolean = false): Promise<RpcWallet> {
+        return await this.call('createwallet', [name, disablePrivateKeys, blank]);
+    }
+
+    // for clarity
+    public async createAndLoadWallet(name: string, disablePrivateKeys: boolean = false, blank: boolean = false): Promise<RpcWallet> {
+        return await this.createWallet(name, disablePrivateKeys, blank);
+    }
+
+    /**
+     * Loads a wallet from a wallet file or directory.
+     *
+     * @returns {Promise<RpcWallet>}
+     */
+    public async loadWallet(name: string): Promise<RpcWallet> {
+        return await this.call('loadwallet', [name]);
+    }
+
+    /**
+     * Set secure messaging to use the specified wallet.
+     * SMSG can only be enabled on one wallet.
+     * Call with no parameters to unset the active wallet.
+     *
+     * @returns {Promise<RpcWallet>}
+     */
+    public async smsgSetWallet(name?: string): Promise<RpcWallet> {
+        return await this.call('smsgsetwallet', [name]);
     }
 
     public async call(method: string, params: any[] = []): Promise<any> {
@@ -131,11 +231,13 @@ class CtCoreRpcService extends CtRpc {
 
                 const jsonRpcResponse = JSON.parse(response.content);
                 if (response.statusCode !== 200) {
-                    const message = response.content ? JSON.parse(response.content) : response.statusMessage;
+                    const message = response.content
+                        ? response.statusCode + ': ' + response.content // JSON.parse(response.content)
+                        : response.statusCode + ': ' + response.statusMessage;
                     if (this.DEBUG) {
                         console.error('method:', method);
                         console.error('params:', params);
-                        console.error(message);
+                        console.error(JSON.stringify(message, null, 2));
                     }
                     throw message['error'];
                 }
@@ -167,8 +269,7 @@ class CtCoreRpcService extends CtRpc {
 
 }
 
-export const node0 = new CtCoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');
-export const node1 = new CtCoreRpcService('localhost', 19793, 'rpcuser1', 'rpcpass1');
-export const node2 = new CtCoreRpcService('localhost', 19794, 'rpcuser2', 'rpcpass2');
-
-export { CtCoreRpcService };
+// export const node0 = new CtCoreRpcService('localhost', 19792, 'rpcuser0', 'rpcpass0');
+// export const node1 = new CtCoreRpcService('localhost', 19793, 'rpcuser1', 'rpcpass1');
+// export const node2 = new CtCoreRpcService('localhost', 19794, 'rpcuser2', 'rpcpass2');
+// export { CtCoreRpcService };

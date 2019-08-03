@@ -1,102 +1,33 @@
+import * from 'jest';
 import { CtCoreRpcService } from '../../test/rpc-ct.stub';
-
-import { OpenMarketProtocol } from "../../src/omp";
-import { Cryptocurrency } from "../../src/interfaces/crypto";
-import { BidConfiguration } from "../../src/interfaces/configs";
-import { EscrowType } from "../../src/interfaces/omp-enums";
-import { toSatoshis, strip, log } from "../../src/util";
+import { OpenMarketProtocol } from '../../src/omp';
+import { Cryptocurrency } from '../../src/interfaces/crypto';
+import { BidConfiguration } from '../../src/interfaces/configs';
+import { EscrowType } from '../../src/interfaces/omp-enums';
+import { toSatoshis, strip, log } from '../../src/util';
 import { Rpc } from '../../src/abstract/rpc';
 
-//describe('Buyflow: mad ct', () => {
-
-    const delay = ms => {
-        return new Promise(resolve => {
-            return setTimeout(resolve, ms)
-        });
-    };
+describe('Buyflow: mad ct', () => {
 
     let buyer: OpenMarketProtocol;
     let seller: OpenMarketProtocol;
 
-    let node0: CtCoreRpcService;
-    let node1: CtCoreRpcService;
-    let node2: CtCoreRpcService;
+    let buyerNode0: CtCoreRpcService;
+    let sellerNode1: CtCoreRpcService;
 
     beforeAll(async () => {
-        node0 = new CtCoreRpcService();
-        node0.setup('localhost', 19792, 'rpcuser0', 'rpcpass0');
+        buyerNode0 = new CtCoreRpcService();
+        buyerNode0.setup('localhost', 19792, 'rpcuser0', 'rpcpass0');
 
-        node1 = new CtCoreRpcService();
-        node1.setup('localhost', 19793, 'rpcuser1', 'rpcpass1');
-
-        node2 = new CtCoreRpcService();
-        node2.setup('localhost', 19794, 'rpcuser2', 'rpcpass2');
+        sellerNode1 = new CtCoreRpcService();
+        sellerNode1.setup('localhost', 19793, 'rpcuser1', 'rpcpass1');
 
         buyer = new OpenMarketProtocol({ network: 'testnet'});
-        buyer.inject(Cryptocurrency.PART, node0);
+        buyer.inject(Cryptocurrency.PART, buyerNode0);
 
         seller = new OpenMarketProtocol({ network: 'testnet'});
-        seller.inject(Cryptocurrency.PART, node1);
+        seller.inject(Cryptocurrency.PART, sellerNode1);
     });
-
-    expect.extend({
-        async toBeCompletedTransaction(rawtx) {
-            const verify = await node0.call('verifyrawtransaction', [rawtx])
-            const completed = verify['complete'];
-            if (completed) {
-                return {
-                    message: () =>
-                        `expected ${rawtx} to be completed.`,
-                    pass: true,
-                };
-            } else {
-                return {
-                    message: () =>
-                        `expected ${rawtx} to be completed but received ${completed} instead`,
-                    pass: false,
-                };
-            }
-        },
-    });
-
-    expect.extend({
-        async toBeUtxoWithAmount(txid, node, amount) {
-            const found = (await node.call('listunspentanon', [0])).find(utxo => (utxo.txid === txid && utxo.amount === amount));
-            if (found) {
-                return {
-                    message: () =>
-                        `expected ${txid} to be found on the node with amount ${amount}.`,
-                    pass: true,
-                };
-            } else {
-                return {
-                    message: () =>
-                        `expected ${txid} to be found on the node but didn't find it.`,
-                    pass: false,
-                };
-            }
-        },
-    });
-
-    const timeTravel = (expectedUnixTime: number, node: Rpc) => {
-        return node.call('setmocktime', [expectedUnixTime, true]);
-    }
-
-    const waitTillJumped = async (expectedUnixTime: number, node: Rpc) => {
-        return new Promise(async resolve => {
-            let wait = true;
-
-            while (wait) {
-                const currentTime = (await node.call('getblockchaininfo', []))['mediantime'];
-                wait = (currentTime <= expectedUnixTime);
-                // console.log(wait ? 'waiting..' : ('finished! ' + currentTime + ' > ' + expectedUnixTime ));
-                await delay(1000);
-            }
-
-            resolve();
-        })
-
-    }
 
     const ok = JSON.parse(
         `{
@@ -148,196 +79,238 @@ import { Rpc } from '../../src/abstract/rpc';
         cryptocurrency: Cryptocurrency.PART,
         escrow: EscrowType.MAD_CT,
         shippingAddress: {
-            firstName: "string",
-            lastName: "string",
-            addressLine1: "string",
-            city: "string",
-            state: "string",
-            zipCode: "string",
-            country: "string",
+            firstName: 'string',
+            lastName: 'string',
+            addressLine1: 'string',
+            city: 'string',
+            state: 'string',
+            zipCode: 'string',
+            country: 'string'
         }
     };
 
     it('buyflow release', async () => {
         jest.setTimeout(400000);
-        let end = false;
 
-        try {
+        // Step 1: Buyer does bid
+        log(' >>>>> Step 1: Buyer does bid');
+        const bid = await buyer.bid(config, ok);
+        const bid_stripped = strip(bid);
+        await delay(7000);
 
-            ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
-            // Step1: Buyer does bid
-            const bid = await buyer.bid(config, ok);
-            const bid_stripped = strip(bid);
+        // Step 2: seller accepts
+        log(' >>>>> Step 2: seller accepts');
+        const accept = await seller.accept(ok, bid_stripped);
+        const accept_stripped = strip(accept);
+        expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
 
-            await delay(7000);
-            // Step 2: seller accepts
-            const accept = await seller.accept(ok, bid_stripped);
-            const accept_stripped = strip(accept);
-            expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+        // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        log(' >>>>> Step 3: buyer signs destroy txn (done), signs bid txn (half)');
+        await delay(7000);
+        const lock = await buyer.lock(ok, bid, accept_stripped);
+        const lock_stripped = strip(lock);
 
-            // Step 3: buyer signs destroy txn (done), signs bid txn (half)
-            await delay(7000);
-            const lock = await buyer.lock(ok, bid, accept_stripped);
-            const lock_stripped = strip(lock);
+        expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+        expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
 
-            expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+        // Step 4: seller signs bid txn (full) and submits
+        log(' >>>>> Step 4: seller signs bid txn (full) and submits');
+        const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
+        expect(complete).toBeCompletedTransaction();
 
-            expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
+        const completeTxid = await buyerNode0.sendRawTransaction(complete);
+        await sellerNode1.sendRawTransaction(complete);
+        expect(completeTxid).toBeDefined();
 
-            // Step 4: seller signs bid txn (full) and submits
-            const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            expect(complete).toBeCompletedTransaction();
+        // Step 5: buyer signs release
+        log(' >>>>> Step 5: buyer signs release');
+        await delay(10000);
+        const release = await buyer.release(ok, bid, accept);
+        expect(release).toBeCompletedTransaction();
 
-            const completeTxid = await node0.sendRawTransaction(complete);
-            await node1.sendRawTransaction(complete)
-            expect(completeTxid).toBeDefined();
+        const releaseTxid = await buyerNode0.sendRawTransaction(release);
+        await sellerNode1.sendRawTransaction(release);
+        expect(releaseTxid).toBeDefined();
 
-            // Step 5: buyer signs release
-            await delay(10000)
-            const release = await buyer.release(ok, bid, accept);
-            expect(release).toBeCompletedTransaction();
+        await delay(10000);
+        expect(releaseTxid).toBeUtxoWithAmount(buyerNode0, 2);
+        expect(releaseTxid).toBeUtxoWithAmount(sellerNode1, 3.99995000);
 
-            const releaseTxid = await node0.sendRawTransaction(release);
-            await node1.sendRawTransaction(release)
-            expect(releaseTxid).toBeDefined();
-
-            await delay(10000)
-            expect(releaseTxid).toBeUtxoWithAmount(node0, 2);
-            expect(releaseTxid).toBeUtxoWithAmount(node1, 3.99995000);
-
-
-            end = true;
-        } catch (e) {
-            console.log(e)
-        }
-        expect(end).toEqual(true);
-    });
+    }, 600000);
 
     it('buyflow refund', async () => {
         jest.setTimeout(400000);
-        let end = false;
 
-        try {
+        // Step1: Buyer does bid
+        log(' >>>>> Step 1: Buyer does bid');
+        const bid = await buyer.bid(config, ok);
+        const bid_stripped = strip(bid);
+        await delay(7000);
 
-            ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
-            // Step1: Buyer does bid
-            const bid = await buyer.bid(config, ok);
-            const bid_stripped = strip(bid);
+        // Step 2: seller accepts
+        log(' >>>>> Step 2: seller accepts');
+        const accept = await seller.accept(ok, bid_stripped);
+        const accept_stripped = strip(accept);
+        expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+        await delay(7000);
 
-            await delay(7000);
-            // Step 2: seller accepts
-            const accept = await seller.accept(ok, bid_stripped);
-            const accept_stripped = strip(accept);
+        // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        log(' >>>>> Step 3: buyer signs destroy txn (done), signs bid txn (half)');
+        const lock = await buyer.lock(ok, bid, accept_stripped);
+        const lock_stripped = strip(lock);
+        expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+        expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
 
-            expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+        // Step 4: seller signs bid txn (full) and submits
+        log(' >>>>> Step 4: seller signs bid txn (full) and submits');
+        const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
+        expect(complete).toBeCompletedTransaction();
 
-            // Step 3: buyer signs destroy txn (done), signs bid txn (half)
-            await delay(7000);
-            const lock = await buyer.lock(ok, bid, accept_stripped);
-            const lock_stripped = strip(lock);
+        const completeTxid = await buyerNode0.sendRawTransaction(complete);
+        await sellerNode1.sendRawTransaction(complete);
+        expect(completeTxid).toBeDefined();
+        await delay(10000);
 
-            expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+        // Step 5: seller signs refund
+        log(' >>>>> Step 5: seller signs refund');
+        const refund = await seller.refund(ok, bid, accept, lock);
+        expect(refund).toBeCompletedTransaction();
 
-            expect(lock.action['_rawreleasetxunsigned']).toEqual(accept.action['_rawreleasetxunsigned']);
+        const refundTxid = await buyerNode0.sendRawTransaction(refund);
+        await sellerNode1.sendRawTransaction(refund);
+        expect(refundTxid).toBeDefined();
 
-            // Step 4: seller signs bid txn (full) and submits
-            const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            expect(complete).toBeCompletedTransaction();
+        await delay(10000);
+        expect(refundTxid).toBeUtxoWithAmount(buyerNode0, 4);
+        expect(refundTxid).toBeUtxoWithAmount(sellerNode1, 1.99995000);
 
-            const completeTxid = await node0.sendRawTransaction(complete);
-            await node1.sendRawTransaction(complete)
-            expect(completeTxid).toBeDefined();
-
-            // Step 5: seller signs refund
-            await delay(10000)
-            const refund = await seller.refund(ok, bid, accept, lock);
-            expect(refund).toBeCompletedTransaction();
-
-            const refundTxid = await node0.sendRawTransaction(refund);
-            await node1.sendRawTransaction(refund)
-            expect(refundTxid).toBeDefined();
-
-            await delay(10000)
-            expect(refundTxid).toBeUtxoWithAmount(node0, 4);
-            expect(refundTxid).toBeUtxoWithAmount(node1, 1.99995000);
-
-
-            end = true;
-        } catch (e) {
-            console.log(e)
-        }
-        expect(end).toEqual(true);
-    });
+    }, 600000);
 
     it('buyflow destroy (& prevent early mining)', async () => {
         jest.setTimeout(400000);
-        let end = false;
 
-        try {
+        // Step 1: Buyer does bid
+        log(' >>>>> Step 1: Buyer does bid');
+        const bid = await buyer.bid(config, ok);
+        const bid_stripped = strip(bid);
+        await delay(10000);
 
-            ok.action.item.payment.options[0].address = await node0.getNewStealthAddress();
-            // Step1: Buyer does bid
-            const bid = await buyer.bid(config, ok);
-            const bid_stripped = strip(bid);
+        // Step 2: seller accepts
+        log(' >>>>> Step 2: seller accepts');
+        const accept = await seller.accept(ok, bid_stripped);
+        const accept_stripped = strip(accept);
 
-            await delay(10000);
-            // Step 2: seller accepts
-            const accept = await seller.accept(ok, bid_stripped);
-            const accept_stripped = strip(accept);
+        expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+        await delay(10000);
 
-            expect(accept.action['_rawdesttx']).not.toBeCompletedTransaction();
+        // Step 3: buyer signs destroy txn (done), signs bid txn (half)
+        log(' >>>>> Step 3: buyer signs destroy txn (done), signs bid txn (half)');
+        const lock = await buyer.lock(ok, bid_stripped, accept_stripped);
+        const lock_stripped = strip(lock);
 
-            // Step 3: buyer signs destroy txn (done), signs bid txn (half)
-            await delay(10000);
-            const lock = await buyer.lock(ok, bid_stripped, accept_stripped);
-            const lock_stripped = strip(lock);
+        expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+        await delay(7000);
 
-            expect(lock.action['_rawdesttx']).not.toBeCompletedTransaction();
+        // Step 4: seller signs bid txn (full) and submits
+        log(' >>>>> Step 4: seller signs bid txn (full) and submits');
+        const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
+        expect(complete).toBeCompletedTransaction();
 
-            // Step 4: seller signs bid txn (full) and submits
-            await delay(7000);
-            const complete = await seller.complete(ok, bid_stripped, accept_stripped, lock_stripped);
-            expect(complete).toBeCompletedTransaction();
+        const completeTxid = await buyerNode0.sendRawTransaction(complete);
+        expect(completeTxid).toBeDefined();
 
-            const completeTxid = await node0.sendRawTransaction(complete);
-            expect(completeTxid).toBeDefined();
+        // Can not destroy the funds before the timer has been reached
+        let shouldFailToDestroy = false;
+        await buyerNode0.sendRawTransaction(lock.action['_rawdesttx'])
+            .catch(reason => {
+                shouldFailToDestroy = true;
+            });
+        expect(shouldFailToDestroy).toEqual(true);
 
-            // Can not destroy the funds before the timer has been reached
-            let shouldFailToDestroy: boolean = false;
-            try {
-                const destroytxid = await node0.sendRawTransaction(lock.action['_rawdesttx']);
-            } catch (e) {
-                shouldFailToDestroy = (e['message'] === 'non-BIP68-final (code 64)');
+        // Use daemon as a source of truth for what the current time is.
+        const now = (await buyerNode0.call('getblockchaininfo', []))['mediantime'];
+        const feasibleFrom = (now + 2880);
+
+        // Travelling through time, 3000s in the future!
+        await Promise.all([
+            timeTravel(feasibleFrom, buyerNode0),
+            timeTravel(feasibleFrom, sellerNode1)
+        ]);
+
+        // Let a few blocks mine
+        await waitTillJumped(feasibleFrom, buyerNode0);
+
+        // Should be able to destroy them now
+        const destroytxid = await buyerNode0.sendRawTransaction(lock.action['_rawdesttx']);
+        expect(destroytxid).toBeDefined();
+
+    }, 600000);
+
+
+    const delay = ms => {
+        return new Promise(resolve => {
+            return setTimeout(resolve, ms);
+        });
+    };
+
+    // const expect2: any = Object.assign(expect);
+
+    expect.extend({
+        async toBeCompletedTransaction(rawtx: any): Promise<any> {
+            const verify = await buyerNode0.call('verifyrawtransaction', [rawtx]);
+            const completed = verify['complete'];
+            if (completed) {
+                return {
+                    message: () =>
+                        `expected ${rawtx} to be completed.`,
+                    pass: true
+                };
+            } else {
+                return {
+                    message: () =>
+                        `expected ${rawtx} to be completed but received ${completed} instead`,
+                    pass: false
+                };
             }
-            expect(shouldFailToDestroy).toEqual(true);
-
-            // Use daemon as a source of truth for what the current time is.
-            let now = (await node0.call('getblockchaininfo', []))['mediantime'];
-            const feasibleFrom = (now + 2880);
-
-            // Travelling through time, 3000s in the future!
-            await Promise.all([
-                timeTravel(feasibleFrom, node0),
-                timeTravel(feasibleFrom, node1),
-                timeTravel(feasibleFrom, node2)
-            ]);
-
-            // Let a few blocks mine
-            await waitTillJumped(feasibleFrom, node0)
-
-            // Should be able to destroy them now
-            let destroytxid: string;
-            try {
-                destroytxid = await node0.sendRawTransaction(lock.action['_rawdesttx']);
-            } catch (e) {
-                console.log(e)
-            }
-            expect(destroytxid).toBeDefined();
-
-            end = true;
-        } catch (e) {
-            console.log(e)
         }
-        expect(end).toEqual(true);
     });
-//});
+
+    expect.extend({
+        async toBeUtxoWithAmount(txid: string, node: Rpc, amount: number): Promise<any> {
+            const found = (await node.call('listunspentanon', [0])).find(utxo => (utxo.txid === txid && utxo.amount === amount));
+            if (found) {
+                return {
+                    message: () =>
+                        `expected ${txid} to be found on the node with amount ${amount}.`,
+                    pass: true
+                };
+            } else {
+                return {
+                    message: () =>
+                        `expected ${txid} to be found on the node but didn't find it.`,
+                    pass: false
+                };
+            }
+        }
+    });
+
+    const timeTravel = (expectedUnixTime: number, node: Rpc) => {
+        return node.call('setmocktime', [expectedUnixTime, true]);
+    };
+
+    const waitTillJumped = async (expectedUnixTime: number, node: Rpc) => {
+        return new Promise(async resolve => {
+            let wait = true;
+
+            while (wait) {
+                const currentTime = (await node.call('getblockchaininfo', []))['mediantime'];
+                wait = (currentTime <= expectedUnixTime);
+                // console.log(wait ? 'waiting..' : ('finished! ' + currentTime + ' > ' + expectedUnixTime ));
+                await delay(1000);
+            }
+
+            resolve();
+        });
+
+    };
+});

@@ -1,10 +1,60 @@
 // tslint:disable:no-for-each-push
+import * as _ from 'lodash';
 import { sha256 } from 'js-sha256';
 import { isObject, isArray } from '../format-validators/util';
-import { MPA_LISTING_ADD, MPM } from '../interfaces/omp';
-import { ContentReference, ProtocolDSN } from '../interfaces/dsn';
+import { HashableConfig } from '../interfaces/configs';
+import { HashableObject } from './hashable';
+import { HashableValidator } from '../format-validators/hashable';
 
-// TODO: should has only HashableObject, not any
+export class ConfigurableHasher {
+
+    /**
+     * - creates a hashable from a given object and config
+     * - validates the hashable based on config
+     * - returns the hash of the hashable
+     *
+     * @param objectToHash
+     * @param config
+     */
+    public static hash(objectToHash: any, config: HashableConfig): string {
+        const hashable: HashableObject = ConfigurableHasher.toHashable(objectToHash, config);
+        new HashableValidator(config).valid(hashable);
+        return this.hashInner(hashable);
+    }
+
+    /**
+     * creates a HashableObject based on HashableConfig
+     * @param objectToHash
+     * @param config
+     */
+    private static toHashable(objectToHash: any, config: HashableConfig): HashableObject {
+        const hashable = new HashableObject();
+        // first copy the fields from objectToHash to hashable
+        for (const configField of config.fields) {
+            const value = _.get(objectToHash, configField.from);
+            _.set(hashable, configField.to, value);
+        }
+        // then set the extra values passed in config to hashable
+        for (const configField of config.values) {
+            _.set(hashable, configField.to, configField.value);
+        }
+        return hashable;
+    }
+
+    /**
+     * hashes a HashableObject
+     * @param v
+     */
+    private static hashInner(v: HashableObject): string {
+        return hash(v);
+    }
+}
+
+
+/**
+ * hashes anything
+ * @param v
+ */
 export function hash(v: any): string {
     if (typeof v === 'undefined') {
         throw new Error('hash(): value is undefined');
@@ -25,6 +75,7 @@ function hashObject(unordered: object): string {
     return sha256(toHash);
 }
 
+/*
 export function hashListing(l: MPM): string {
 
     // remove the local image data from the hashing
@@ -45,6 +96,7 @@ export function hashListing(l: MPM): string {
 
     return hash(l);
 }
+*/
 
 export function deepSortObject(unordered: any): any {
     // order the keys alphabetically!

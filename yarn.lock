@@ -3658,6 +3658,11 @@ pinkie@^2.0.0:
   resolved "https://registry.yarnpkg.com/pinkie/-/pinkie-2.0.4.tgz#72556b80cfa0d48a974e80e77248e80ed4f7f870"
   integrity sha1-clVrgM+g1IqXToDnckjoDtT3+HA=
 
+pjson@^1.0.9:
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/pjson/-/pjson-1.0.9.tgz#8a9520ce76a4739f8fee91679dad6b065b1c7938"
+  integrity sha512-4hRJH3YzkUpOlShRzhyxAmThSNnAaIlWZCAb27hd0pVUAXNUAHAO7XZbsPPvsCYwBFEScTmCCL6DGE8NyZ8BdQ==
+
 pkg-dir@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-2.0.0.tgz#f6d5d1109e19d63edf428e0bd57e12777615334b"
@@ -4076,6 +4081,17 @@ semver-diff@^2.0.0:
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.0.tgz#790a7cf6fea5459bac96110b29b60412dc8ff96b"
   integrity sha512-Ya52jSX2u7QKghxeoFGpLwCtGlt7j0oY9DYb5apt9nPlJ42ID+ulTXESnt/qAQcoSERyZ5sl3LDIOw0nAn/5DA==
+
+semverv@^5.6.4:
+  version "5.6.4"
+  resolved "https://registry.yarnpkg.com/semverv/-/semverv-5.6.4.tgz#bbccb3ba6ceb5f928e147d79c56ebc2219137c09"
+  integrity sha512-xr1KZkOi42ErYGHUpRoGbZ7ZhssUgw/6dK1msdY5g1u/r9JoRIaFwf5cuEXyRtlYorLQlpXcsnZ63zWl6/TZ1g==
+  dependencies:
+    js-sha256 "^0.9.0"
+    lodash "^4.17.11"
+    reflect-metadata "^0.1.12"
+    semver "^5.6.0"
+    tslib "^1.9.3"
 
 set-blocking@^2.0.0, set-blocking@~2.0.0:
   version "2.0.0"

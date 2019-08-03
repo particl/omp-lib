@@ -1,16 +1,16 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types';
 
-import { BlindPrevout, ToBeBlindOutput, Prevout, CryptoAddress, EphemeralKey } from '../interfaces/crypto';
+import { BlindPrevout, CryptoAddress, EphemeralKey, OutputType, ToBeBlindOutput } from '../interfaces/crypto';
 
-import { ILibrary, CtRpc } from '../abstract/rpc';
+import { CtRpc, ILibrary } from '../abstract/rpc';
 import { IMadCTBuilder } from '../abstract/transactions';
 import { Config } from '../abstract/config';
 
-import { ConfidentialTransactionBuilder, buildBidTxScript, buildDestroyTxScript, getExpectedSequence } from '../transaction-builder/confidential-transaction';
+import { buildBidTxScript, buildDestroyTxScript, ConfidentialTransactionBuilder, getExpectedSequence } from '../transaction-builder/confidential-transaction';
 
-import { MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_LISTING_ADD } from '../interfaces/omp';
-import { asyncMap, clone, isArray, fromSatoshis, log, isObject } from '../util';
+import { MPA_ACCEPT, MPA_BID, MPA_LISTING_ADD, MPA_LOCK, PaymentDataAcceptCT, PaymentDataBidCT, PaymentDataLockCT } from '../interfaces/omp';
+import { asyncMap, clone, isArrayAndContains, isObject } from '../util';
 import { hash } from '../hasher/hash';
 
 @injectable()
@@ -35,37 +35,44 @@ export class MadCTBuilder implements IMadCTBuilder {
      * Adds:
      *  pubKey, changeAddress & inputs.
      *
-     * @param config a configuration, storing the shipping details, cryptocurrency to be used etc.
-     * @param listing the marketplace mostong message, used to retrieve the payment amounts.
+     * @param listing the marketplace listing message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
     public async bid(listing: MPA_LISTING_ADD, bid: MPA_BID): Promise<MPA_BID> {
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc> this._libs(bid.buyer.payment.cryptocurrency, true);
+        const paymentData = bid.buyer.payment as PaymentDataBidCT;
+        const lib = <CtRpc> this._libs(paymentData.cryptocurrency, true);
 
         const requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, false);
 
-        const type = (this.network === 'testnet') ? 'anon' : 'blind';
-        bid.buyer.payment.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
+        console.log('OMP_LIB: bid() paymentData: ', JSON.stringify(paymentData, null, 2));
+        console.log('OMP_LIB: bid() requiredSatoshis: ', requiredSatoshis);
 
-        if (!bid.buyer.payment.outputs) {
-            bid.buyer.payment.outputs = [];
-            bid.buyer.payment.outputs.push({});
+        // for now, we are forcing anon
+        // const type = (this.network === 'testnet') ? 'anon' : 'blind';
+        // paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
+        // todo: why have getPrevouts and createPrevoutFrom?
+        paymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.BLIND, requiredSatoshis);
+
+        if (!paymentData.outputs) {
+            paymentData.outputs = [];
+            // todo: why is an empty object being pushed to the array in here?
+            paymentData.outputs.push({} as ToBeBlindOutput);
         }
 
-        const buyer_prevout = (<BlindPrevout> bid.buyer.payment.prevouts[0]);
-        const buyer_output = (<ToBeBlindOutput> bid.buyer.payment.outputs[0]);
+        const buyer_prevout = paymentData.prevouts[0];
+        const buyer_output = paymentData.outputs[0];
 
-        buyer_output.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+        buyer_output.blindFactor = lib.getRandomBlindFactor();
         buyer_output.address = await lib.getNewStealthAddressWithEphem();
 
 
         const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(buyer_output.address);
         // TODO (security): randomize value and PRESENCE. Can be undefined! -> randomizes index too
-        const blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+        const blindFactor = lib.getRandomBlindFactor();
         // const blindFactor = undefined;
 
-        bid.buyer.payment.release = {
+        paymentData.release = {
             ephem: address.ephem,
             blindFactor
         } as any;
@@ -90,22 +97,24 @@ export class MadCTBuilder implements IMadCTBuilder {
     public async accept(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<MPA_ACCEPT> {
 
         // TODO(security): safe numbers?
+        const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
+        const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
 
-        // If seller is acceepting, initialize the array
-        if (!accept.seller.payment.outputs || accept.seller.payment.outputs.length === 0) {
-            accept.seller.payment.outputs = [];
-            accept.seller.payment.outputs.push({});
+        // If seller is accepting, initialize the array
+        if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
+            acceptPaymentData.outputs = [];
+            acceptPaymentData.outputs.push({} as ToBeBlindOutput);
         }
 
-        if (!bid.buyer.payment.outputs || bid.buyer.payment.outputs.length === 0) {
+        if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
             throw new Error('Missing buyer outputs.');
         }
 
-        let seller_output = (<ToBeBlindOutput> accept.seller.payment.outputs[0]);
-        let buyer_output = (<ToBeBlindOutput> bid.buyer.payment.outputs[0]);
+        let seller_output = acceptPaymentData.outputs[0];
+        let buyer_output = bidPaymentData.outputs[0];
 
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc> this._libs(bid.buyer.payment.cryptocurrency, true);
+        const lib = <CtRpc> this._libs(bidPaymentData.cryptocurrency, true);
 
 
 
@@ -117,15 +126,16 @@ export class MadCTBuilder implements IMadCTBuilder {
         const seller_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, true);
 
         // Hardcoded fee
-        const seller_fee = accept.seller.payment.fee = accept.seller.payment.fee | 5000;
+        const seller_fee = acceptPaymentData.fee = acceptPaymentData.fee | 5000;
 
         // Buyer must supply one input
-        if (bid.buyer.payment.prevouts.length !== 1) {
+        if (bidPaymentData.prevouts.length !== 1) {
             throw new Error('Currently only supports one input from the buyer.');
         }
 
-        if (!isArray(accept.seller.payment.prevouts)) {
-            const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bid.buyer.payment.cryptocurrency);
+        if (!isArrayAndContains(acceptPaymentData.prevouts)) {
+
+            const cryptocurrency = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
             if (!cryptocurrency) {
                 throw new Error('Missing buyer outputs.');
             }
@@ -133,15 +143,21 @@ export class MadCTBuilder implements IMadCTBuilder {
             // Buyer pregenerates the transaction blinding factor for the seller so he can sign earlier.
             // Currently not implemented because we're not checking ownership of the outputs.
             // TODO(security): fix
-            const blind = hash(buyer_output.blindFactor + cryptocurrency.address!.address);
+            const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
+
             // Generate a new CT output of the _exact_ amount.
-            const type = (this.network === 'testnet') ? 'anon' : 'blind';
-            accept.seller.payment.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
+            // const type = (this.network === 'testnet') ? 'anon' : 'blind';
+            // for now, we are forcing anon
+            // acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
+            // todo: why have getPrevouts and createPrevoutFrom?
+            acceptPaymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.BLIND, seller_requiredSatoshis + seller_fee, blind);
+
         }
 
-        const seller_prevout = (<BlindPrevout> accept.seller.payment.prevouts[0]);
-        const buyer_prevout = (<BlindPrevout> bid.buyer.payment.prevouts[0]);
-        if (accept.seller.payment.prevouts.length !== 1) {
+        const seller_prevout = acceptPaymentData.prevouts[0];
+        const buyer_prevout = bidPaymentData.prevouts[0];
+
+        if (acceptPaymentData.prevouts.length !== 1) {
             throw new Error('Currently only supports one input from the seller.');
         } else {
             seller_prevout._satoshis = seller_requiredSatoshis + seller_fee;
@@ -158,13 +174,13 @@ export class MadCTBuilder implements IMadCTBuilder {
 
          // Load all trusted values for prevouts from blockchain.
          //     commitment, scriptPubKey, ...
-        await asyncMap(bid.buyer.payment.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
-        await asyncMap(accept.seller.payment.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
+        await asyncMap(bidPaymentData.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
+        await asyncMap(acceptPaymentData.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
 
         seller_output = this.getBidOutput(seller_output, buyer_output, 2880, seller_requiredSatoshis, true);
         buyer_output = this.getBidOutput(seller_output, buyer_output, 2880, buyer_requiredSatoshis);
 
-        const all_inputs = clone(<BlindPrevout[]> bid.buyer.payment.prevouts).concat(accept.seller.payment.prevouts);
+        const all_inputs = clone(bidPaymentData.prevouts).concat(acceptPaymentData.prevouts);
         const all_outputs = [seller_output, buyer_output];
 
         const rawbidtx = await lib.generateRawConfidentialTx(all_inputs, all_outputs, seller_fee);
@@ -191,15 +207,15 @@ export class MadCTBuilder implements IMadCTBuilder {
         const destroy_blind_out = await lib.getLastMatchingBlindFactor([buyer_output, seller_output], []);
         const destroy_output = this.getDestroyOutput(bidtx, seller_requiredSatoshis + buyer_requiredSatoshis - seller_fee, destroy_blind_out);
 
-        const rawdesttx = await lib.generateRawConfidentialTx(bid_utxos, destroy_output, accept.seller.payment.fee);
+        const rawdesttx = await lib.generateRawConfidentialTx(bid_utxos, destroy_output, acceptPaymentData.fee);
         const desttx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawdesttx);
 
-        if (!accept.seller.payment.destroy || !isArray(accept.seller.payment.destroy.signatures)) {
-            accept.seller.payment.destroy = {
+        if (!acceptPaymentData.destroy || !isArrayAndContains(acceptPaymentData.destroy.signatures)) {
+            acceptPaymentData.destroy = {
                 signatures: []
             };
 
-            accept.seller.payment.destroy.signatures = await lib.signRawTransactionForBlindInputs(desttx, bid_utxos, seller_output.address);
+            acceptPaymentData.destroy.signatures = await lib.signRawTransactionForBlindInputs(desttx, bid_utxos, seller_output.address);
         }
         accept['_desttx'] = desttx;
         accept['_rawdesttx'] = desttx.build();
@@ -209,21 +225,21 @@ export class MadCTBuilder implements IMadCTBuilder {
          * Also generates the raw refund transaction (unsigned).
          */
 
-        if (!accept.seller.payment.release) {
-            accept.seller.payment.release = {
+        if (!acceptPaymentData.release) {
+            acceptPaymentData.release = {
                 signatures: []
             };
         }
 
         // If not rebuilding, generate new ephem key and insert in msg
-        if (accept.seller.payment.release && !accept.seller.payment.release.ephem) {
+        if (acceptPaymentData.release && !acceptPaymentData.release.ephem) {
             const sx = await lib.getNewStealthAddressWithEphem(seller_output.address);
             if (sx.ephem) {
-                accept.seller.payment.release.ephem = sx.ephem;
+                acceptPaymentData.release.ephem = sx.ephem;
             }
         }
 
-        if (!bid.buyer.payment.release || !isObject(bid.buyer.payment.release)) {
+        if (!bidPaymentData.release || !isObject(bidPaymentData.release)) {
             // Technically not required, format validators catch this.
             // But the linter warns that it might be undefined.
             throw new Error('bid.buyer.payment.release: missing or not an object');
@@ -233,11 +249,11 @@ export class MadCTBuilder implements IMadCTBuilder {
         // It is re-used for both release or refund but only one transaction is accepted,
         // so this shouldn't result in any trouble.
         // Refund is basically a release with the amount swapped around.
-        const buyer_release_address: CryptoAddress = await this.getReleaseAddress(lib, buyer_output.address, bid.buyer.payment.release.ephem);
-        const seller_release_address: CryptoAddress = await this.getReleaseAddress(lib, seller_output.address, accept.seller.payment.release.ephem!);
+        const buyer_release_address: CryptoAddress = await this.getReleaseAddress(lib, buyer_output.address, bidPaymentData.release.ephem);
+        const seller_release_address: CryptoAddress = await this.getReleaseAddress(lib, seller_output.address, acceptPaymentData.release.ephem!);
 
         // Decide where the sellers output is going to be located.
-        const isSellerLastOutput = (bid.buyer.payment.release.blindFactor !== undefined);
+        const isSellerLastOutput = (bidPaymentData.release.blindFactor !== undefined);
         let lastBlindFactor: string;
 
         // Now that we have the addresses to release to
@@ -248,17 +264,17 @@ export class MadCTBuilder implements IMadCTBuilder {
         // If the buyer didnt provide a blind factor then it will be last.
         if (isSellerLastOutput) {
             lastBlindFactor = await lib.getLastMatchingBlindFactor(bid_utxos,
-                [{blindFactor: bid.buyer.payment.release.blindFactor} as ToBeBlindOutput]);
+                [{blindFactor: bidPaymentData.release.blindFactor} as ToBeBlindOutput]);
         } else {
             // TODO(security): random
-            accept.seller.payment.release.blindFactor = '7a1b51eebcf7bbb6474c91dc4107aa42814069cc2dbd6ef83baf0b648e66e490';
+            acceptPaymentData.release.blindFactor = acceptPaymentData.release.blindFactor || lib.getRandomBlindFactor();
             lastBlindFactor = await lib.getLastMatchingBlindFactor(
                 bid_utxos,
-                [{blindFactor: accept.seller.payment.release.blindFactor} as ToBeBlindOutput]);
+                [{blindFactor: acceptPaymentData.release.blindFactor} as ToBeBlindOutput]);
         }
 
-        const buyer_blindFactor_release = isSellerLastOutput ? bid.buyer.payment.release.blindFactor : lastBlindFactor;
-        const seller_blindFactor_release = isSellerLastOutput ?  lastBlindFactor : accept.seller.payment.release.blindFactor!;
+        const buyer_blindFactor_release = isSellerLastOutput ? bidPaymentData.release.blindFactor : lastBlindFactor;
+        const seller_blindFactor_release = isSellerLastOutput ?  lastBlindFactor : acceptPaymentData.release.blindFactor!;
 
         // Randomize the positioning for increased privacy.
         // based on whether the buyer provided a blind factor or not.
@@ -299,10 +315,10 @@ export class MadCTBuilder implements IMadCTBuilder {
         accept['_rawrefundtxunsigned'] = rawrefundtx;
 
         // Not rebuilding, seller signs release tx
-        if (!isArray(accept.seller.payment.release.signatures)) {
+        if (!isArrayAndContains(acceptPaymentData.release.signatures)) {
             // const seller_release_input = bid_utxos[0];
             // [seller_release_input]
-            accept.seller.payment.release.signatures = await lib.signRawTransactionForBlindInputs(releasetx, bid_utxos, seller_output.address);
+            acceptPaymentData.release.signatures = await lib.signRawTransactionForBlindInputs(releasetx, bid_utxos, seller_output.address);
         }
 
         // complete the release tx but don't reveal to seller.
@@ -311,7 +327,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             const buyer_release_input = bid_utxos[1];
 
             const buyer_signatures = await lib.signRawTransactionForBlindInputs(releasetx, bid_utxos, buyer_output.address);
-            const seller_signatures = accept.seller.payment.release.signatures;
+            const seller_signatures = acceptPaymentData.release.signatures;
 
             releasetx.puzzleReleaseWitness(seller_release_input, seller_signatures[0], buyer_signatures[0]);
             releasetx.puzzleReleaseWitness(buyer_release_input, seller_signatures[1], buyer_signatures[1]);
@@ -343,22 +359,26 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         // TODO(security): safe numbers?
 
+        const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
+        const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
+        const lockPaymentData = lock.buyer.payment as PaymentDataLockCT;
+
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc> this._libs(bid.buyer.payment.cryptocurrency, true);
+        const lib = <CtRpc> this._libs(bidPaymentData.cryptocurrency, true);
 
         const rebuilt = (await this.accept(listing, bid, clone(accept)));
         const bidtx: ConfidentialTransactionBuilder = rebuilt['_bidtx'];
 
-        if (!accept.seller.payment.outputs || accept.seller.payment.outputs.length === 0) {
+        if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
             throw new Error('Missing seller outputs.');
         }
 
-        if (isArray(lock.buyer.payment.signatures)) {
+        if (isArrayAndContains(lockPaymentData.signatures)) {
             // add signatures to inputs
-            const signature = lock.buyer.payment.signatures;
-            bid.buyer.payment.prevouts.forEach((out, i) => bidtx.setWitness(out, signature[i]));
+            const signature = lockPaymentData.signatures;
+            bidPaymentData.prevouts.forEach((out, i) => bidtx.setWitness(out, signature[i]));
         } else {
-            lock.buyer.payment.signatures = await lib.signRawTransactionForBlindInputs(bidtx, <BlindPrevout[]> bid.buyer.payment.prevouts);
+            lockPaymentData.signatures = await lib.signRawTransactionForBlindInputs(bidtx, bidPaymentData.prevouts);
         }
 
         lock['_bidtx'] = bidtx;
@@ -368,13 +388,13 @@ export class MadCTBuilder implements IMadCTBuilder {
          * Bid transaction as prevouts
          */
 
-        if (!accept.seller.payment.outputs || accept.seller.payment.outputs.length === 0) {
+        if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
             throw new Error('Missing seller outputs.');
-        } else if (!bid.buyer.payment.outputs || bid.buyer.payment.outputs.length === 0) {
+        } else if (!bidPaymentData.outputs || bidPaymentData.outputs.length === 0) {
             throw new Error('Missing buyer outputs.');
         }
-        const seller_output = (<ToBeBlindOutput> accept.seller.payment.outputs[0]);
-        let buyer_output = (<ToBeBlindOutput> bid.buyer.payment.outputs[0]);
+        const seller_output = acceptPaymentData.outputs[0];
+        let buyer_output = bidPaymentData.outputs[0];
         const bid_utxos = this.getUtxosFromBidTx(bidtx, seller_output, buyer_output, 2880);
 
         /**
@@ -383,19 +403,19 @@ export class MadCTBuilder implements IMadCTBuilder {
         const desttx: ConfidentialTransactionBuilder = rebuilt['_desttx'];
 
         // Buyer signs the destroy txn
-        if (!lock.buyer.payment.destroy || !isArray(lock.buyer.payment.destroy.signatures)) {
-            lock.buyer.payment.destroy = {
+        if (!lockPaymentData.destroy || !isArrayAndContains(lockPaymentData.destroy.signatures)) {
+            lockPaymentData.destroy = {
                 signatures: []
             };
-            lock.buyer.payment.destroy.signatures = await lib.signRawTransactionForBlindInputs(desttx, bid_utxos, buyer_output.address);
+            lockPaymentData.destroy.signatures = await lib.signRawTransactionForBlindInputs(desttx, bid_utxos, buyer_output.address);
         }
 
-        if (!accept.seller.payment.destroy || accept.seller.payment.destroy.signatures.length === 0) {
+        if (!acceptPaymentData.destroy || acceptPaymentData.destroy.signatures.length === 0) {
             throw new Error('Missing seller destroy signatures.');
-        } else if (!lock.buyer.payment.destroy || !lock.buyer.payment.destroy.signatures || lock.buyer.payment.destroy.signatures.length === 0) {
+        } else if (!lockPaymentData.destroy || !lockPaymentData.destroy.signatures || lockPaymentData.destroy.signatures.length === 0) {
             throw new Error('Missing buyer destroy signatures.');
         }
-        await desttx.puzzleDestroyWitness(bid_utxos, accept.seller.payment.destroy.signatures, lock.buyer.payment.destroy.signatures);
+        await desttx.puzzleDestroyWitness(bid_utxos, acceptPaymentData.destroy.signatures, lockPaymentData.destroy.signatures);
 
         lock['_rawdesttx'] = desttx.build();
 
@@ -407,11 +427,11 @@ export class MadCTBuilder implements IMadCTBuilder {
         buyer_output = this.getBidOutput(seller_output, buyer_output, 2880, buyer_requiredSatoshis);
 
         // Buyer signs the refund txn
-        if (!lock.buyer.payment.refund || !isArray(lock.buyer.payment.refund.signatures)) {
-            lock.buyer.payment.refund = {
+        if (!lockPaymentData.refund || !isArrayAndContains(lockPaymentData.refund.signatures)) {
+            lockPaymentData.refund = {
                 signatures: []
             };
-            lock.buyer.payment.refund.signatures = await lib.signRawTransactionForBlindInputs(refundtx, bid_utxos, buyer_output.address);
+            lockPaymentData.refund.signatures = await lib.signRawTransactionForBlindInputs(refundtx, bid_utxos, buyer_output.address);
         }
 
         lock['_refundtx'] = refundtx;
@@ -434,22 +454,30 @@ export class MadCTBuilder implements IMadCTBuilder {
      */
     public async complete(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
 
+        const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
+        const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
+        const lockPaymentData = lock.buyer.payment as PaymentDataLockCT;
+
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc> this._libs(bid.buyer.payment.cryptocurrency, true);
+        const lib = <CtRpc> this._libs(bidPaymentData.cryptocurrency, true);
 
         // Don't trigger the signing of releasetx for buyer when rebuilding
         const cloned_accept = clone(accept);
 
-        const rebuilt = (await this.lock(listing, bid, cloned_accept, clone(lock)));
+        const rebuiltLockMessage = (await this.lock(listing, bid, cloned_accept, clone(lock)));
+        // console.log('OMP_LIB: rebuiltLockMessage: ', JSON.stringify(rebuiltLockMessage, null, 2));
 
         // rebuild from accept message
-        const bidtx: ConfidentialTransactionBuilder = rebuilt['_bidtx'];
+        const bidtx: ConfidentialTransactionBuilder = rebuiltLockMessage['_bidtx'];
 
-        const seller_inputs = clone(accept.seller.payment.prevouts);
+        const seller_inputs = clone(acceptPaymentData.prevouts);
 
         const seller_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, true);
-        const seller_fee = accept.seller.payment.fee;
+        const seller_fee = acceptPaymentData.fee;
         seller_inputs[0]._satoshis = seller_requiredSatoshis + seller_fee;
+
+        // console.log('OMP_LIB: seller_requiredSatoshis: ', seller_requiredSatoshis);
+        // console.log('OMP_LIB: seller_fee: ', seller_fee);
 
         await asyncMap(seller_inputs, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
 
@@ -466,8 +494,11 @@ export class MadCTBuilder implements IMadCTBuilder {
     public async release(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<string> {
         // TODO(security): safe numbers?
 
+        const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
+        const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
+
         // Get the right transaction library for the right currency.
-        const lib = this._libs(bid.buyer.payment.cryptocurrency, true);
+        const lib = this._libs(bidPaymentData.cryptocurrency, true);
 
         const cloned_accept = clone(accept);
         cloned_accept['_buyerbuildrelease'] = true;
@@ -479,8 +510,12 @@ export class MadCTBuilder implements IMadCTBuilder {
 
     public async refund(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
 
+        const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
+        const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
+        const lockPaymentData = lock.buyer.payment as PaymentDataLockCT;
+
         // Get the right transaction library for the right currency.
-        const lib = <CtRpc> this._libs(bid.buyer.payment.cryptocurrency, true);
+        const lib = <CtRpc> this._libs(bidPaymentData.cryptocurrency, true);
 
         // regenerate the transaction (from the messages)
         const rebuilt = (await this.lock(listing, bid, clone(accept), clone(lock)));
@@ -491,13 +526,13 @@ export class MadCTBuilder implements IMadCTBuilder {
         const seller_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, true);
 
 
-        if (!accept.seller.payment.outputs || accept.seller.payment.outputs.length === 0) {
+        if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
             throw new Error('Missing seller outputs.');
-        } else if (!bid.buyer.payment.outputs || bid.buyer.payment.outputs.length === 0) {
+        } else if (!bidPaymentData.outputs || bidPaymentData.outputs.length === 0) {
             throw new Error('Missing buyer outputs.');
         }
-        let seller_output = (<ToBeBlindOutput> accept.seller.payment.outputs[0]);
-        let buyer_output = (<ToBeBlindOutput> bid.buyer.payment.outputs[0]);
+        let seller_output = acceptPaymentData.outputs[0];
+        let buyer_output = bidPaymentData.outputs[0];
 
         const bid_utxos = this.getUtxosFromBidTx(bidtx, seller_output, buyer_output, 2880);
 
@@ -508,10 +543,10 @@ export class MadCTBuilder implements IMadCTBuilder {
         const seller_release_input = bid_utxos[0];
         const buyer_release_input = bid_utxos[1];
 
-        if (!lock.buyer.payment.refund || !lock.buyer.payment.refund.signatures || lock.buyer.payment.refund.signatures.length === 0) {
+        if (!lockPaymentData.refund || !lockPaymentData.refund.signatures || lockPaymentData.refund.signatures.length === 0) {
             throw new Error('Missing seller destroy signatures.');
         }
-        const buyer_signatures = lock.buyer.payment.refund.signatures;
+        const buyer_signatures = lockPaymentData.refund.signatures;
         const seller_signatures = await lib.signRawTransactionForBlindInputs(refundtx, bid_utxos, seller_output.address);
 
         refundtx.puzzleReleaseWitness(seller_release_input, seller_signatures[0], buyer_signatures[0]);
@@ -624,8 +659,10 @@ export class MadCTBuilder implements IMadCTBuilder {
      */
     private bid_valueToTransferSatoshis(listing: MPA_LISTING_ADD, bid: MPA_BID): number {
 
+        const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
+
         let satoshis = 0;
-        const payment = listing.item.payment.options!.find((crypto) => crypto.currency === bid.buyer.payment.cryptocurrency);
+        const payment = listing.item.payment.options!.find((crypto) => crypto.currency === bidPaymentData.cryptocurrency);
 
         if (!payment) {
             throw new Error('Missing payment.');
@@ -634,7 +671,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         satoshis = payment.basePrice;
 
         if (listing.item.information.location && payment.shippingPrice) {
-            if (bid.buyer.shippingAddress!.country === listing.item.information.location.country) {
+            if (bid.buyer.shippingAddress.country === listing.item.information.location.country) {
                 satoshis += payment.shippingPrice.domestic;
             } else {
                 satoshis += payment.shippingPrice.international;

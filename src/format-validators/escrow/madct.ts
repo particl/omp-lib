@@ -1,14 +1,14 @@
-import { Prevout, CryptoAddress, CryptoAddressType, ToBeBlindOutput } from '../../interfaces/crypto';
-import { isObject, isNumber, isString, isTxid, isArray, isBlindFactor, isNonNegativeNaturalNumber } from '../../util';
+import { ToBeBlindOutput } from '../../interfaces/crypto';
+import { isObject, isNumber, isString, isTxid, isArrayAndContains, isBlindFactor, isNonNegativeNaturalNumber } from '../../util';
 import { FV_CRYPTO } from '../crypto';
 import { EscrowType } from '../../interfaces/omp-enums';
 import { isPublicKey, isPrivateKey } from '../util';
-import { PaymentDataBid, PaymentDataAccept, PaymentDataLock } from '../../interfaces/omp';
+import { PaymentDataBidCT, PaymentDataAcceptCT, PaymentDataLockCT } from '../../interfaces/omp';
 
 // TODO: max one class per file
 // tslint:disable max-classes-per-file no-string-throw
 
-function validateBasic(payment: any): boolean {
+function validateBasic(payment: PaymentDataBidCT | PaymentDataAcceptCT): boolean {
 
     if (!isObject(payment)) {
         throw ('missing or not an object!');
@@ -18,7 +18,7 @@ function validateBasic(payment: any): boolean {
         throw ('escrow: expected MAD_CT, received=' + payment.escrow);
     }
 
-    if (!isArray(payment.prevouts)) {
+    if (!isArrayAndContains(payment.prevouts)) {
         throw ('prevouts: not an array');
     }
 
@@ -34,7 +34,7 @@ function validateBasic(payment: any): boolean {
         }
     });
 
-    if (!isArray(payment.outputs) || !payment.outputs) {
+    if (!isArrayAndContains(payment.outputs) || !payment.outputs) {
         throw ('outputs: not an array');
     }
 
@@ -57,12 +57,16 @@ function validateBasic(payment: any): boolean {
  */
 function validateReleaseRefundDestroy(exit: any, expectEphem: boolean = true, expectSignatures: boolean = true): boolean {
 
+    console.log('validateReleaseRefundDestroy(), exit: ', JSON.stringify(exit, null, 2));
+    console.log('validateReleaseRefundDestroy(), expectEphem: ', expectEphem);
+    console.log('validateReleaseRefundDestroy(), expectSignatures: ', expectSignatures);
+
     if (!isObject(exit)) {
         throw ('missing or not an object');
     }
 
     if (expectSignatures) {
-        if (!isArray(exit.signatures)) {
+        if (!isArrayAndContains(exit.signatures)) {
             throw ('signatures: missing or not an array');
         }
 
@@ -100,7 +104,7 @@ function validateReleaseRefundDestroy(exit: any, expectEphem: boolean = true, ex
 
 export class FV_MPA_BID_ESCROW_MAD_CT {
 
-    public static validate(payment: PaymentDataBid): boolean {
+    public static validate(payment: PaymentDataBidCT): boolean {
 
         try {
             validateBasic(payment);
@@ -126,7 +130,7 @@ export class FV_MPA_BID_ESCROW_MAD_CT {
 
 export class FV_MPA_ACCEPT_ESCROW_MAD_CT {
 
-    public static validate(payment: PaymentDataAccept): boolean {
+    public static validate(payment: PaymentDataAcceptCT): boolean {
 
         try {
             validateBasic(payment);
@@ -163,9 +167,9 @@ export class FV_MPA_ACCEPT_ESCROW_MAD_CT {
 
 export class FV_MPA_LOCK_ESCROW_MAD_CT {
 
-    public static validate(payment: PaymentDataLock): boolean {
+    public static validate(payment: PaymentDataLockCT): boolean {
 
-        if (!isArray(payment.signatures)) {
+        if (!isArrayAndContains(payment.signatures)) {
             throw ('action.buyer.payment.signatures: missing or not an array');
         }
 

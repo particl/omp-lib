@@ -157,7 +157,7 @@ describe('Multisig', () => {
         expect(error).toEqual(expect.stringContaining('pubKey: missing or not a string'));
     });
 
-    test('MPA_BID: validate missing change address', () => {
+    test('MPA_BID: validate missing changeAddress', () => {
         const bid_missing_changeAddress = clone(ok_bid);
         delete bid_missing_changeAddress.action.buyer.payment.changeAddress;
         let error = '';

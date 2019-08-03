@@ -1,8 +1,29 @@
 /*
  * Interfaces which the Rpc class needs to implement
  */
+export interface RpcWalletDir {
+    wallets: RpcWallet[];
+}
+
+export interface RpcWallet {
+    name: string;
+    warning: string;
+}
+
 export interface RpcAddressInfo {
+    address: string;
+    scriptPubKey: string;
+    from_ext_address_id: string;
+    path: string;
+    ismine: boolean;
+    solvable: boolean;
+    desc: string;
+    iswatchonly: boolean;
+    isscript: boolean;
+    iswitness: boolean;
     pubkey: string;
+    iscompressed: boolean;
+    ischange: boolean;
 }
 
 export interface RpcRawTx {

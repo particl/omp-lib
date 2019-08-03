@@ -1,16 +1,15 @@
-import { Prevout, CryptoAddress, CryptoAddressType } from '../../interfaces/crypto';
-import { isObject, isNumber, isString, isTxid, isArray } from '../../util';
+import { isObject, isNumber, isString, isTxid, isArrayAndContains } from '../../util';
 import { FV_CRYPTO } from '../crypto';
 import { EscrowType } from '../../interfaces/omp-enums';
 import { isNonNegativeNaturalNumber } from '../util';
-import { PaymentDataAccept, PaymentDataBid, PaymentDataLock } from '../../interfaces/omp';
+import { PaymentDataAcceptMultisig, PaymentDataBidMultisig, PaymentDataLockMultisig } from '../../interfaces/omp';
 
 // TODO: max one class per file
 // tslint:disable max-classes-per-file
 
 export class FV_MPA_BID_ESCROW_MULTISIG {
 
-    public static validate(payment: PaymentDataBid): boolean {
+    public static validate(payment: PaymentDataBidMultisig): boolean {
 
         if (!isObject(payment)) {
             throw new Error('escrow mad: missing or not an object!');
@@ -24,7 +23,7 @@ export class FV_MPA_BID_ESCROW_MULTISIG {
             throw new Error('action.buyer.payment.pubKey: missing or not a string');
         }
 
-        if (!isArray(payment.prevouts)) {
+        if (!isArrayAndContains(payment.prevouts)) {
             throw new Error('action.buyer.payment.prevouts: not an array');
         }
 
@@ -54,7 +53,7 @@ export class FV_MPA_BID_ESCROW_MULTISIG {
 
 export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
 
-    public static validate(payment: PaymentDataAccept): boolean {
+    public static validate(payment: PaymentDataAcceptMultisig): boolean {
         // The validation for MPA_BID can be re-used here
         // MPA_ACCEPT shares a similar structure.
         FV_MPA_BID_ESCROW_MULTISIG.validate(<any> payment);
@@ -63,7 +62,7 @@ export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
             throw new Error('action.seller.payment.fee: not a non negative number or > 0');
         }
 
-        if (!isArray(payment.signatures)) {
+        if (!isArrayAndContains(payment.signatures)) {
             throw new Error('action.seller.payment.signatures: missing or not an array');
         }
 
@@ -81,7 +80,7 @@ export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
                 throw new Error('action.seller.payment.release: missing or not an object');
             }
 
-            if (!isArray(payment.release.signatures) || !payment.release.signatures) {
+            if (!isArrayAndContains(payment.release.signatures) || !payment.release.signatures) {
                 throw new Error('action.seller.payment.release.signatures: missing or not an array');
             }
 
@@ -105,9 +104,9 @@ export class FV_MPA_ACCEPT_ESCROW_MULTISIG {
 
 export class FV_MPA_LOCK_ESCROW_MULTISIG {
 
-    public static validate(payment: PaymentDataLock): boolean {
+    public static validate(payment: PaymentDataLockMultisig): boolean {
 
-        if (!isArray(payment.signatures)) {
+        if (!isArrayAndContains(payment.signatures)) {
             throw new Error('action.buyer.payment.signatures: missing or not an array');
         }
 
@@ -122,7 +121,7 @@ export class FV_MPA_LOCK_ESCROW_MULTISIG {
                 throw new Error('action.seller.payment.refund: missing or not an object');
             }
 
-            if (!isArray(payment.refund.signatures) || !payment.refund.signatures) {
+            if (!isArrayAndContains(payment.refund.signatures) || !payment.refund.signatures) {
                 throw new Error('action.seller.payment.refund.signatures: missing or not an array');
             }
 

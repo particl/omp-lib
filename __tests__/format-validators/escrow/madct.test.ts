@@ -1,3 +1,4 @@
+/* tslint:disable:max-line-length */
 import * from 'jest';
 import { FV_MPA_BID } from '../../../src/format-validators/mpa_bid';
 import { hash } from '../../../src/hasher/hash';
@@ -270,8 +271,8 @@ test('MPA_ACCEPT: validate missing release signatures', () => {
 
 const accept_too_many_signatures = clone(ok_accept);
 accept_too_many_signatures.action.seller.payment.release.signatures.push({
-    signature: "signature1",
-    pubKey: "pubKey1",
+    signature: 'signature1',
+    pubKey: 'pubKey1'
 });
 test('MPA_ACCEPT: validate too many release signatures', () => {
     let error = '';
@@ -287,7 +288,7 @@ const accept_too_many_prevouts = clone(ok_accept);
 accept_too_many_prevouts.action.seller.payment.prevouts.push({
     txid: hash('txid2'),
     vout: 1,
-    blindFactor: hash('txid2'),
+    blindFactor: hash('txid2')
 });
 test('MPA_ACCEPT: too many prevouts', () => {
     let error = '';

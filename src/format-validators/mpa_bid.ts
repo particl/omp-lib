@@ -1,4 +1,4 @@
-import { MPA_BID, MPM, ShippingAddress, PaymentDataBid } from '../interfaces/omp';
+import { MPA_BID, MPM, ShippingAddress, PaymentDataBid, PaymentDataBidMultisig, PaymentDataBidCT } from '../interfaces/omp';
 import { MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isObject, isString, isTimestamp, isSHA256Hash, isCountry } from '../util';
 import { FV_MPM } from './mpm';
@@ -39,7 +39,7 @@ export class FV_MPA_BID {
             throw new Error('action.buyer: missing or not an object');
         }
 
-        const paymentDataBid = action.buyer.payment;
+        const paymentDataBid = action.buyer.payment as PaymentDataBid;
 
         if (isObject(paymentDataBid)) {
             if (!paymentDataBid.cryptocurrency) {
@@ -57,15 +57,15 @@ export class FV_MPA_BID {
             // TODO: implement all validators
             switch (paymentDataBid.escrow) {
                 case EscrowType.MULTISIG:
-                    FV_MPA_BID_ESCROW_MULTISIG.validate(paymentDataBid);
+                    FV_MPA_BID_ESCROW_MULTISIG.validate(paymentDataBid as PaymentDataBidMultisig);
+                    break;
+                case EscrowType.MAD_CT:
+                    FV_MPA_BID_ESCROW_MAD_CT.validate(paymentDataBid as PaymentDataBidCT);
                     break;
                 case EscrowType.FE:
                     // TODO: not implemented
                 case EscrowType.MAD:
                     // TODO: not implemented
-                case EscrowType.MAD_CT:
-                    FV_MPA_BID_ESCROW_MAD_CT.validate(paymentDataBid);
-                    break;
                 default:
                     throw new Error('action.buyer.payment.escrow: unknown validation format, unknown value, received=' + paymentDataBid.escrow);
             }
@@ -79,7 +79,7 @@ export class FV_MPA_BID {
             throw new Error('action.buyer.shippingAddress: missing or not an object');
         }
 
-        const shipping: ShippingAddress = action.buyer.shippingAddress!;
+        const shipping: ShippingAddress = action.buyer.shippingAddress;
         if (!isString(shipping.firstName)) {
             throw new Error('action.buyer.shippingAddress.firstName: missing');
         }

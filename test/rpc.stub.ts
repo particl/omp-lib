@@ -1,9 +1,10 @@
 import { injectable } from 'inversify';
 import 'reflect-metadata';
 import * as WebRequest from 'web-request';
-
+import * as _ from 'lodash';
 import { Rpc } from '../src/abstract/rpc';
-import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput } from '../src/interfaces/rpc';
+import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcWallet, RpcWalletDir } from '../src/interfaces/rpc';
+import { OutputType } from '../src/interfaces/crypto';
 
 @injectable()
 export class CoreRpcService extends Rpc {
@@ -58,21 +59,106 @@ export class CoreRpcService extends Rpc {
     /**
      * Get a raw transaction, always in verbose mode
      * @param txid
+     * @param verbose
      */
     public async getRawTransaction(txid: string, verbose: boolean = true): Promise<RpcRawTx> {
         return await this.call('getrawtransaction', [txid, verbose]);
     }
 
-    public async listUnspent(minconf: number): Promise<RpcUnspentOutput[]> {
+    public async listUnspent(type: OutputType, minconf: number): Promise<RpcUnspentOutput[]> {
         return await this.call('listunspent', [minconf]);
     }
 
     /**
      * Permanently locks outputs until unlocked or spent.
-     * @param prevout an array of outputs to lock
+     * @param unlock
+     * @param prevouts
+     * @param permanent
      */
     public async lockUnspent(unlock: boolean = false, prevouts: RpcOutput[], permanent: boolean = true): Promise<boolean> {
         return await this.call('lockunspent', [unlock, prevouts, permanent]);
+    }
+
+    /**
+     * Returns a list of wallets in the wallet directory.
+     *
+     * @returns {Promise<RpcWalletDir>}
+     */
+    public async listLoadedWallets(): Promise<string[]> {
+        return await this.call('listwallets');
+    }
+
+    /**
+     * Returns a list of wallets in the wallet directory.
+     *
+     * @returns {Promise<RpcWalletDir>}
+     */
+    public async listWalletDir(): Promise<RpcWalletDir> {
+        return await this.call('listwalletdir');
+    }
+
+    /**
+     *
+     * @returns {Promise<boolean>}
+     */
+    public async walletLoaded(name: string): Promise<boolean> {
+        return await this.listLoadedWallets()
+            .then(result => {
+                const found = _.find(result, wallet => {
+                    return wallet === name;
+                });
+                const loaded = found ? true : false;
+                return loaded;
+            });
+    }
+
+    /**
+     *
+     * @returns {Promise<boolean>}
+     */
+    public async walletExists(name: string): Promise<boolean> {
+        return await this.listWalletDir()
+            .then(result => {
+                const found = _.find(result.wallets, wallet => {
+                    return wallet.name === name;
+                });
+                const exists = found ? true : false;
+                return exists;
+            });
+    }
+
+    /**
+     * Creates and loads a new wallet.
+     *
+     * @returns {Promise<RpcWallet>}
+     */
+    public async createWallet(name: string, disablePrivateKeys: boolean = false, blank: boolean = false): Promise<RpcWallet> {
+        return await this.call('createwallet', [name, disablePrivateKeys, blank]);
+    }
+
+    // for clarity
+    public async createAndLoadWallet(name: string, disablePrivateKeys: boolean = false, blank: boolean = false): Promise<RpcWallet> {
+        return await this.createWallet(name, disablePrivateKeys, blank);
+    }
+
+    /**
+     * Loads a wallet from a wallet file or directory.
+     *
+     * @returns {Promise<RpcWallet>}
+     */
+    public async loadWallet(name: string): Promise<RpcWallet> {
+        return await this.call('loadwallet', [name]);
+    }
+
+    /**
+     * Set secure messaging to use the specified wallet.
+     * SMSG can only be enabled on one wallet.
+     * Call with no parameters to unset the active wallet.
+     *
+     * @returns {Promise<RpcWallet>}
+     */
+    public async smsgSetWallet(name?: string): Promise<RpcWallet> {
+        return await this.call('smsgsetwallet', [name]);
     }
 
     public async call(method: string, params: any[] = []): Promise<any> {
@@ -125,4 +211,5 @@ export class CoreRpcService extends Rpc {
 
         return rpcOpts;
     }
+
 }

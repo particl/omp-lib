@@ -4,7 +4,7 @@
  * TODO: MPA_LISTING_UPDATE, MPA_LISTING_REMOVE
  */
 
-import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey, Fiatcurrency } from './crypto';
+import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey, Fiatcurrency, ToBeBlindOutput, BlindPrevout } from './crypto';
 import { DSN, ContentReference } from './dsn';
 import { MPAction, SaleType, EscrowType, MessagingProtocol } from './omp-enums';
 import { KVS } from './common';
@@ -16,7 +16,8 @@ import { KVS } from './common';
 export interface MPM {
     version: string;
     action: MPA;
-    _rawtx?: string;
+    _rawtx?: string;            // TODO: is this in the wrong place, also, digging into code, it looks like _rawtx is not string?
+                                // for example in multisig.test: lock.action['_rawbidtx'];
 }
 
 export interface MPA {
@@ -41,7 +42,6 @@ export interface MPA {
 export interface MPA_LISTING_ADD extends MPA {
     // type: MPAction.MPA_LISTING_ADD;
     item: Item;
-    // hash: string;               // item hash, used to verify on the receiving end
 }
 
 
@@ -67,12 +67,8 @@ export interface MPA_LISTING_ADD extends MPA {
 export interface MPA_BID extends MPA {
     // completely refactored, !implementation !protocol
     // type: MPAction.MPA_BID;
-    // hash: string;                // bid hash, used to verify on the receiving end
     item: string;                   // item hash
-    buyer: {                        // buyer payment and other purchase details like shipping address
-        payment: PaymentDataBid;             // MPA_BID, MPA_ACCEPT, MPA_LOCK
-        shippingAddress?: ShippingAddress;   // MPA_BID
-    };
+    buyer: BuyerData;               // buyer payment and other purchase details like shipping address
 }
 
 /**
@@ -91,9 +87,10 @@ export interface MPA_REJECT extends MPA {
 export interface MPA_ACCEPT extends MPA {
     // type: MPAction.MPA_ACCEPT;
     bid: string;                // hash of MPA_BID
-    seller: {
-        payment: PaymentDataAccept;
-    };
+    seller: SellerData;
+    // {
+    //    payment: PaymentDataAccept;
+    // };
 }
 
 /**
@@ -112,9 +109,7 @@ export interface MPA_CANCEL extends MPA { // !implementation !protocol
 export interface MPA_LOCK extends MPA {
     // type: MPAction.MPA_LOCK;
     bid: string;                // hash of MPA_BID
-    buyer: {
-        payment: PaymentDataLock;
-    };
+    buyer: BuyerData;
     info: LockInfo;
 }
 
@@ -140,34 +135,82 @@ export interface SignatureData {
     signatures: ISignature[];           // MULTISIG & CT
 }
 
+/**
+ * SellerData holds the seller related information
+ *
+ * MPA_ACCEPT
+ */
+export interface SellerData extends ParticipantData {
+}
+
+/**
+ * BuyerData holds the buyer related information
+ *
+ * MPA_BID
+ */
+export interface BuyerData extends ParticipantData {
+    shippingAddress: ShippingAddress;   // MPA_BID
+}
+
+export interface ParticipantData {
+    payment: PaymentData;               // MPA_BID, MPA_ACCEPT, MPA_LOCK, MPA_RELEASE, MPA_REFUND
+}
+
+/**
+ * PaymentData holds the information related to payment and the payment negotiation flow between buyer and seller
+ */
+export type PaymentData = PaymentDataBid | PaymentDataAccept | PaymentDataLock;
+
 export interface PaymentDataBid {
+    prevouts: Prevout[];                // MULTISIG & CT
     escrow: EscrowType;
     cryptocurrency: Cryptocurrency;
-    pubKey?: string;                    // MULTISIG
-    address?: CryptoAddress;            // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
-    changeAddress?: CryptoAddress;      // MULTISIG
-    prevouts: Prevout[];                // MULTISIG & CT
-    outputs?: ToBeOutput[];             // CT
+
+}
+
+export interface PaymentDataBidMultisig extends PaymentDataBid {
+    pubKey: string;                     // MULTISIG
+    address: CryptoAddress;             // MULTISIG (?) (Because there is no outputs object, might want to move to unify!)
+    changeAddress: CryptoAddress;       // MULTISIG
+}
+
+export interface PaymentDataBidCT extends PaymentDataBid {
+    prevouts: BlindPrevout[];           // MULTISIG & CT
+    outputs: ToBeBlindOutput[];         // CT
+    // todo: optional or not?
     release?: BlindData;                // CT (no signatures!)
 }
 
 export interface PaymentDataAccept {
     escrow: EscrowType;
-    pubKey?: string;                    // MULTISIG
-    changeAddress?: CryptoAddress;      // MULTISIG
-    prevouts: Prevout[];                // MULTISIG & CT
-    outputs?: ToBeOutput[];             // CT
     fee: number;
-    signatures: ISignature[];           // MULTISIG
+    prevouts: Prevout[];                // MULTISIG & CT
     release: SignatureData;             // MULTISIG & CT (only signatures)
-    destroy?: SignatureData;            // CT  (only signatures)
+}
+
+export interface PaymentDataAcceptMultisig extends PaymentDataAccept {
+    pubKey: string;                     // MULTISIG
+    changeAddress?: CryptoAddress;      // MULTISIG
+    signatures: ISignature[];           // MULTISIG
+}
+
+export interface PaymentDataAcceptCT extends PaymentDataAccept {
+    prevouts: BlindPrevout[];           // MULTISIG & CT
+    outputs: ToBeBlindOutput[];         // CT
+    destroy: SignatureData;             // CT  (only signatures)
 }
 
 export interface PaymentDataLock {
     escrow: EscrowType;
     signatures: ISignature[];           // MULTISIG & CT
     refund: SignatureData;              // MULTISIG & CT
-    destroy?: SignatureData;            // CT
+}
+
+export interface PaymentDataLockMultisig extends PaymentDataLock {
+}
+
+export interface PaymentDataLockCT extends PaymentDataLock {
+    destroy: SignatureData;             // CT
 }
 
 /**
@@ -322,8 +365,8 @@ export interface PricePegging {
 export interface PaymentOption {
     currency: Cryptocurrency;
     basePrice: number;
-    shippingPrice?: ShippingPrice;  // some SaleTypes might not require this
-    address?: CryptoAddress;        // some SaleTypes might not require this
+    shippingPrice: ShippingPrice;  // some SaleTypes might not require this
+    address: CryptoAddress;        // some SaleTypes might not require this
 }
 
 /**

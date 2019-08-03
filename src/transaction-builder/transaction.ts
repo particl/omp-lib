@@ -1,4 +1,3 @@
-import { injectable, inject, named } from 'inversify';
 import 'reflect-metadata';
 import * as bitcore from 'particl-bitcore-lib';
 import { Prevout, ToBeOutput, ToBeNormalOutput, ISignature } from '../interfaces/crypto';
@@ -110,7 +109,7 @@ export class TransactionBuilder {
      * @param satoshis the amount of satoshis this prevout should consume.
      * @param publicKeys the participating public keys.
      */
-    public newMultisigOutput(sathosis: number, publicKeys: string[]): ToBeNormalOutput {
+    public newMultisigOutput(satoshis: number, publicKeys: string[]): ToBeNormalOutput {
 
         publicKeys.sort();
         publicKeys = publicKeys.map(pk => new bitcore.PublicKey(pk));
@@ -130,7 +129,7 @@ export class TransactionBuilder {
         const multisigOutput = {
             script: p2shScript.toHex(),
             _redeemScript: redeemScript.toHex(),
-            satoshis: sathosis
+            satoshis
         };
 
         this.addOutput(multisigOutput);
