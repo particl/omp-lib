@@ -68,7 +68,7 @@ export class FV_MPA_LISTING {
             if (isObject(information.location)) {
                 const location = information.location;
 
-                if (location && !isCountry(location.country)) {
+                if (location && location.country && !isCountry(location.country)) {
                     throw new Error('action.item.information.location.country: not a country');
                 }
 
