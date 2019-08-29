@@ -146,8 +146,8 @@ export class MadCTBuilder implements IMadCTBuilder {
             const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
 
             // Generate a new CT output of the _exact_ amount.
-            // const type = (this.network === 'testnet') ? 'anon' : 'blind';
             // for now, we are forcing anon
+            // const type = (this.network === 'testnet') ? 'anon' : 'blind';
             // acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
             // todo: why have getPrevouts and createPrevoutFrom?
             acceptPaymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.BLIND, seller_requiredSatoshis + seller_fee, blind);
@@ -619,10 +619,12 @@ export class MadCTBuilder implements IMadCTBuilder {
     }
 
     private getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
-        const type = (this.network === 'testnet') ? 'anon' : 'blind';
+
+        // for now, we are forcing anon
+        // const type = (this.network === 'testnet') ? 'anon' : 'blind';
         return {
             address,
-            _type: type,
+            _type: 'anon',
             _satoshis: satoshis,
             blindFactor: blind
         };
