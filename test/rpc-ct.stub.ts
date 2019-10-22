@@ -122,12 +122,12 @@ export class CtCoreRpcService extends CtRpc {
 
     // CtRpc required implmentations below...
 
-    public async getNewStealthAddress(wallet: string): Promise<CryptoAddress> {
+    public async getNewStealthAddress(wallet: string, params: any[] = []): Promise<CryptoAddress> {
         if (wallet === undefined) {
             throw new Error('Missing wallet. (getNewStealthAddress)');
         }
 
-        const sx = await this.call('getnewstealthaddress', [], wallet);
+        const sx = await this.call('getnewstealthaddress', params, wallet);
         return {
             type: CryptoAddressType.STEALTH,
             address: sx

@@ -247,7 +247,7 @@ export abstract class CtRpc extends Rpc {
     // example implementations in test/rpc.stub.ts and rpc-ct.stub.ts
 
     // WALLET - generating keys, addresses.
-    public abstract async getNewStealthAddress(wallet: string): Promise<CryptoAddress>;
+    public abstract async getNewStealthAddress(wallet: string, params?: any[]): Promise<CryptoAddress>;
     public abstract async sendTypeTo(wallet: string, typeIn: OutputType, typeOut: OutputType, outputs: RpcBlindSendToOutput[]): Promise<string>;
 
     // public abstract async getBlindPrevouts(type: string, satoshis: number, blind?: string): Promise<BlindPrevout[]>;
