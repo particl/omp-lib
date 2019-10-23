@@ -105,7 +105,7 @@ export interface RpcBlindSendToOutput {
     blindingfactor: string;
 }
 
-export interface BlockchainInfo {
+export interface RpcBlockchainInfo {
     chain: string;                      // current network name as defined in BIP70 (main, test, regtest)
     blocks: number;                     // the current number of blocks processed in the server
     headers: number;                    // the current number of headers we have validated
@@ -148,6 +148,24 @@ export interface RpcWalletInfo {
     private_keys_enabled: boolean;      // false if privatekeys are disabled for this wallet (enforced watch-only wallet)
 }
 
+export interface RpcNetworkInfo {
+    version: number;
+    subversion: string;
+    protocolversion: number;
+    localservices: string;
+    localservices_str: string;
+    localrelay: boolean;
+    timeoffset: number;
+    connections: number;
+    dos_states: number;
+    networkactive: boolean;
+    networks: any[]; // TODO
+    relayfee: number;
+    incrementalfee: number;
+    localaddresses: any[]; // TODO
+    warnings: string;
+}
+
 export interface RpcMnemonic {
     mnemonic: string;
     master: string;
@@ -165,4 +183,32 @@ export interface RpcExtKeyGenesisImport {
 export interface RpcAddressBalance {
     balance: string;    // current balance in satoshis
     received: string;   // total number of satoshis received (including change)
+}
+
+export interface RpcExtKey {
+    type: string;
+    active: string;
+    receive_on: string;
+    encrypted: string;
+    hardware_device: string;
+    label: string;
+    path: string;
+    key_type: string;
+    current_master: string;
+    root_key_id: string;
+    id: string;
+    evkey: string;
+    epkey: string;
+    num_derives: string;
+    num_derives_hardened: string;
+    created_at: string;
+    has_secret: string;
+    external_chain: string;
+    num_derives_external: string;
+    num_derives_external_h: string;
+    internal_chain: string;
+    num_derives_internal: string;
+    num_derives_internal_h: string;
+    num_derives_stealth: string;
+    num_derives_stealth_h: string;
 }

@@ -3,7 +3,7 @@ import { BlindPrevout, CryptoAddress, Cryptocurrency, EphemeralKey, ISignature, 
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { clone, fromSatoshis, toSatoshis } from '../util';
 import {
-    BlockchainInfo,
+    RpcBlockchainInfo,
     RpcAddressInfo,
     RpcBlindInput, RpcBlindOrFeeBase,
     RpcBlindSendToOutput,
@@ -35,7 +35,7 @@ export abstract class Rpc {
     public abstract async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx>;
     public abstract async sendRawTransaction(rawtx: string): Promise<string>; // returns txid
 
-    public abstract async getBlockchainInfo(): Promise<BlockchainInfo>;
+    public abstract async getBlockchainInfo(): Promise<RpcBlockchainInfo>;
     public abstract async verifyRawTransaction(): Promise<any>; // TODO: result
 
     public async getNewPubkey(wallet: string): Promise<string> {
