@@ -1,6 +1,6 @@
 {
     "name": "omp-lib",
-    "version": "0.1.112",
+    "version": "0.1.119",
     "description": "Particl OMP-library",
     "main": "dist/omp.js",
     "types": "dist/omp.d.js",
@@ -14,8 +14,8 @@
         "pretest": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish '__tests__/**/*.{ts,tsx}'",
         "test": "npm-run-all -s lint test:run",
         "test:setup": "python3 particl-test-env.py",
-        "test:run": "jest --verbose",
-        "test:single": "npm run test:run -- --testPathPattern=$TEST -i",
+        "test:run": "jest --verbose --runInBand --detectOpenHandles",
+        "test:single": "npm run test:run -- --testPathPattern=$TEST",
         "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'",
         "lint:fix": "tslint --fix --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
     },
@@ -46,6 +46,7 @@
         "@types/jest": "^23.1.4",
         "@types/node": "^10.5.2",
         "@types/semver": "^5.5.0",
+        "delay": "^4.3.0",
         "jest": "^23.6.0",
         "jest-cli": "^23.6.0",
         "jest-sonar-reporter": "^2.0.0",

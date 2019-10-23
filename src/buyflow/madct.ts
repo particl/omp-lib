@@ -1,14 +1,10 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types';
-
-import { BlindPrevout, CryptoAddress, EphemeralKey, OutputType, ToBeBlindOutput } from '../interfaces/crypto';
-
+import { BlindPrevout, CryptoAddress, EphemeralKey, OutputType, Prevout, ToBeBlindOutput } from '../interfaces/crypto';
 import { CtRpc, ILibrary } from '../abstract/rpc';
 import { IMadCTBuilder } from '../abstract/transactions';
 import { Config } from '../abstract/config';
-
 import { buildBidTxScript, buildDestroyTxScript, ConfidentialTransactionBuilder, getExpectedSequence } from '../transaction-builder/confidential-transaction';
-
 import { MPA_ACCEPT, MPA_BID, MPA_LISTING_ADD, MPA_LOCK, PaymentDataAcceptCT, PaymentDataBidCT, PaymentDataLockCT } from '../interfaces/omp';
 import { asyncMap, clone, isArrayAndContains, isObject } from '../util';
 import { hash } from '../hasher/hash';
@@ -35,10 +31,11 @@ export class MadCTBuilder implements IMadCTBuilder {
      * Adds:
      *  pubKey, changeAddress & inputs.
      *
+     * @param wallet
      * @param listing the marketplace listing message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
-    public async bid(listing: MPA_LISTING_ADD, bid: MPA_BID): Promise<MPA_BID> {
+    public async bid(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID): Promise<MPA_BID> {
         // Get the right transaction library for the right currency.
         const paymentData = bid.buyer.payment as PaymentDataBidCT;
         const lib = <CtRpc> this._libs(paymentData.cryptocurrency, true);
@@ -52,7 +49,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         // const type = (this.network === 'testnet') ? 'anon' : 'blind';
         // paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
         // todo: why have getPrevouts and createPrevoutFrom?
-        paymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.BLIND, requiredSatoshis);
+        paymentData.prevouts = await lib.getPrevouts(wallet, OutputType.ANON, OutputType.BLIND, requiredSatoshis);
 
         if (!paymentData.outputs) {
             paymentData.outputs = [];
@@ -64,10 +61,10 @@ export class MadCTBuilder implements IMadCTBuilder {
         const buyer_output = paymentData.outputs[0];
 
         buyer_output.blindFactor = lib.getRandomBlindFactor();
-        buyer_output.address = await lib.getNewStealthAddressWithEphem();
+        buyer_output.address = await lib.getNewStealthAddressWithEphem(wallet);
 
 
-        const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(buyer_output.address);
+        const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(wallet, buyer_output.address);
         // TODO (security): randomize value and PRESENCE. Can be undefined! -> randomizes index too
         const blindFactor = lib.getRandomBlindFactor();
         // const blindFactor = undefined;
@@ -88,13 +85,14 @@ export class MadCTBuilder implements IMadCTBuilder {
      *
      * Note: this function is also called by the buyer.
      *
+     * @param wallet
      * @param listing the marketplace listing message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      * @param accept the accept to fill in or rebuild the transaction from.
      */
 // TODO: cognitive-complexity 28, should be less than 20
 // tslint:disable:cognitive-complexity
-    public async accept(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<MPA_ACCEPT> {
+    public async accept(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<MPA_ACCEPT> {
 
         // TODO(security): safe numbers?
         const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
@@ -146,11 +144,11 @@ export class MadCTBuilder implements IMadCTBuilder {
             const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
 
             // Generate a new CT output of the _exact_ amount.
-            // const type = (this.network === 'testnet') ? 'anon' : 'blind';
             // for now, we are forcing anon
+            // const type = (this.network === 'testnet') ? 'anon' : 'blind';
             // acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
             // todo: why have getPrevouts and createPrevoutFrom?
-            acceptPaymentData.prevouts = await lib.getPrevouts(OutputType.ANON, OutputType.BLIND, seller_requiredSatoshis + seller_fee, blind);
+            acceptPaymentData.prevouts = await lib.getPrevouts(wallet, OutputType.ANON, OutputType.BLIND, seller_requiredSatoshis + seller_fee, blind);
 
         }
 
@@ -165,17 +163,17 @@ export class MadCTBuilder implements IMadCTBuilder {
         }
 
         if (!seller_output.blindFactor) {
-            seller_output.blindFactor = await lib.getLastMatchingBlindFactor([seller_prevout, buyer_prevout], [buyer_output]);
+            seller_output.blindFactor = await lib.getLastMatchingBlindFactor(wallet, [seller_prevout, buyer_prevout], [buyer_output]);
         }
 
         if (!seller_output.address) {
-            seller_output.address = await lib.getNewStealthAddressWithEphem();
+            seller_output.address = await lib.getNewStealthAddressWithEphem(wallet);
         }
 
          // Load all trusted values for prevouts from blockchain.
          //     commitment, scriptPubKey, ...
-        await asyncMap(bidPaymentData.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
-        await asyncMap(acceptPaymentData.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
+        await asyncMap(bidPaymentData.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(wallet, i));
+        await asyncMap(acceptPaymentData.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(wallet, i));
 
         seller_output = this.getBidOutput(seller_output, buyer_output, 2880, seller_requiredSatoshis, true);
         buyer_output = this.getBidOutput(seller_output, buyer_output, 2880, buyer_requiredSatoshis);
@@ -183,7 +181,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         const all_inputs = clone(bidPaymentData.prevouts).concat(acceptPaymentData.prevouts);
         const all_outputs = [seller_output, buyer_output];
 
-        const rawbidtx = await lib.generateRawConfidentialTx(all_inputs, all_outputs, seller_fee);
+        const rawbidtx = await lib.generateRawConfidentialTx(wallet, all_inputs, all_outputs, seller_fee);
         const bidtx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawbidtx);
 
 
@@ -193,7 +191,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         // import the redeem script so the wallet is aware to watch on it
         // losing the pubkey makes the redeem script unrecoverable.
         // (always import the redeem script, doesn't matter)
-        await lib.importRedeemScript(seller_output._redeemScript);
+        await lib.importRedeemScript(wallet, seller_output._redeemScript);
 
         accept['_bidtx'] = bidtx;
         accept['_rawbidtx'] = bidtx.build();
@@ -204,10 +202,10 @@ export class MadCTBuilder implements IMadCTBuilder {
         /**
          * Destroy transaction from bid transaction.
          */
-        const destroy_blind_out = await lib.getLastMatchingBlindFactor([buyer_output, seller_output], []);
+        const destroy_blind_out = await lib.getLastMatchingBlindFactor(wallet, [buyer_output, seller_output], []);
         const destroy_output = this.getDestroyOutput(bidtx, seller_requiredSatoshis + buyer_requiredSatoshis - seller_fee, destroy_blind_out);
 
-        const rawdesttx = await lib.generateRawConfidentialTx(bid_utxos, destroy_output, acceptPaymentData.fee);
+        const rawdesttx = await lib.generateRawConfidentialTx(wallet, bid_utxos, destroy_output, acceptPaymentData.fee);
         const desttx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawdesttx);
 
         if (!acceptPaymentData.destroy || !isArrayAndContains(acceptPaymentData.destroy.signatures)) {
@@ -215,7 +213,7 @@ export class MadCTBuilder implements IMadCTBuilder {
                 signatures: []
             };
 
-            acceptPaymentData.destroy.signatures = await lib.signRawTransactionForBlindInputs(desttx, bid_utxos, seller_output.address);
+            acceptPaymentData.destroy.signatures = await lib.signRawTransactionForBlindInputs(wallet, desttx, bid_utxos, seller_output.address);
         }
         accept['_desttx'] = desttx;
         accept['_rawdesttx'] = desttx.build();
@@ -233,7 +231,7 @@ export class MadCTBuilder implements IMadCTBuilder {
 
         // If not rebuilding, generate new ephem key and insert in msg
         if (acceptPaymentData.release && !acceptPaymentData.release.ephem) {
-            const sx = await lib.getNewStealthAddressWithEphem(seller_output.address);
+            const sx = await lib.getNewStealthAddressWithEphem(wallet, seller_output.address);
             if (sx.ephem) {
                 acceptPaymentData.release.ephem = sx.ephem;
             }
@@ -249,8 +247,8 @@ export class MadCTBuilder implements IMadCTBuilder {
         // It is re-used for both release or refund but only one transaction is accepted,
         // so this shouldn't result in any trouble.
         // Refund is basically a release with the amount swapped around.
-        const buyer_release_address: CryptoAddress = await this.getReleaseAddress(lib, buyer_output.address, bidPaymentData.release.ephem);
-        const seller_release_address: CryptoAddress = await this.getReleaseAddress(lib, seller_output.address, acceptPaymentData.release.ephem!);
+        const buyer_release_address: CryptoAddress = await this.getReleaseAddress(lib, wallet, buyer_output.address, bidPaymentData.release.ephem);
+        const seller_release_address: CryptoAddress = await this.getReleaseAddress(lib, wallet, seller_output.address, acceptPaymentData.release.ephem!);
 
         // Decide where the sellers output is going to be located.
         const isSellerLastOutput = (bidPaymentData.release.blindFactor !== undefined);
@@ -263,13 +261,12 @@ export class MadCTBuilder implements IMadCTBuilder {
         // We usually use the "derived" blind factor for the last output. (not mandatory)
         // If the buyer didnt provide a blind factor then it will be last.
         if (isSellerLastOutput) {
-            lastBlindFactor = await lib.getLastMatchingBlindFactor(bid_utxos,
+            lastBlindFactor = await lib.getLastMatchingBlindFactor(wallet, bid_utxos,
                 [{blindFactor: bidPaymentData.release.blindFactor} as ToBeBlindOutput]);
         } else {
             // TODO(security): random
             acceptPaymentData.release.blindFactor = acceptPaymentData.release.blindFactor || lib.getRandomBlindFactor();
-            lastBlindFactor = await lib.getLastMatchingBlindFactor(
-                bid_utxos,
+            lastBlindFactor = await lib.getLastMatchingBlindFactor(wallet, bid_utxos,
                 [{blindFactor: acceptPaymentData.release.blindFactor} as ToBeBlindOutput]);
         }
 
@@ -305,20 +302,20 @@ export class MadCTBuilder implements IMadCTBuilder {
         delete bid_utxos[1]['_sequence'];
 
         // Build the raw release transaction
-        const rawreleasetx = await lib.generateRawConfidentialTx(bid_utxos, release_outputs, seller_fee);
+        const rawreleasetx = await lib.generateRawConfidentialTx(wallet, bid_utxos, release_outputs, seller_fee);
         accept['_rawreleasetxunsigned'] = rawreleasetx;
         const releasetx: ConfidentialTransactionBuilder = new ConfidentialTransactionBuilder(rawreleasetx);
 
         // Build the raw refund transaction (unsigned!)
         // TODO(security): seller_fee risk to buyer?
-        const rawrefundtx = await lib.generateRawConfidentialTx(bid_utxos, refund_outputs, seller_fee);
+        const rawrefundtx = await lib.generateRawConfidentialTx(wallet, bid_utxos, refund_outputs, seller_fee);
         accept['_rawrefundtxunsigned'] = rawrefundtx;
 
         // Not rebuilding, seller signs release tx
         if (!isArrayAndContains(acceptPaymentData.release.signatures)) {
             // const seller_release_input = bid_utxos[0];
             // [seller_release_input]
-            acceptPaymentData.release.signatures = await lib.signRawTransactionForBlindInputs(releasetx, bid_utxos, seller_output.address);
+            acceptPaymentData.release.signatures = await lib.signRawTransactionForBlindInputs(wallet, releasetx, bid_utxos, seller_output.address);
         }
 
         // complete the release tx but don't reveal to seller.
@@ -326,7 +323,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             const seller_release_input = bid_utxos[0];
             const buyer_release_input = bid_utxos[1];
 
-            const buyer_signatures = await lib.signRawTransactionForBlindInputs(releasetx, bid_utxos, buyer_output.address);
+            const buyer_signatures = await lib.signRawTransactionForBlindInputs(wallet, releasetx, bid_utxos, buyer_output.address);
             const seller_signatures = acceptPaymentData.release.signatures;
 
             releasetx.puzzleReleaseWitness(seller_release_input, seller_signatures[0], buyer_signatures[0]);
@@ -350,12 +347,13 @@ export class MadCTBuilder implements IMadCTBuilder {
      *
      * Note: this function is also called by the seller for rebuilding.
      *
+     * @param wallet
      * @param listing the marketplace listing message.
      * @param bid the marketplace bid message.
      * @param accept the marketplace accept message.
      * @param lock the lock to fill in or rebuild the transaction from.
      */
-    public async lock(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<MPA_LOCK> {
+    public async lock(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<MPA_LOCK> {
 
         // TODO(security): safe numbers?
 
@@ -366,7 +364,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         // Get the right transaction library for the right currency.
         const lib = <CtRpc> this._libs(bidPaymentData.cryptocurrency, true);
 
-        const rebuilt = (await this.accept(listing, bid, clone(accept)));
+        const rebuilt = (await this.accept(wallet, listing, bid, clone(accept)));
         const bidtx: ConfidentialTransactionBuilder = rebuilt['_bidtx'];
 
         if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
@@ -376,9 +374,14 @@ export class MadCTBuilder implements IMadCTBuilder {
         if (isArrayAndContains(lockPaymentData.signatures)) {
             // add signatures to inputs
             const signature = lockPaymentData.signatures;
-            bidPaymentData.prevouts.forEach((out, i) => bidtx.setWitness(out, signature[i]));
+
+            // bidPaymentData.prevouts.forEach((out, i) => bidtx.setWitness(out, signature[i]));
+            for (const [index, blindPrevout] of bidPaymentData.prevouts.entries()) {
+                bidtx.setWitness(blindPrevout, signature[index]);
+            }
+
         } else {
-            lockPaymentData.signatures = await lib.signRawTransactionForBlindInputs(bidtx, bidPaymentData.prevouts);
+            lockPaymentData.signatures = await lib.signRawTransactionForBlindInputs(wallet, bidtx, bidPaymentData.prevouts);
         }
 
         lock['_bidtx'] = bidtx;
@@ -407,7 +410,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             lockPaymentData.destroy = {
                 signatures: []
             };
-            lockPaymentData.destroy.signatures = await lib.signRawTransactionForBlindInputs(desttx, bid_utxos, buyer_output.address);
+            lockPaymentData.destroy.signatures = await lib.signRawTransactionForBlindInputs(wallet, desttx, bid_utxos, buyer_output.address);
         }
 
         if (!acceptPaymentData.destroy || acceptPaymentData.destroy.signatures.length === 0) {
@@ -431,7 +434,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             lockPaymentData.refund = {
                 signatures: []
             };
-            lockPaymentData.refund.signatures = await lib.signRawTransactionForBlindInputs(refundtx, bid_utxos, buyer_output.address);
+            lockPaymentData.refund.signatures = await lib.signRawTransactionForBlindInputs(wallet, refundtx, bid_utxos, buyer_output.address);
         }
 
         lock['_refundtx'] = refundtx;
@@ -447,12 +450,13 @@ export class MadCTBuilder implements IMadCTBuilder {
      * Generate the fully signed bid txn in response to a
      * lock message. (seller only)
      *
+     * @param wallet
      * @param listing the marketplace listing message.
      * @param bid the marketplace bid message.
      * @param accept the marketplace accept message.
      * @param lock the lock to fill in or rebuild the transaction from.
      */
-    public async complete(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
+    public async complete(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
         const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
@@ -464,34 +468,47 @@ export class MadCTBuilder implements IMadCTBuilder {
         // Don't trigger the signing of releasetx for buyer when rebuilding
         const cloned_accept = clone(accept);
 
-        const rebuiltLockMessage = (await this.lock(listing, bid, cloned_accept, clone(lock)));
+        const rebuiltLockMessage = (await this.lock(wallet, listing, bid, cloned_accept, clone(lock)));
         // console.log('OMP_LIB: rebuiltLockMessage: ', JSON.stringify(rebuiltLockMessage, null, 2));
 
         // rebuild from accept message
-        const bidtx: ConfidentialTransactionBuilder = rebuiltLockMessage['_bidtx'];
+        const bidTxBuilder: ConfidentialTransactionBuilder = rebuiltLockMessage['_bidtx'];
 
-        const seller_inputs = clone(acceptPaymentData.prevouts);
+        const seller_inputs: BlindPrevout[] = clone(acceptPaymentData.prevouts);
 
         const seller_requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, true);
         const seller_fee = acceptPaymentData.fee;
         seller_inputs[0]._satoshis = seller_requiredSatoshis + seller_fee;
 
-        // console.log('OMP_LIB: seller_requiredSatoshis: ', seller_requiredSatoshis);
-        // console.log('OMP_LIB: seller_fee: ', seller_fee);
+        console.log('OMP_LIB: seller_requiredSatoshis: ', seller_requiredSatoshis);
+        console.log('OMP_LIB: seller_fee: ', seller_fee);
+        console.log('OMP_LIB: seller_inputs: ', seller_inputs);
+/*
+        was:
+        await asyncMap(seller_inputs, async utxo => await lib.loadTrustedFieldsForBlindUtxo(wallet, utxo));
+        const seller_signatures = await lib.signRawTransactionForBlindInputs(wallet, bidTxBuilder, seller_inputs);
+        seller_inputs.forEach((out, i) => bidTxBuilder.setWitness(out, seller_signatures[i]));
+*/
+        for (const sellerInput of seller_inputs) {
+            await lib.loadTrustedFieldsForBlindUtxo(wallet, sellerInput);
+            const sellerSignature = await lib.signRawTransactionForBlindInput(wallet, bidTxBuilder, sellerInput);
+            // TODO: why is this called twice? first in signRawTransactionForBlindInput, then here again?
+            bidTxBuilder.setWitness(sellerInput, sellerSignature);
+        }
 
-        await asyncMap(seller_inputs, async i => await lib.loadTrustedFieldsForBlindUtxo(i));
-
-        const seller_signatures = await lib.signRawTransactionForBlindInputs(bidtx, seller_inputs);
-        seller_inputs.forEach((out, i) => bidtx.setWitness(out, seller_signatures[i]));
-
-        return bidtx.build();
+        return bidTxBuilder.build();
     }
 
     /**
      * Produces a fully signed release transaction when called by the buyer.
      * Performs two steps: both for buyer and seller.
+     *
+     * @param wallet
+     * @param listing the marketplace listing message.
+     * @param bid the marketplace bid message.
+     * @param accept the marketplace accept message.
      */
-    public async release(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<string> {
+    public async release(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<string> {
         // TODO(security): safe numbers?
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
@@ -503,12 +520,22 @@ export class MadCTBuilder implements IMadCTBuilder {
         const cloned_accept = clone(accept);
         cloned_accept['_buyerbuildrelease'] = true;
         // regenerate the transaction (from the messages)
-        const rebuilt = (await this.accept(listing, bid, cloned_accept));
+        const rebuilt = (await this.accept(wallet, listing, bid, cloned_accept));
 
         return rebuilt['_rawreleasetx'];
     }
 
-    public async refund(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
+    /**
+     * Produces a fully signed release transaction when called by the buyer.
+     * Performs two steps: both for buyer and seller.
+     *
+     * @param wallet
+     * @param listing the marketplace listing message.
+     * @param bid the marketplace bid message.
+     * @param accept the marketplace accept message.
+     * @param lock
+     */
+    public async refund(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidCT;
         const acceptPaymentData = accept.seller.payment as PaymentDataAcceptCT;
@@ -518,7 +545,7 @@ export class MadCTBuilder implements IMadCTBuilder {
         const lib = <CtRpc> this._libs(bidPaymentData.cryptocurrency, true);
 
         // regenerate the transaction (from the messages)
-        const rebuilt = (await this.lock(listing, bid, clone(accept), clone(lock)));
+        const rebuilt = (await this.lock(wallet, listing, bid, clone(accept), clone(lock)));
         const bidtx: ConfidentialTransactionBuilder = rebuilt['_bidtx'];
         const refundtx: ConfidentialTransactionBuilder = rebuilt['_refundtx'];
 
@@ -547,7 +574,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             throw new Error('Missing seller destroy signatures.');
         }
         const buyer_signatures = lockPaymentData.refund.signatures;
-        const seller_signatures = await lib.signRawTransactionForBlindInputs(refundtx, bid_utxos, seller_output.address);
+        const seller_signatures = await lib.signRawTransactionForBlindInputs(wallet, refundtx, bid_utxos, seller_output.address);
 
         refundtx.puzzleReleaseWitness(seller_release_input, seller_signatures[0], buyer_signatures[0]);
         refundtx.puzzleReleaseWitness(buyer_release_input, seller_signatures[1], buyer_signatures[1]);
@@ -588,11 +615,11 @@ export class MadCTBuilder implements IMadCTBuilder {
         ];
     }
 
-    private async getReleaseAddress(lib: CtRpc, sx: CryptoAddress, ephem: EphemeralKey): Promise<CryptoAddress> {
+    private async getReleaseAddress(lib: CtRpc, wallet: string, sx: CryptoAddress, ephem: EphemeralKey): Promise<CryptoAddress> {
         const address = clone(sx);
         delete address.pubKey;
         address.ephem = ephem;
-        await lib.getPubkeyForStealthWithEphem(address);
+        await lib.getPubkeyForStealthWithEphem(wallet, address);
         return address;
     }
 
@@ -619,10 +646,12 @@ export class MadCTBuilder implements IMadCTBuilder {
     }
 
     private getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
-        const type = (this.network === 'testnet') ? 'anon' : 'blind';
+
+        // for now, we are forcing anon
+        // const type = (this.network === 'testnet') ? 'anon' : 'blind';
         return {
             address,
-            _type: type,
+            _type: 'anon',
             _satoshis: satoshis,
             blindFactor: blind
         };

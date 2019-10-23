@@ -19,9 +19,9 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
         });
 
         prevout.setWitness([
-            new Buffer(sig.signature, 'hex'),
-            new Buffer(sig.pubKey, 'hex')
-            // new Buffer(input._scriptPubKey, 'hex')
+            Buffer.from(sig.signature, 'hex'),
+            Buffer.from(sig.pubKey, 'hex')
+            // Buffer.from(input._scriptPubKey, 'hex')
         ]);
 
         return true;
@@ -79,6 +79,7 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
  * @param addressFrom
  * @param addressTo
  * @param secondsToLock
+ * @param network
  */
 export function buildBidTxScript(addressFrom: CryptoAddress, addressTo: CryptoAddress, secondsToLock: number, network: string): any {
     // commitment: string, ephem: EphemeralKey,

@@ -1,11 +1,9 @@
 import { inject, injectable } from 'inversify';
 import { TYPES } from '../types';
-
 import { CryptoAddressType } from '../interfaces/crypto';
 import { ILibrary } from '../abstract/rpc';
 import { IMultiSigBuilder } from '../abstract/transactions';
 import { Config } from '../abstract/config';
-
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import {
     MPA_BID,
@@ -39,25 +37,25 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * Adds:
      *  pubKey, changeAddress & inputs.
      *
-     * @param config a configuration, storing the shipping details, cryptocurrency to be used etc.
+     * @param wallet
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      */
-    public async bid(listing: MPA_LISTING_ADD, bid: MPA_BID): Promise<MPA_BID> {
+    public async bid(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID): Promise<MPA_BID> {
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidMultisig;
 
         // Get the right transaction library for the right currency.
         const lib = this._libs(bidPaymentData.cryptocurrency);
 
-        bidPaymentData.pubKey = await lib.getNewPubkey();
+        bidPaymentData.pubKey = await lib.getNewPubkey(wallet);
         bidPaymentData.changeAddress = {
             type: CryptoAddressType.NORMAL,
-            address: await lib.getNewAddress()
+            address: await lib.getNewAddress(wallet)
         };
 
         const requiredSatoshis: number = this.bid_calculateRequiredSatoshis(listing, bid, false);
-        bidPaymentData.prevouts = await lib.getNormalPrevouts(requiredSatoshis);
+        bidPaymentData.prevouts = await lib.getNormalPrevouts(wallet, requiredSatoshis);
 
         return bid;
     }
@@ -70,11 +68,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * Adds:
      *  pubKey, changeAddress & inputs.
      *
+     * @param wallet
      * @param listing the marketplace listig action, used to retrieve the payment amounts.
      * @param bid the marketplace bid action that contains the lock, release and destroy signatures.
      * @param accept the marketplace accept action to add the transaction details to
      */
-    public async accept(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<MPA_ACCEPT> {
+    public async accept(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<MPA_ACCEPT> {
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidMultisig;
         const acceptPaymentData = accept.seller.payment as PaymentDataAcceptMultisig;
@@ -83,10 +82,10 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const lib = this._libs(bidPaymentData.cryptocurrency);
 
         if (!acceptPaymentData.pubKey || !acceptPaymentData.changeAddress) {
-            acceptPaymentData.pubKey = await lib.getNewPubkey();
+            acceptPaymentData.pubKey = await lib.getNewPubkey(wallet);
             acceptPaymentData.changeAddress = {
                 type: CryptoAddressType.NORMAL,
-                address: await lib.getNewAddress()
+                address: await lib.getNewAddress(wallet)
             };
         }
 
@@ -102,7 +101,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
 
         if (!isArrayAndContains(acceptPaymentData.prevouts)) {
             // add chosen prevouts to cover amount (MPA_ACCEPT)
-            acceptPaymentData.prevouts = await lib.getNormalPrevouts(seller_requiredSatoshis + seller_fee);
+            acceptPaymentData.prevouts = await lib.getNormalPrevouts(wallet, seller_requiredSatoshis + seller_fee);
         }
 
         // prefetch amounts for inputs
@@ -135,7 +134,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         // losing the pubkey makes the redeem script unrecoverable.
         // (always import the redeem script, doesn't matter)
         if (multisigOutput._redeemScript) {
-            await lib.importRedeemScript(multisigOutput._redeemScript);
+            await lib.importRedeemScript(wallet, multisigOutput._redeemScript);
         }
 
 
@@ -145,7 +144,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
             acceptPaymentData.prevouts.forEach((out, i) => bidtx.addSignature(out, signature[i]));
 
         } else {
-            acceptPaymentData.signatures = await lib.signRawTransactionForInputs(bidtx, seller_inputs);
+            acceptPaymentData.signatures = await lib.signRawTransactionForInputs(wallet, bidtx, seller_inputs);
         }
 
         accept['_bidtx'] = bidtx;
@@ -177,7 +176,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
                     signatures: []
                 };
 
-                acceptPaymentData.release.signatures = await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
+                acceptPaymentData.release.signatures = await lib.signRawTransactionForInputs(wallet, releaseTx, [multisigUtxo]);
             } else {
                 releaseTx.addSignature(multisigUtxo, acceptPaymentData.release.signatures[0]);
             }
@@ -196,12 +195,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
      * Adds:
      *  pubKey, changeAddress & inputs.
      *
+     * @param wallet
      * @param listing the marketplace mostong message, used to retrieve the payment amounts.
      * @param bid the marketplace bid message to add the transaction details to.
      * @param accept
      * @param lock
      */
-    public async lock(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<MPA_LOCK> {
+    public async lock(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<MPA_LOCK> {
 
         // TODO(security): safe numbers?
         const bidPaymentData = bid.buyer.payment as PaymentDataBidMultisig;
@@ -212,14 +212,14 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const lib = this._libs(bidPaymentData.cryptocurrency);
 
         // rebuild from accept message
-        const bidtx: TransactionBuilder = (await this.accept(listing, bid, clone(accept)))['_bidtx'];
+        const bidtx: TransactionBuilder = (await this.accept(wallet, listing, bid, clone(accept)))['_bidtx'];
 
         if (isArrayAndContains(lockPaymentData.signatures)) {
             // add signatures to inputs
             const signature = lockPaymentData.signatures;
             bidPaymentData.prevouts.forEach((out, i) => bidtx.addSignature(out, signature[i]));
         } else {
-            lockPaymentData.signatures = await lib.signRawTransactionForInputs(bidtx, bidPaymentData.prevouts);
+            lockPaymentData.signatures = await lib.signRawTransactionForInputs(wallet, bidtx, bidPaymentData.prevouts);
         }
 
         lock['_bidtx'] = bidtx;
@@ -252,7 +252,7 @@ export class MultiSigBuilder implements IMultiSigBuilder {
                     signatures: []
                 };
 
-                lockPaymentData.refund.signatures = await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
+                lockPaymentData.refund.signatures = await lib.signRawTransactionForInputs(wallet, refundTx, [multisigUtxo]);
             } else {
                 refundTx.addSignature(multisigUtxo, lockPaymentData.refund.signatures[0]);
             }
@@ -301,11 +301,12 @@ export class MultiSigBuilder implements IMultiSigBuilder {
     /**
      * Creates a fully signed release transaction when called by the buyer.
      * Returns the rawtx in hex.
+     * @param wallet
      * @param listing the listing action for which a bid was created
      * @param bid the bid action for which we're refunding
      * @param accept the accept action for that bid message
      */
-    public async release(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<string> {
+    public async release(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT): Promise<string> {
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidMultisig;
 
@@ -313,13 +314,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const lib = this._libs(bidPaymentData.cryptocurrency);
 
         // regenerate the transaction (from the messages)
-        const rebuilt = (await this.accept(listing, bid, clone(accept)));
+        const rebuilt = (await this.accept(wallet, listing, bid, clone(accept)));
         const bidTx: TransactionBuilder = rebuilt['_bidtx'];
         const releaseTx: TransactionBuilder = rebuilt['_releasetx'];
 
         // sign for buyer
         const multisigUtxo = bidTx.getMultisigUtxo(bidPaymentData.pubKey, this.network);
-        await lib.signRawTransactionForInputs(releaseTx, [multisigUtxo]);
+        await lib.signRawTransactionForInputs(wallet, releaseTx, [multisigUtxo]);
 
         return releaseTx.build();
     }
@@ -346,12 +347,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
     /**
      * Creates a fully signed refund transaction when called by the seller.
      * Returns the rawtx in hex.
+     * @param wallet
      * @param listing the listing action for which a bid was created
      * @param bid the bid action for which we're refunding
      * @param accept the accept action for the bid action
      * @param lock
      */
-    public async refund(listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
+    public async refund(wallet: string, listing: MPA_LISTING_ADD, bid: MPA_BID, accept: MPA_ACCEPT, lock: MPA_LOCK): Promise<string> {
 
         const bidPaymentData = bid.buyer.payment as PaymentDataBidMultisig;
         const acceptPaymentData = accept.seller.payment as PaymentDataAcceptMultisig;
@@ -360,13 +362,13 @@ export class MultiSigBuilder implements IMultiSigBuilder {
         const lib = this._libs(bidPaymentData.cryptocurrency);
 
         // regenerate the transaction (from the messages)
-        const rebuilt = (await this.lock(listing, bid, accept, clone(lock)));
+        const rebuilt = (await this.lock(wallet, listing, bid, accept, clone(lock)));
         const bidTx: TransactionBuilder = rebuilt['_bidtx'];
         const refundTx: TransactionBuilder = rebuilt['_refundtx'];
 
         // sign for seller
         const multisigUtxo = bidTx.getMultisigUtxo(acceptPaymentData.pubKey, this.network);
-        await lib.signRawTransactionForInputs(refundTx, [multisigUtxo]);
+        await lib.signRawTransactionForInputs(wallet, refundTx, [multisigUtxo]);
 
         return refundTx.build();
     }

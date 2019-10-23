@@ -12,6 +12,8 @@ import { CoreRpcService } from '../../test/rpc.stub';
 
 describe('Buyflow: multisig', () => {
 
+    const WALLET = '';  // use the default wallet
+
     const delay = ms => {
         return new Promise(resolve => {
             return setTimeout(resolve, ms);
@@ -98,25 +100,25 @@ describe('Buyflow: multisig', () => {
 
         jest.setTimeout(40000);
         // Step 1: Buyer does bid
-        bid = strip(await buyer.bid(config, ok));
+        bid = strip(await buyer.bid(WALLET, config, ok));
         FV_MPA_BID.validate(bid);
 
         await delay(10000);
         // Step 2: seller accepts AND signs release tx
         // the seller always wants his money back
-        accept = strip(await seller.accept(ok, bid));
+        accept = strip(await seller.accept(WALLET, ok, bid));
         FV_MPA_ACCEPT.validate(accept);
 
         // Step 3: buyer locks and submits
         await delay(5000);
-        lock = await buyer.lock(ok, bid, accept);
+        lock = await buyer.lock(WALLET, ok, bid, accept);
         const bidtx = lock.action['_rawbidtx'];
         lock = strip(lock);
         FV_MPA_LOCK.validate(lock);
         await node0.sendRawTransaction(bidtx);
 
         // Step 4: buyer optionally releases
-        release = await buyer.release(ok, bid, accept);
+        release = await buyer.release(WALLET, ok, bid, accept);
         await node0.sendRawTransaction(release);
 
         expect(bid).toBeDefined();
@@ -132,21 +134,21 @@ describe('Buyflow: multisig', () => {
         let complete: string;
 
         jest.setTimeout(40000);
-        const bid = await buyer.bid(config, ok);
+        const bid = await buyer.bid(WALLET, config, ok);
         FV_MPA_BID.validate(bid);
 
         await delay(7000);
-        accept = await seller.accept(ok, bid);
+        accept = await seller.accept(WALLET, ok, bid);
         FV_MPA_ACCEPT.validate(accept);
 
         await delay(5000);
-        lock = await buyer.lock(ok, bid, accept);
+        lock = await buyer.lock(WALLET, ok, bid, accept);
         const bidtx = lock.action['_rawbidtx'];
         lock = strip(lock);
         FV_MPA_LOCK.validate(lock);
         await node0.sendRawTransaction(bidtx);
 
-        complete = await seller.refund(ok, bid, accept, lock);
+        complete = await seller.refund(WALLET, ok, bid, accept, lock);
         await delay(5000);
         await node0.sendRawTransaction(complete);
 

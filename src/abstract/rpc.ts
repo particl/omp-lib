@@ -2,81 +2,52 @@ import * as _ from 'lodash';
 import { BlindPrevout, CryptoAddress, Cryptocurrency, EphemeralKey, ISignature, OutputType, Prevout, ToBeBlindOutput } from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
 import { clone, fromSatoshis, toSatoshis } from '../util';
-import { RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcVout, RpcWallet, RpcWalletDir } from '../interfaces/rpc';
+import {
+    RpcBlockchainInfo,
+    RpcAddressInfo,
+    RpcBlindInput, RpcBlindOrFeeBase,
+    RpcBlindSendToOutput,
+    RpcOutput,
+    RpcRawTx,
+    RpcUnspentOutput,
+    RpcVout,
+    RpcWallet,
+    RpcWalletDir
+} from '../interfaces/rpc';
 import { ConfidentialTransactionBuilder } from '../transaction-builder/confidential-transaction';
 import { randomBytes } from 'crypto';
 
 // tslint:disable max-classes-per-file bool-param-default
-
-export interface RpcBlindInput extends RpcOutput {
-    type: string;
-    scriptPubKey: string;
-    amount_commitment: string;
-    blindingfactor: string;
-    redeemScript?: string;
-    sequence?: number;
-}
-
-export interface RpcBlindOrFeeBase {
-
-}
-
-export interface RpcBlindOutput extends RpcBlindOrFeeBase {
-    rangeproof_params: any;
-    pubkey?: string;
-    ephemeral_key?: string;
-    script?: string;
-    nonce?: string;
-    data?: any;
-    address?: string;
-    amount?: number;
-    data_ct_fee?: number;
-}
-
-export interface RpcCtFeeOutput extends RpcBlindOrFeeBase {
-    type: string;
-    amount: number;
-    data_ct_fee: number;
-}
-
-export interface RpcBlindSendToOutput {
-    address: string;
-    amount: number;
-    blindingfactor: string;
-}
 
 /**
  * The abstract class for the Rpc class.
  */
 export abstract class Rpc {
 
-    public abstract async call(method: string, params: any[]): Promise<any>;
-/*
-    public abstract async createWallet(name: string, disablePrivateKeys: boolean, blank: boolean): Promise<RpcWallet>;
-    public abstract async loadWallet(name: string): Promise<RpcWallet>;
-    public abstract async smsgSetWallet(name?: string): Promise<RpcWallet>;
-    public abstract async listLoadedWallets(): Promise<string[]>;
-    public abstract async listWalletDir(): Promise<RpcWalletDir>;
-*/
-    public abstract async getNewAddress(): Promise<string>; // returns address
-    public abstract async getAddressInfo(address: string): Promise<RpcAddressInfo>;
-    public abstract async sendToAddress(address: string, amount: number, comment: string): Promise<string>; // returns txid
-    public abstract async listUnspent(type: OutputType, minconf: number): Promise<RpcUnspentOutput[]>;
-    public abstract async lockUnspent(unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>; // successful
-    public abstract async importAddress(address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>; // returns nothing
-    public abstract async createSignatureWithWallet(hex: string, prevtx: RpcOutput, address: string): Promise<string>; // signature
+    public abstract async call(method: string, params: any[], wallet: string): Promise<any>;
+    public abstract async getNewAddress(wallet: string): Promise<string>; // returns address
+    public abstract async getAddressInfo(wallet: string, address: string): Promise<RpcAddressInfo>;
+    public abstract async listUnspent(wallet: string, type: OutputType, minconf: number): Promise<RpcUnspentOutput[]>;
+    public abstract async sendToAddress(wallet: string, address: string, amount: number, comment: string): Promise<string>; // returns txid
+    public abstract async lockUnspent(wallet: string, unlock: boolean, outputs: RpcOutput[], permanent: boolean): Promise<boolean>; // successful
+    public abstract async importAddress(wallet: string, address: string, label: string, rescan: boolean, p2sh: boolean): Promise<void>; // returns nothing
+    public abstract async createSignatureWithWallet(wallet: string, hex: string, prevtx: RpcOutput, address: string): Promise<string>; // signature
     public abstract async getRawTransaction(txid: string, verbose?: boolean): Promise<RpcRawTx>;
     public abstract async sendRawTransaction(rawtx: string): Promise<string>; // returns txid
 
-    public async getNewPubkey(): Promise<string> {
-        const address = await this.getNewAddress();
-        return (await this.getAddressInfo(address)).pubkey;
+    public abstract async getBlockchainInfo(): Promise<RpcBlockchainInfo>;
+    public abstract async verifyRawTransaction(): Promise<any>; // TODO: result
+
+    public async getNewPubkey(wallet: string): Promise<string> {
+        const address = await this.getNewAddress(wallet);
+        const addressInfo: RpcAddressInfo = await this.getAddressInfo(wallet, address);
+        return addressInfo.pubkey;
     }
 
     // TODO: refactor this, cognitive-complexity 39
     // TODO: use getPrevouts() from the CtRpc?
     // tslint:disable:cognitive-complexity
-    public async getNormalPrevouts(reqSatoshis: number): Promise<Prevout[]> {
+    public async getNormalPrevouts(wallet: string, reqSatoshis: number): Promise<Prevout[]> {
         const chosen: Prevout[] = [];
         // const utxoLessThanReq: number[] = [];
         let exactMatchIdx = -1;
@@ -84,7 +55,7 @@ export abstract class Rpc {
         let chosenSatoshis = 0;
         const defaultIdxs: number[] = [];
 
-        const unspent: RpcUnspentOutput[] = await this.listUnspent(OutputType.PART, 0);
+        const unspent: RpcUnspentOutput[] = await this.listUnspent(wallet, OutputType.PART, 0);
 
         const filtered = unspent.filter(
             (output: RpcUnspentOutput, outIdx: number) => {
@@ -142,8 +113,11 @@ export abstract class Rpc {
 
             // ... Step 3: If no summed values found, attempt to split a large enough output.
             if (utxoIdxs.length === 0 && maxOutputIdx !== -1 && toSatoshis(unspent[maxOutputIdx].amount) > reqSatoshis) {
-                const newAddr = await this.getNewAddress();
-                const txid: string = await this.sendToAddress(newAddr, fromSatoshis(reqSatoshis), 'Split output');
+                const newAddr = await this.getNewAddress(wallet);
+                const txid: string = await this.sendToAddress(wallet, newAddr, fromSatoshis(reqSatoshis), 'Split output');
+                if (!txid) {
+                    throw new Error('Send failed!');
+                }
                 const txData: RpcRawTx = await this.getRawTransaction(txid);
                 const outData: RpcVout | undefined = txData.vout.find(outObj => outObj.valueSat === reqSatoshis);
                 if (outData) {
@@ -184,7 +158,7 @@ export abstract class Rpc {
         });
         // tslint:enable:no-for-each-push
 
-        const success: boolean = await this.lockUnspent(false, chosen, true);
+        const success: boolean = await this.lockUnspent(wallet, false, chosen, true);
         if (!success) {
             throw new Error('Locking of unspent Outputs failed.');
         }
@@ -194,11 +168,12 @@ export abstract class Rpc {
     /**
      * Fetch the rawtx and set the utxo._satoshis and utxo._scriptPubKey to the tx's matching vout's valueSat
      *
+     * @param wallet
      * @param utxo
      */
     public async loadTrustedFieldsForUtxos(utxo: Prevout): Promise<Prevout> {
-        const vout: RpcVout | undefined = (await this.getRawTransaction(utxo.txid))
-            .vout.find((value: RpcVout) => value.n === utxo.vout);
+        const rawTx: RpcRawTx = await this.getRawTransaction(utxo.txid);
+        const vout: RpcVout | undefined = rawTx.vout.find((value: RpcVout) => value.n === utxo.vout);
         if (!vout
             || !vout.valueSat
             || !vout.scriptPubKey
@@ -212,16 +187,17 @@ export abstract class Rpc {
         return utxo;
     }
 
-    public async importRedeemScript(script: string): Promise<void> {
-        await this.importAddress(script, '', false, true);
+    public async importRedeemScript(wallet: string, script: string): Promise<void> {
+        await this.importAddress(wallet, script, '', false, true);
     }
 
     /**
      * Sign a transaction and returns the signatures for an array of normal inputs.
+     * @param wallet
      * @param tx the transaction to build and sign for.
      * @param inputs the _normal_ inputs to sign for.
      */
-    public async signRawTransactionForInputs(tx: TransactionBuilder, inputs: Prevout[]): Promise<ISignature[]> {
+    public async signRawTransactionForInputs(wallet: string, tx: TransactionBuilder, inputs: Prevout[]): Promise<ISignature[]> {
         const r: ISignature[] = [];
 
         // needs to synchronize, because the order needs to match the inputs order.
@@ -248,8 +224,8 @@ export abstract class Rpc {
                 safe: true      // ts lint
             };
 
-            const signature: string = await this.createSignatureWithWallet(hex, prevtx, input._address);
-            const pubKey: string = (await this.getAddressInfo(input._address)).pubkey;
+            const signature: string = await this.createSignatureWithWallet(wallet, hex, prevtx, input._address);
+            const pubKey: string = (await this.getAddressInfo(wallet, input._address)).pubkey;
             const sig = {
                 signature,
                 pubKey
@@ -271,36 +247,36 @@ export abstract class CtRpc extends Rpc {
     // example implementations in test/rpc.stub.ts and rpc-ct.stub.ts
 
     // WALLET - generating keys, addresses.
-    public abstract async getNewStealthAddress(): Promise<CryptoAddress>;
-    public abstract async sendTypeTo(typeIn: OutputType, typeOut: OutputType, outputs: RpcBlindSendToOutput[]): Promise<string>;
-
-    // Retrieving information of prevouts
-    // public abstract async listUnspentBlind(minconf: number): Promise<RpcUnspentOutput[]>;
-    // public abstract async listUnspentAnon(minconf: number): Promise<RpcUnspentOutput[]>;
+    public abstract async getNewStealthAddress(wallet: string, params?: any[]): Promise<CryptoAddress>;
+    public abstract async sendTypeTo(wallet: string, typeIn: OutputType, typeOut: OutputType, outputs: RpcBlindSendToOutput[]): Promise<string>;
 
     // public abstract async getBlindPrevouts(type: string, satoshis: number, blind?: string): Promise<BlindPrevout[]>;
-    public abstract async getPrevouts(typeIn: OutputType, typeOut: OutputType, satoshis: number, blind?: string): Promise<BlindPrevout[]>;
-
-    // public abstract async getLastMatchingBlindFactor(prevouts: Prevout[] | ToBeBlindOutput[], outputs: ToBeBlindOutput[]): Promise<string>;
+    public abstract async getPrevouts(wallet: string, typeIn: OutputType, typeOut: OutputType, satoshis: number, blind?: string): Promise<BlindPrevout[]>;
 
     // Importing and signing
-    // public abstract async signRawTransactionForBlindInputs(tx: TransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]>;
-    public abstract async verifyCommitment(commitment: string, blindFactor: string, amount: number): Promise<boolean>;
+    public abstract async verifyCommitment(wallet: string, commitment: string, blindFactor: string, amount: number): Promise<boolean>;
 
-    public abstract async createRawTransaction(inputs: BlindPrevout[], outputs: any[]): Promise<any>;
+    public async createPrevoutFrom(wallet: string, typeFrom: OutputType, typeTo: OutputType, satoshis: number, blindingfactor?: string): Promise<BlindPrevout> {
+        if (wallet === undefined) {
+            throw new Error('Missing wallet. (createPrevoutFrom)');
+        }
 
-    public async createPrevoutFrom(typeFrom: OutputType, typeTo: OutputType, satoshis: number, blindingfactor?: string): Promise<BlindPrevout> {
+        console.log('createPrevoutFrom, wallet: ' + wallet);
+
         let prevout: BlindPrevout;
-        const sx = await this.getNewStealthAddress();
+        const sx = await this.getNewStealthAddress(wallet);
         const amount = fromSatoshis(satoshis);
 
         if (!blindingfactor) {
             blindingfactor = this.getRandomBlindFactor();
         }
 
-        const txid = await this.sendTypeTo(typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor}]);
+        const txid = await this.sendTypeTo(wallet, typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor}]);
+        if (!txid) {
+            throw new Error('Send failed!');
+        }
 
-        const unspent: RpcUnspentOutput[] = await this.listUnspent(typeTo, 0);
+        const unspent: RpcUnspentOutput[] = await this.listUnspent(wallet, typeTo, 0);
         const found = unspent.find(tmpVout => {
             return (tmpVout.txid === txid && tmpVout.amount === fromSatoshis(satoshis));
         });
@@ -329,7 +305,7 @@ export abstract class CtRpc extends Rpc {
         } as BlindPrevout;
 
         // Permanently lock the unspent output
-        await this.lockUnspent(false, [prevout], true);
+        await this.lockUnspent(wallet, false, [prevout], true);
 
         return prevout;
     }
@@ -337,9 +313,10 @@ export abstract class CtRpc extends Rpc {
     /**
      * Load a set of trusted fields for a blind (u)txo.
      * also validates the satoshis entered in the utxo against the commitment!
+     * @param wallet
      * @param utxo the output to load the fields for.
      */
-    public async loadTrustedFieldsForBlindUtxo(utxo: BlindPrevout): Promise<BlindPrevout> {
+    public async loadTrustedFieldsForBlindUtxo(wallet: string, utxo: BlindPrevout): Promise<BlindPrevout> {
         const tx: RpcRawTx = await this.getRawTransaction(utxo.txid);
         const found: RpcVout | undefined = tx.vout.find(i => i.n === utxo.vout);
 
@@ -368,7 +345,7 @@ export abstract class CtRpc extends Rpc {
         const scriptPubKey = found.scriptPubKey.hex;
         const address = found.scriptPubKey.addresses[0];
 
-        const ok = await this.verifyCommitment(commitment, utxo.blindFactor, utxo._satoshis);
+        const ok = await this.verifyCommitment(wallet, commitment, utxo.blindFactor, utxo._satoshis);
         if (!ok) {
             console.error('Commitment is not matching amount or blindfactor.');
             throw new Error('Commitment is not matching amount or blindfactor.');
@@ -380,7 +357,7 @@ export abstract class CtRpc extends Rpc {
         return utxo;
     }
 
-    public async generateRawConfidentialTx(inputs: any[], outputs: ToBeBlindOutput[], feeSatoshis: number): Promise<string> {
+    public async generateRawConfidentialTx(wallet: string, inputs: any[], outputs: ToBeBlindOutput[], feeSatoshis: number): Promise<string> {
 
         // Already a cloned object, rename fields to fit createrawparttransaction
         // inputs.forEach((prevout: any) => { prevout.amount_commitment = prevout._commitment; prevout.blindingfactor = prevout.blindFactor; });
@@ -468,20 +445,20 @@ export abstract class CtRpc extends Rpc {
             amount: 0
         } as RpcBlindOrFeeBase].concat(outs);
 
-        const tx = (await this.call('createrawparttransaction', [inps, outs]));
+        const tx = (await this.call('createrawparttransaction', [inps, outs], wallet));
         const rawtx = tx.hex;
 
         return rawtx;
     }
 
-    public async getNewStealthAddressWithEphem(sx?: CryptoAddress): Promise<CryptoAddress> {
+    public async getNewStealthAddressWithEphem(wallet: string, sx?: CryptoAddress): Promise<CryptoAddress> {
         if (!sx) {
-            sx = await this.getNewStealthAddress();
+            sx = await this.getNewStealthAddress(wallet);
         } else {
             sx = clone(sx) as CryptoAddress;
         }
 
-        const info = await this.call('derivefromstealthaddress', [sx.address]);
+        const info = await this.call('derivefromstealthaddress', [sx.address],  wallet);
         sx.pubKey = info.pubkey;
         sx.ephem = {
             public: info.ephemeral_pubkey,
@@ -490,12 +467,12 @@ export abstract class CtRpc extends Rpc {
         return sx;
     }
 
-    public async getPubkeyForStealthWithEphem(sx: CryptoAddress): Promise<CryptoAddress> {
+    public async getPubkeyForStealthWithEphem(wallet: string, sx: CryptoAddress): Promise<CryptoAddress> {
         if (!sx.ephem) {
             throw new Error('Missing EphemeralKey.');
         }
 
-        const info = await this.call('derivefromstealthaddress', [sx.address, sx.ephem.private]);
+        const info = await this.call('derivefromstealthaddress', [sx.address, sx.ephem.private], wallet);
         sx.pubKey = info.pubkey;
         return sx;
     }
@@ -504,7 +481,7 @@ export abstract class CtRpc extends Rpc {
         return randomBytes(32).toString('hex');
     }
 
-    public async getLastMatchingBlindFactor(inputs: (Array<{ blindFactor: string; }>), outputs: ToBeBlindOutput[]): Promise<string> {
+    public async getLastMatchingBlindFactor(wallet: string, inputs: (Array<{ blindFactor: string; }>), outputs: ToBeBlindOutput[]): Promise<string> {
         const inp = inputs.map(i => i.blindFactor);
         let out = outputs.map(i => i.blindFactor);
 
@@ -518,72 +495,88 @@ export abstract class CtRpc extends Rpc {
             out.push(blindFactor);
             inp.push(blindFactor);
         }
-        const b = (await this.call('generatematchingblindfactor', [inp, out])).blind;
+        const b = (await this.call('generatematchingblindfactor', [inp, out], wallet)).blind;
         // console.log('generated b =', b);
         return b;
     }
 
-    public async signRawTransactionForBlindInputs(tx: ConfidentialTransactionBuilder, inputs: BlindPrevout[], sx?: CryptoAddress): Promise<ISignature[]> {
+    public async signRawTransactionForBlindInput(wallet: string, tx: ConfidentialTransactionBuilder,
+                                                 input: BlindPrevout,
+                                                 sx?: CryptoAddress): Promise<ISignature> {
+
+        let sig;
+
+        // If not a stealth address, sign with key in wallet.
+        if (!sx) {
+
+            // TODO: this.createSignatureWithWallet exists
+            const txhex = tx.build();
+            const prevtxn = {
+                txid: input.txid,
+                vout: input.vout,
+                scriptPubKey: input._scriptPubKey!,
+                amount_commitment: input._commitment
+            };
+
+            const addressInfo: RpcAddressInfo = await this.getAddressInfo(wallet, input._address!);
+            const signature = await this.createSignatureWithWallet(wallet, txhex, prevtxn, input._address!);
+            const pubKey: string = addressInfo.pubkey;
+            sig = {
+                signature,
+                pubKey
+            };
+
+        } else {
+            // If it's a stealth address, derive the key and sign for it.
+            // TODO: verify sx type
+            if (!sx.ephem || !sx.ephem.public) {
+                throw new Error('Missing ephemeral (public key) for stealth address.');
+            }
+            const derived = (await this.call('derivefromstealthaddress', [sx.address, sx.ephem.public], wallet));
+            const params = [
+                tx.build(),
+                {
+                    txid: input.txid,
+                    vout: input.vout,
+                    scriptPubKey: input._scriptPubKey,
+                    amount_commitment: input._commitment,
+                    redeemScript: input._redeemScript
+                },
+                derived.privatekey
+            ];
+
+            sig = {
+                signature: (await this.call('createsignaturewithkey', params, wallet)),
+                pubKey: derived.pubkey
+            };
+        }
+
+        // TODO: why isnt this done in the previous if/else?
+        // If a stealth address is provided, we assume that were signing/spending
+        // from a bid txn with a more complicated witness stack (cfr puzzleWitness())
+        if (!sx) {
+            tx.setWitness(input, sig);
+        }
+
+        return sig;
+    }
+
+    public async signRawTransactionForBlindInputs(wallet: string, tx: ConfidentialTransactionBuilder,
+                                                  inputs: BlindPrevout[],
+                                                  sx?: CryptoAddress): Promise<ISignature[]> {
         const r: ISignature[] = [];
 
         // log("signing for rawtx with blind innputs" + tx.txid)
         // needs to synchronize, because the order needs to match
         // the inputs order.
         for (const input of inputs) {
-            let sig;
 
-            // If not a stealth address, sign with key in wallet.
-            if (!sx) {
-                const params = [
-                    tx.build(),
-                    {
-                        txid: input.txid,
-                        vout: input.vout,
-                        scriptPubKey: input._scriptPubKey,
-                        amount_commitment: input._commitment
-                    },
-                    input._address
-                ];
-
-                sig = {
-                    signature: (await this.call('createsignaturewithwallet', params)),
-                    pubKey: (await this.call('getaddressinfo', [input._address])).pubkey
-                };
-            } else {
-                // If it's a stealth address, derive the key and sign for it.
-                // TODO: verify sx type
-                if (!sx.ephem || !sx.ephem.public) {
-                    throw new Error('Missing ephemeral (public key) for stealth address.');
-                }
-                const derived = (await this.call('derivefromstealthaddress', [sx.address, sx.ephem.public]));
-                const params = [
-                    tx.build(),
-                    {
-                        txid: input.txid,
-                        vout: input.vout,
-                        scriptPubKey: input._scriptPubKey,
-                        amount_commitment: input._commitment,
-                        redeemScript: input._redeemScript
-                    },
-                    derived.privatekey
-                ];
-
-                sig = {
-                    signature: (await this.call('createsignaturewithkey', params)),
-                    pubKey: derived.pubkey
-                };
-            }
-
+            // separated into its own function to get rid of the need to use an index in MadCtBuilder.complete()
+            const sig = await this.signRawTransactionForBlindInput(wallet, tx, input, sx);
             r.push(sig);
             // console.log('signRawTransactionForBlindInputs(): txid= ', tx.txid);
-            // console.log('signRawTransactionForBlindInputs(): signing for ', input)
-            // console.log('signRawTransactionForBlindInputs(): sig ', sig)
-
-            // If a stealth address is provided, we assume that were signing/spending
-            // from a bid txn with a more complicated witness stack (cfr puzzleWitness())
-            if (!sx) {
-                tx.setWitness(input, sig);
-            }
+            // console.log('signRawTransactionForBlindInputs(): signing for ', input);
+            // console.log('signRawTransactionForBlindInputs(): sig ', sig);
         }
 
         return r;

@@ -6,6 +6,8 @@ import { CtCoreRpcService } from '../test/rpc-ct.stub';
 
 describe('CtRpc', () => {
 
+    const WALLET = '';  // use the default wallet
+
     let omp0: OpenMarketProtocol;
     let omp1: OpenMarketProtocol;
     let omp2: OpenMarketProtocol;
@@ -37,12 +39,12 @@ describe('CtRpc', () => {
     });
 
     test('stealth addresses', async () => {
-        const sx = await rpc0.getNewStealthAddressWithEphem();
+        const sx = await rpc0.getNewStealthAddressWithEphem(WALLET);
 
         const stripped = clone(sx);
         delete stripped['pubKey'];
 
-        const sx2 = await rpc1.getPubkeyForStealthWithEphem(stripped);
+        const sx2 = await rpc1.getPubkeyForStealthWithEphem(WALLET, stripped);
         expect(sx).toEqual(sx2);
     });
 });
