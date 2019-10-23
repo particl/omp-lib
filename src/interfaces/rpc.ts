@@ -227,4 +227,19 @@ export interface RpcExtKeyResult {
 export interface RpcExtKeyInfo {
     result: string;
     path: string;
+    type: string;
+    version: string;
+    depth: string;
+    parent_fingerprint: string;
+    child_index: string;
+    chain_code: string;
+    key: string;
+    privkey: string;
+    pubkey: string;
+    id: string;
+    address: string;
+    checksum: string;
+    ext_public_key: string;
+
 }
+
