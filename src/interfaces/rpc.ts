@@ -212,3 +212,19 @@ export interface RpcExtKey {
     num_derives_stealth: string;
     num_derives_stealth_h: string;
 }
+
+export interface RpcExtKeyResult {
+    result: string;
+    id: string;
+    key_label: string;
+    note: string;
+    account: string;
+    label: string;
+    key_info: RpcExtKeyInfo;
+    // "public key" // todo: fix deriveAccount response
+}
+
+export interface RpcExtKeyInfo {
+    result: string;
+    path: string;
+}
