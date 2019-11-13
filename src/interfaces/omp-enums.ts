@@ -37,6 +37,14 @@ export enum EscrowType {
 }
 
 /**
+ * Different escrow release address types
+ */
+export enum EscrowReleaseType {
+    BLIND = 'blind',
+    ANON = 'anon'
+}
+
+/**
  * Protocols supported by the protocol.
  */
 export enum MessagingProtocol {

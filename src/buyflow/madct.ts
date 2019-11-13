@@ -10,6 +10,8 @@ import { Config } from '../abstract/config';
 import { buildBidTxScript, buildDestroyTxScript, ConfidentialTransactionBuilder, getExpectedSequence } from '../transaction-builder/confidential-transaction';
 
 import { MPA_ACCEPT, MPA_BID, MPA_LISTING_ADD, MPA_LOCK, PaymentDataAcceptCT, PaymentDataBidCT, PaymentDataLockCT } from '../interfaces/omp';
+import { EscrowReleaseType } from '../interfaces/omp-enums';
+
 import { asyncMap, clone, isArrayAndContains, isObject } from '../util';
 import { hash } from '../hasher/hash';
 
@@ -276,20 +278,23 @@ export class MadCTBuilder implements IMadCTBuilder {
         const buyer_blindFactor_release = isSellerLastOutput ? bidPaymentData.release.blindFactor : lastBlindFactor;
         const seller_blindFactor_release = isSellerLastOutput ?  lastBlindFactor : acceptPaymentData.release.blindFactor!;
 
+        const releaseType = listing.item.payment.escrow && listing.item.payment.escrow.releaseType ?
+            listing.item.payment.escrow.releaseType : EscrowReleaseType.BLIND;
+
         // Randomize the positioning for increased privacy.
         // based on whether the buyer provided a blind factor or not.
         const buyer_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, false);
         const seller_releaseSatoshis = this.release_calculateRequiredSatoshis(listing, bid, true);
         const release_outputs: ToBeBlindOutput[] = [
-            this.getReleaseOutput(buyer_release_address, buyer_releaseSatoshis, buyer_blindFactor_release), // buyer_release_output
-            this.getReleaseOutput(seller_release_address, seller_releaseSatoshis - seller_fee, seller_blindFactor_release) // seller_release_output
+            this.getReleaseOutput(buyer_release_address, buyer_releaseSatoshis, buyer_blindFactor_release, releaseType), // buyer_release_output
+            this.getReleaseOutput(seller_release_address, seller_releaseSatoshis - seller_fee, seller_blindFactor_release, releaseType) // seller_release_output
         ];
 
         const buyer_refundSatoshis = this.release_calculateRequiredSatoshis(listing, bid, false, true);
         const seller_refundSatoshis = this.release_calculateRequiredSatoshis(listing, bid, true, true);
         const refund_outputs: ToBeBlindOutput[] = [
-            this.getReleaseOutput(buyer_release_address, buyer_refundSatoshis, buyer_blindFactor_release), // buyer_refund_output
-            this.getReleaseOutput(seller_release_address, seller_refundSatoshis - seller_fee, seller_blindFactor_release) // seller_refund_output
+            this.getReleaseOutput(buyer_release_address, buyer_refundSatoshis, buyer_blindFactor_release, releaseType), // buyer_refund_output
+            this.getReleaseOutput(seller_release_address, seller_refundSatoshis - seller_fee, seller_blindFactor_release, releaseType) // seller_refund_output
         ];
 
         // If seller is not the last output, swap them.
@@ -618,11 +623,10 @@ export class MadCTBuilder implements IMadCTBuilder {
         }];
     }
 
-    private getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
-        const type = (this.network === 'testnet') ? 'anon' : 'blind';
+    private getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string, releaseType: EscrowReleaseType): ToBeBlindOutput {
         return {
             address,
-            _type: type,
+            _type: releaseType,
             _satoshis: satoshis,
             blindFactor: blind
         };
