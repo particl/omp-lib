@@ -6,7 +6,7 @@
 
 import { Prevout, CryptoAddress, Cryptocurrency, ISignature, ToBeOutput, EphemeralKey, Fiatcurrency, ToBeBlindOutput, BlindPrevout } from './crypto';
 import { DSN, ContentReference } from './dsn';
-import { MPAction, SaleType, EscrowType, MessagingProtocol } from './omp-enums';
+import { MPAction, SaleType, EscrowType, EscrowReleaseType, MessagingProtocol } from './omp-enums';
 import { KVS } from './common';
 
 
@@ -331,6 +331,7 @@ export interface EscrowConfig {
     type: EscrowType;
     ratio: EscrowRatio;
     secondsToLock: number;
+    releaseType?: EscrowReleaseType;
 }
 
 /**
