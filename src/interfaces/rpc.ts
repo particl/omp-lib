@@ -222,6 +222,11 @@ export interface RpcExtKeyResult {
     label: string;
     key_info: RpcExtKeyInfo;
     // "public key" // todo: fix deriveAccount response
+
+    account_id: string;
+    has_secret: string;
+    account_label: string;
+    scanned_from: number;
 }
 
 export interface RpcExtKeyInfo {

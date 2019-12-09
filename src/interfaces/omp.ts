@@ -236,6 +236,7 @@ export interface ShippingAddress {
  */
 export interface Item {
     information: ItemInfo;
+    seller: SellerInfo;
     payment: PaymentInfo;
     messaging: MessagingInfo;
     objects?: ItemObject[];
@@ -254,6 +255,10 @@ export interface ItemInfo {
     location?: Location;                // optional
     shippingDestinations?: string[];    // optional
     images?: ContentReference[];        // optional
+}
+
+export interface SellerInfo {
+    address: string;
 }
 
 /**
