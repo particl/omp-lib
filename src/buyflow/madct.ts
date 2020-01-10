@@ -48,12 +48,10 @@ export class MadCTBuilder implements IMadCTBuilder {
         // for now, we are forcing anon
         // const type = (this.network === 'testnet') ? 'anon' : 'blind';
         // paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
-        // todo: why have getPrevouts and createPrevoutFrom?
         paymentData.prevouts = await lib.getPrevouts(wallet, OutputType.ANON, OutputType.BLIND, requiredSatoshis);
 
         if (!paymentData.outputs) {
             paymentData.outputs = [];
-            // todo: why is an empty object being pushed to the array in here?
             paymentData.outputs.push({} as ToBeBlindOutput);
         }
 
@@ -104,7 +102,7 @@ export class MadCTBuilder implements IMadCTBuilder {
             acceptPaymentData.outputs.push({} as ToBeBlindOutput);
         }
 
-        if (!acceptPaymentData.outputs || acceptPaymentData.outputs.length === 0) {
+        if (!bidPaymentData.outputs || bidPaymentData.outputs.length === 0) {
             throw new Error('Missing buyer outputs.');
         }
 
@@ -144,10 +142,6 @@ export class MadCTBuilder implements IMadCTBuilder {
             const blind = hash(buyer_output.blindFactor + cryptocurrency.address.address);
 
             // Generate a new CT output of the _exact_ amount.
-            // for now, we are forcing anon
-            // const type = (this.network === 'testnet') ? 'anon' : 'blind';
-            // acceptPaymentData.prevouts = await lib.getBlindPrevouts(type, seller_requiredSatoshis + seller_fee, blind);
-            // todo: why have getPrevouts and createPrevoutFrom?
             acceptPaymentData.prevouts = await lib.getPrevouts(wallet, OutputType.ANON, OutputType.BLIND, seller_requiredSatoshis + seller_fee, blind);
 
         }
@@ -646,9 +640,6 @@ export class MadCTBuilder implements IMadCTBuilder {
     }
 
     private getReleaseOutput(address: CryptoAddress, satoshis: number, blind: string): ToBeBlindOutput {
-
-        // for now, we are forcing anon
-        // const type = (this.network === 'testnet') ? 'anon' : 'blind';
         return {
             address,
             _type: 'anon',
