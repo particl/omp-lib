@@ -259,6 +259,7 @@ export interface ItemInfo {
 
 export interface SellerInfo {
     address: string;
+    signature: string;
 }
 
 /**
