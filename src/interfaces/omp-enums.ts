@@ -2,14 +2,14 @@
  * An enum for all the marketplace actions.
  */
 export enum MPAction {
-    MPA_LISTING_ADD = 'MPA_LISTING_ADD_NEW',
+    MPA_LISTING_ADD = 'MPA_LISTING_ADD_03',
 
-    MPA_BID = 'MPA_BID_NEW',
-    MPA_ACCEPT = 'MPA_ACCEPT_NEW',
-    MPA_REJECT = 'MPA_REJECT_NEW',
-    MPA_CANCEL = 'MPA_CANCEL_NEW',
+    MPA_BID = 'MPA_BID_03',
+    MPA_ACCEPT = 'MPA_ACCEPT_03',
+    MPA_REJECT = 'MPA_REJECT_03',
+    MPA_CANCEL = 'MPA_CANCEL_03',
 
-    MPA_LOCK = 'MPA_LOCK_NEW',
+    MPA_LOCK = 'MPA_LOCK_03',
 
     UNKNOWN = 'UNKNOWN'         // used in case we receive an unknown message type and want to log it
 }
