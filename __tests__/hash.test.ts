@@ -1,9 +1,10 @@
 import * from 'jest';
-import { hash, deepSortObject, ConfigurableHasher } from '../src/hasher/hash';
-import { clone, strip, log } from '../src/util';
+import { hash, ConfigurableHasher } from '../src/hasher/hash';
+import { clone, strip } from '../src/util';
 import { sha256 } from 'js-sha256';
 import { HashableListingMessageConfig } from '../src/hasher/config/listingitemadd';
 import { HashableValidator } from '../src/format-validators/hashable';
+import { MPAction } from '../src/interfaces/omp-enums';
 
 describe('Hash', () => {
 
@@ -11,7 +12,7 @@ describe('Hash', () => {
         `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_LISTING_ADD",
+                "type": "${MPAction.MPA_LISTING_ADD}",
                 "item": {
                   "information": {
                     "title": "a 6 month old dog",

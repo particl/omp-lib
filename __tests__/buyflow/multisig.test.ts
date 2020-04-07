@@ -2,8 +2,8 @@ import * from 'jest';
 import { MPM, OpenMarketProtocol } from '../../src/omp';
 import { Cryptocurrency } from '../../src/interfaces/crypto';
 import { BidConfiguration } from '../../src/interfaces/configs';
-import { EscrowType } from '../../src/interfaces/omp-enums';
-import { toSatoshis, log, strip } from '../../src/util';
+import { EscrowType, MPAction } from '../../src/interfaces/omp-enums';
+import { toSatoshis, strip } from '../../src/util';
 import { FV_MPA_BID } from '../../src/format-validators/mpa_bid';
 import { FV_MPA_ACCEPT } from '../../src/format-validators/mpa_accept';
 import { FV_MPA_LOCK } from '../../src/format-validators/mpa_lock';
@@ -24,7 +24,7 @@ describe('Buyflow: multisig', () => {
         `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_LISTING_ADD",
+                "type": "${MPAction.MPA_LISTING_ADD}",
                 "item": {
                   "information": {
                     "title": "a 6 month old dog",

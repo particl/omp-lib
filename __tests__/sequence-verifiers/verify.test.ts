@@ -4,6 +4,7 @@ import { Sequence } from '../../src/sequence-verifier/verify';
 import { clone } from '../../src/util';
 import { HashableListingMessageConfig } from '../../src/hasher/config/listingitemadd';
 import { HashableBidMessageConfig } from '../../src/hasher/config/bid';
+import { MPAction } from '../../src/interfaces/omp-enums';
 
 describe('SequenceValidator', () => {
 
@@ -12,7 +13,7 @@ describe('SequenceValidator', () => {
         `{
         "version": "0.1.0.0",
         "action": {
-            "type": "MPA_LISTING_ADD",
+            "type": "${MPAction.MPA_LISTING_ADD}",
             "item": {
               "information": {
                 "title": "a 6 month old dog",
@@ -56,7 +57,7 @@ describe('SequenceValidator', () => {
         `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_BID",
+                "type": "${MPAction.MPA_BID}",
                 "generated": ${+new Date().getTime()},
                 "item": "${hashedListing}",
                 "buyer": {
@@ -96,7 +97,7 @@ describe('SequenceValidator', () => {
         `{
         "version": "0.1.0.0",
         "action": {
-            "type": "MPA_ACCEPT",
+            "type": "${MPAction.MPA_ACCEPT}",
                 "bid": "${hashedBid}",
                 "seller": {
                     "payment": {
@@ -137,7 +138,7 @@ describe('SequenceValidator', () => {
         `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_LOCK",
+                "type": "${MPAction.MPA_LOCK}",
                 "bid": "${hashedBid}",
                 "buyer": {
                   "payment": {

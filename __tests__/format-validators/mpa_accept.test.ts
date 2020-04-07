@@ -2,6 +2,7 @@ import * from 'jest';
 import { FV_MPA_ACCEPT } from '../../src/format-validators/mpa_accept';
 import { hash } from '../../src/hasher/hash';
 import { clone } from '../../src/util';
+import { MPAction } from '../../src/interfaces/omp-enums';
 
 describe('format-validator: MPA_ACCEPT', () => {
 
@@ -14,7 +15,7 @@ describe('format-validator: MPA_ACCEPT', () => {
         `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_ACCEPT",
+                "type": "${MPAction.MPA_ACCEPT}",
                 "bid": "${hash('bid')}",
                 "seller": {
                   "payment": {

@@ -1,7 +1,8 @@
 import * from 'jest';
 import { FV_MPA_LISTING } from '../../src/format-validators/mpa_listing_add';
 import { hash } from '../../src/hasher/hash';
-import { clone } from '../../src/util'
+import { clone } from '../../src/util';
+import { MPAction } from '../../src/interfaces/omp-enums';
 
 describe('format-validator: MPA_BID', () => {
 
@@ -11,7 +12,7 @@ describe('format-validator: MPA_BID', () => {
         `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_LISTING_ADD",
+                "type": "${MPAction.MPA_LISTING_ADD}",
                 "hash": "${hash('hash')}",
                 "item": {
                   "information": {
