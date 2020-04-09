@@ -36,6 +36,11 @@ export enum EscrowType {
     MAD_CT = 'MAD_CT'           // Mutual assured destruction with Confidential Tx
 }
 
+export enum EscrowReleaseType {
+    BLIND = 'blind',
+    ANON = 'anon'
+}
+
 /**
  * Protocols supported by the protocol.
  */
