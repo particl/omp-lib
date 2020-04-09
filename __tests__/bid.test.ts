@@ -2,7 +2,7 @@ import * from 'jest';
 import { OpenMarketProtocol } from '../src/omp';
 import { Cryptocurrency } from '../src/interfaces/crypto';
 import { BidConfiguration } from '../src/interfaces/configs';
-import { EscrowType } from '../src/interfaces/omp-enums';
+import { EscrowType, MPAction } from '../src/interfaces/omp-enums';
 import { CoreRpcService } from '../test/rpc.stub';
 
 describe('Bid', () => {
@@ -11,7 +11,7 @@ describe('Bid', () => {
         `{
         "version": "0.1.0.0",
         "action": {
-            "type": "MPA_LISTING_ADD",
+            "type": "${MPAction.MPA_LISTING_ADD}",
             "item": {
               "information": {
                 "title": "a 6 month old dog",

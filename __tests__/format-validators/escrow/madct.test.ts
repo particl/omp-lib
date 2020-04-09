@@ -4,14 +4,15 @@ import { FV_MPA_BID } from '../../../src/format-validators/mpa_bid';
 import { hash } from '../../../src/hasher/hash';
 import { FV_MPA_ACCEPT } from '../../../src/format-validators/mpa_accept';
 import { FV_MPA_LOCK } from '../../../src/format-validators/mpa_lock';
-import { clone, log } from '../../../src/util';
+import { clone } from '../../../src/util';
+import { MPAction } from '../../../src/interfaces/omp-enums';
 
 const validate = FV_MPA_BID.validate;
 const ok_bid = JSON.parse(
     `{
         "version": "0.1.0.0",
         "action": {
-            "type": "MPA_BID",
+            "type": "${MPAction.MPA_BID}",
             "generated": ${+new Date().getTime()},
             "item": "${hash('listing')}",
             "buyer": {
@@ -138,7 +139,7 @@ const ok_accept = JSON.parse(
     `{
         "version": "0.1.0.0",
         "action": {
-            "type": "MPA_ACCEPT",
+            "type": "${MPAction.MPA_ACCEPT}",
             "generated": ${+new Date().getTime()},
             "bid": "${hash('bid')}",
             "seller": {
@@ -342,7 +343,7 @@ const ok_lock = JSON.parse(
     `{
         "version": "0.1.0.0",
         "action": {
-            "type": "MPA_LOCK",
+            "type": "${MPAction.MPA_LOCK}",
             "generated": ${+new Date().getTime()},
             "bid": "${hash('bid')}",
             "buyer": {

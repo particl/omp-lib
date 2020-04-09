@@ -2,6 +2,7 @@ import * from 'jest';
 import { FV_MPA_LOCK } from '../../src/format-validators/mpa_lock';
 import { hash } from '../../src/hasher/hash';
 import { clone } from '../../src/util';
+import { MPAction } from '../../src/interfaces/omp-enums';
 
 describe('format-validator: MPA_LOCK', () => {
 
@@ -10,7 +11,7 @@ describe('format-validator: MPA_LOCK', () => {
         `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_LOCK",
+                "type": "${MPAction.MPA_LOCK}",
                 "bid": "${hash('bid')}",
                 "buyer": {
                   "payment": {

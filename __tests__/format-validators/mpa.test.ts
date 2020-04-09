@@ -1,5 +1,6 @@
 import * from 'jest';
 import { FV_MPM } from '../../src/format-validators/mpm';
+import { MPAction } from '../../src/interfaces/omp-enums';
 
 describe('format-validator: MPA', () => {
 
@@ -14,7 +15,7 @@ describe('format-validator: MPA', () => {
             `{
             "version": "0.1.0.0",
             "action": {
-                "type": "MPA_LISTING_ADD"
+                "type": "${MPAction.MPA_LISTING_ADD}"
             }
         }`);
 
@@ -48,7 +49,7 @@ describe('format-validator: MPA', () => {
             `{
             "version": "",
             "action": {
-                "type": "MPA_LISTING_ADD"
+                "type": "${MPAction.MPA_LISTING_ADD}"
             }
         }`);
         let fail: boolean;
@@ -64,7 +65,7 @@ describe('format-validator: MPA', () => {
         const missing_version = JSON.parse(
             `{
             "action": {
-                "type": "MPA_LISTING_ADD"
+                "type": "${MPAction.MPA_LISTING_ADD}"
             }
         }`);
         let fail: boolean;
