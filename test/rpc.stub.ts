@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import * as WebRequest from 'web-request';
 import * as _ from 'lodash';
 import { Rpc } from '../src/abstract/rpc';
-import { BlockchainInfo, RpcAddressInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcWallet, RpcWalletDir } from '../src/interfaces/rpc';
+import { RpcAddressInfo, RpcBlockchainInfo, RpcOutput, RpcRawTx, RpcUnspentOutput, RpcWallet, RpcWalletDir } from '../src/interfaces/rpc';
 import { OutputType } from '../src/interfaces/crypto';
 
 @injectable()
@@ -164,7 +164,7 @@ export class CoreRpcService extends Rpc {
      *
      * @returns {Promise<BlockchainInfo>}
      */
-    public async getBlockchainInfo(): Promise<BlockchainInfo> {
+    public async getBlockchainInfo(): Promise<RpcBlockchainInfo> {
         return await this.call('getblockchaininfo', []);
     }
 

@@ -76,6 +76,9 @@ export class OpenMarketProtocol implements OMP {
         return await actionProcessor.bid(wallet, config, listing);
     }
 
+    // TODO: add reject
+    // TODO: add cancel
+
     public async accept(wallet: string, listing: MPM, bid: MPM): Promise<MPM> {
         Format.validate(listing);
         Format.validate(bid);

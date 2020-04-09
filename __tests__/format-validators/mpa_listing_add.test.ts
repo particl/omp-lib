@@ -14,6 +14,10 @@ describe('format-validator: MPA_BID', () => {
                 "type": "MPA_LISTING_ADD",
                 "hash": "${hash('hash')}",
                 "item": {
+                  "seller": {
+                    "address": "PASDF",
+                    "signature": "Asdf"
+                  },
                   "information": {
                     "title": "a 6 month old dog",
                     "shortDescription": "very cute",

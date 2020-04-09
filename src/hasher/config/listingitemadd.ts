@@ -7,6 +7,9 @@ export class HashableListingMessageConfig extends BaseHashableConfig {
         from: 'generated',
         to: HashableCommonField.GENERATED
     }, {
+        from: 'item.seller.address',
+        to: HashableItemField.SELLER
+    }, {
         from: 'item.information.title',
         to: HashableItemField.TITLE
     }, {

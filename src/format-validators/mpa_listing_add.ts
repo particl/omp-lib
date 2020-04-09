@@ -1,4 +1,4 @@
-import { Item, ItemInfo, MPA_LISTING_ADD, MPM, PaymentDataBid, PaymentInfoEscrow, PaymentOption } from '../interfaces/omp';
+import { Item, ItemInfo, MPA_LISTING_ADD, MPM, PaymentDataBid, PaymentInfoEscrow, PaymentOption, SellerData, SellerInfo } from '../interfaces/omp';
 import { SaleType, MPAction, EscrowType } from '../interfaces/omp-enums';
 import { isString, isObject, isArrayAndContains, isNumber, isValidPrice, isValidPercentage, isCountry, isNonNegativeNaturalNumber, isArray } from '../util';
 import { FV_MPM } from './mpm';
@@ -27,6 +27,22 @@ export class FV_MPA_LISTING {
 
         if (!isObject(item)) {
             throw new Error('action.item: missing or not an object');
+        }
+
+        // Validate seller
+        // note, this was changed in marketplace 0.3
+        if (isObject(item.seller)) {
+            // tslint:disable-next-line:no-collapsible-if
+
+            const seller: SellerInfo = item.seller;
+            if (!isString(seller.address)) {
+                throw new Error('action.item.seller.address: missing or not a string');
+            }
+            if (!isString(seller.signature)) {
+                throw new Error('action.item.seller.signature: missing or not a string');
+            }
+        } else {
+            throw new Error('action.item.seller: missing');
         }
 
         // TODO: to simplify this, split the validation of separate types into separate functions
