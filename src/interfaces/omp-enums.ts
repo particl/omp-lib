@@ -37,8 +37,8 @@ export enum EscrowType {
 }
 
 export enum EscrowReleaseType {
-    BLIND = 'blind',
-    ANON = 'anon'
+    BLIND = 'BLIND',
+    ANON = 'ANON'
 }
 
 /**
