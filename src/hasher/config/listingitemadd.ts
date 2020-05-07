@@ -7,9 +7,10 @@ export class HashableListingMessageConfig extends BaseHashableConfig {
         from: 'generated',
         to: HashableCommonField.GENERATED
     }, {
-        from: 'item.seller.address',
-        to: HashableItemField.SELLER
-    }, {
+// we can't use seller for the template right now as it would be the selected market identity and theres no relation to that right now
+//        from: 'item.seller.address',
+//        to: HashableItemField.SELLER
+//   }, {
         from: 'item.information.title',
         to: HashableItemField.TITLE
     }, {

@@ -53,7 +53,7 @@ export enum MessagingProtocol {
  */
 export enum HashableItemField {
     TITLE = 'title',
-    SELLER = 'seller',
+    // SELLER = 'seller',
     SHORT_DESC = 'shortDescription',
     LONG_DESC = 'longDescription',
     SALE_TYPE = 'saleType',
