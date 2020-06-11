@@ -53,7 +53,7 @@ describe('Buyflow: mad ct', () => {
 
     const ok = JSON.parse(
         `{
-        "version": "0.1.0.0",
+        "version": "0.3.0",
         "action": {
             "type": "${MPAction.MPA_LISTING_ADD}",
             "item": {
@@ -64,6 +64,10 @@ describe('Buyflow: mad ct', () => {
                 "category": [
                     "Animals"
                 ]
+              },
+              "seller": {
+                "address": "pVHUY9AYwNSjbX8f1d4fPgYCkNmZxMC25p",
+                "signature": "H7yN04IMrwbUgqFXT5Jzr5BPS5vpNrc9deKaY6jkCh0icM5Z3V5rtle/EkugQccw0vk/K6CReQ8sSSDo5W9Vl1I="
               },
               "payment": {
                 "type": "SALE",

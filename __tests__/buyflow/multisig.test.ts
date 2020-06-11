@@ -34,6 +34,10 @@ describe('Buyflow: multisig', () => {
                         "Animals"
                     ]
                   },
+                  "seller": {
+                    "address": "pVHUY9AYwNSjbX8f1d4fPgYCkNmZxMC25p",
+                    "signature": "H7yN04IMrwbUgqFXT5Jzr5BPS5vpNrc9deKaY6jkCh0icM5Z3V5rtle/EkugQccw0vk/K6CReQ8sSSDo5W9Vl1I="
+                  },
                   "payment": {
                     "type": "SALE",
                     "escrow": {
