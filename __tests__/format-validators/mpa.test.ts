@@ -13,7 +13,7 @@ describe('format-validator: MPA', () => {
     test('validate a complete action', () => {
         const success = JSON.parse(
             `{
-            "version": "0.1.0.0",
+            "version": "0.3.0",
             "action": {
                 "type": "${MPAction.MPA_LISTING_ADD}"
             }

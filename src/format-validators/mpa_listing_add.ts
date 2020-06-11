@@ -15,8 +15,11 @@ import { FV_OBJECTS } from './objects';
 export class FV_MPA_LISTING {
 
     public static validate(msg: MPM): boolean {
+        console.log('validate: ' + JSON.stringify(msg, null, 2));
+
         // validate base class
         FV_MPM.validate(msg);
+        console.log('FV_MPM ok');
 
         const action = <MPA_LISTING_ADD> msg.action;
         const item: Item = action.item;
@@ -44,6 +47,8 @@ export class FV_MPA_LISTING {
         } else {
             throw new Error('action.item.seller: missing');
         }
+
+        console.log('item.seller ok');
 
         // TODO: to simplify this, split the validation of separate types into separate functions
         // TODO: create and replace Error's with more exact Exceptions, like MissingParamException('param')
@@ -142,6 +147,7 @@ export class FV_MPA_LISTING {
             throw new Error('action.item.information: missing');
         }
 
+        console.log('item.information ok');
 
         // Validate Payment
         if (isObject(item.payment)) {
@@ -242,6 +248,8 @@ export class FV_MPA_LISTING {
             throw new Error('action.item.payment: missing');
         }
 
+        console.log('item.payment ok');
+
         if (item.messaging) {
             if (!isObject(item.messaging)) {
                 throw new Error('action.item.messaging: not an object');
@@ -265,9 +273,10 @@ export class FV_MPA_LISTING {
                     throw new Error('action.item.messaging: missing elements in element=' + i);
                 }
             });
-
-
         }
+
+        console.log('item.messaging ok');
+
         // action.item.messaging is optional for now
         // else {
         //    throw new Error('action.item.messaging: missing');
@@ -276,6 +285,8 @@ export class FV_MPA_LISTING {
         if (item.objects) {
             FV_OBJECTS.validate(item.objects);
         }
+
+        console.log('item.objects ok');
 
         return true;
     }

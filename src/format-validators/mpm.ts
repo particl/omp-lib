@@ -17,7 +17,8 @@ export class FV_MPM {
             throw new Error('action.type: missing');
         }
 
-        if (!(msg.action.type in MPAction)) {
+        if (!(<any> Object).values(MPAction).includes(msg.action.type)) {
+        // if (!(msg.action.type in MPAction)) {
             throw new Error('action.type: unrecognized value');
         }
 
