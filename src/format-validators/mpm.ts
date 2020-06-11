@@ -1,5 +1,6 @@
 import { MPM } from '../interfaces/omp';
 import { MPAction } from '../interfaces/omp-enums';
+import { isStringAndEnumValue } from '../util';
 
 
 export class FV_MPM {
@@ -17,8 +18,7 @@ export class FV_MPM {
             throw new Error('action.type: missing');
         }
 
-        if (!(<any> Object).values(MPAction).includes(msg.action.type)) {
-        // if (!(msg.action.type in MPAction)) {
+        if (!isStringAndEnumValue(msg.action.type, MPAction)) {
             throw new Error('action.type: unrecognized value');
         }
 

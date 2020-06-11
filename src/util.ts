@@ -1,3 +1,4 @@
+import { MPAction } from './interfaces/omp-enums';
 
 export function isObject(v: any): boolean {
     return v && typeof v === 'object';
@@ -11,6 +12,11 @@ export function isArrayAndContains(v: any): boolean {
     // v.length > 0 will cause false in case of empty arrays !!!
     return isArray(v) && v.length > 0;
     // return v && Array.isArray(v);
+}
+
+export function isStringAndEnumValue(value: any, stringEnum: any): boolean {
+    return isString(value)
+        && (<any> Object).values(stringEnum).includes(value);
 }
 
 export function isArray(v: any): boolean {
