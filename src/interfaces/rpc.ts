@@ -248,3 +248,22 @@ export interface RpcExtKeyInfo {
 
 }
 
+export interface RpcBalances {
+    mine: RpcBalanceInfo;               // balances from outputs that the wallet can sign
+    watchonly: RpcBalanceInfo;          // watchonly balances (not present if wallet does not watch anything)
+}
+
+export interface RpcBalanceInfo {
+    trusted: number;                    // trusted balance (outputs created by the wallet or confirmed outputs)
+    untrusted_pending: number;          // untrusted pending balance (outputs created by others that are in the mempool)
+    immature: number;                   // balance from immature coinbase outputs
+    used: number;                       // balance from coins sent to addresses that were previously spent from (*)
+    staked: number;                     // balance from staked outputs (non-spendable until maturity)
+    blind_trusted: number;              // trusted blinded balance (outputs created by the wallet or confirmed outputs)
+    blind_untrusted_pending: number;    // untrusted pending blinded balance (outputs created by others that are in the mempool)
+    blind_used: number;                 // balance from coins sent to addresses that were previously spent from (*)
+    anon_trusted: number;               // trusted anon balance (outputs created by the wallet or confirmed outputs)
+    anon_immature: number;              // immature anon balance (outputs created by the wallet or confirmed outputs below spendable depth)
+    anon_untrusted_pending: number;     // untrusted pending anon balance (outputs created by others that are in the mempool)
+                                        // * --> potentially privacy violating, only present if avoid_reuse is set!
+}

@@ -1,6 +1,6 @@
 {
     "name": "omp-lib",
-    "version": "0.1.135",
+    "version": "0.1.137",
     "description": "Particl OMP-library",
     "main": "dist/omp.js",
     "types": "dist/omp.d.js",
@@ -19,17 +19,18 @@
         "lint": "tslint --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'",
         "lint:fix": "tslint --fix --project ./tsconfig.json --config ./tslint.json -t stylish 'src/**/*.{ts,tsx}'"
     },
-    "contributors": [
-        {
-            "name": "Kewde",
-            "email": "kewde@particl.io",
-            "url": "https://github.com/kewde"
-        },
-        {
-            "name": "Cube",
-            "email": "cube@particl.io"
-        }
-    ],
+    "contributors": [{
+        "name": "Kewde",
+        "email": "kewde@particl.io",
+        "url": "https://github.com/kewde"
+    }, {
+        "name": "ludx",
+        "email": "ludx@particl.io",
+        "url": "https://github.com/xludx"
+    }, {
+        "name": "Cube",
+        "email": "cube@particl.io"
+    }],
     "license": "MIT",
     "dependencies": {
         "inversify": "^4.13.0",

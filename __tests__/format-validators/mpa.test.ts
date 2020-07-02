@@ -28,6 +28,78 @@ describe('format-validator: MPA', () => {
         expect(fail).toBe(false);
     });
 
+    test('validate another MPA_LISTING_ADD', () => {
+        const success = JSON.parse(
+            `{
+                      "version": "2.4.0",
+                      "action": {
+                        "type": "${MPAction.MPA_LISTING_ADD}",
+                        "generated": 1592210962204,
+                        "item": {
+                          "information": {
+                            "title": "test01",
+                            "shortDescription": "test01 summary",
+                            "longDescription": "test01 long description that doesn't mean much",
+                            "category": [
+                              "ROOT",
+                              "Particl",
+                              "Free Swag"
+                            ],
+                            "location": {
+                              "country": "AU",
+                              "address": null
+                            },
+                            "shippingDestinations": [
+                              "AU",
+                              "ZA",
+                              "-US"
+                            ]
+                          },
+                          "seller": {
+                            "address": "pZmMxcdzhqPknghTFHMRKyW4SGndXJw2H9",
+                            "signature": "IHKl4Fdzk37S+6OS9/dVPKbTfCAlM+FNdmUxDxhqS4rKebcac4DiqxrnUG//75cqCBUchpeBNlshMfzvyCxGiyg="
+                          },
+                          "payment": {
+                            "type": "SALE",
+                            "escrow": {
+                              "type": "MAD_CT",
+                              "ratio": {
+                                "buyer": 100,
+                                "seller": 100
+                              },
+                              "secondsToLock": null,
+                              "releaseType": "ANON"
+                            },
+                            "options": [
+                              {
+                                "currency": "PART",
+                                "basePrice": 1,
+                                "shippingPrice": {
+                                  "domestic": 0.1,
+                                  "international": 0.2
+                                },
+                                "address": {
+                                  "type": "STEALTH",
+                                  "address": "TetYrezhU9QHwdLzKq4Q3ajgj13STH8fxtzytWxT312LjmEwBVs7nBTYW6sjamAUfwLQWqGbzESXxF9jNwNnFnpjkhJ3PEKSncizDP"
+                                }
+                              }
+                            ]
+                          },
+                          "objects": []
+                        },
+                        "hash": "a90b35ef3d3a77ef2496bb00e6e5009e6267840add627341d79cae0241316a36"
+                     }
+                    }`);
+
+        let fail: boolean;
+        try {
+            fail = !validate(success);
+        } catch (e) {
+            fail = true;
+        }
+        expect(fail).toBe(false);
+    });
+
     test('validate missing type', () => {
         const missing_type = JSON.parse(
             `{
