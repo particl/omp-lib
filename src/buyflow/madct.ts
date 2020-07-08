@@ -47,9 +47,8 @@ export class MadCTBuilder implements IMadCTBuilder {
         console.log('OMP_LIB: bid() requiredSatoshis: ', requiredSatoshis);
 
         // for now, we are forcing anon
-        // const type = (this.network === 'testnet') ? 'anon' : 'blind';
-        // paymentData.prevouts = await lib.getBlindPrevouts(type, requiredSatoshis);
         paymentData.prevouts = await lib.getPrevouts(wallet, OutputType.ANON, OutputType.BLIND, requiredSatoshis);
+        console.log('OMP_LIB: bid() paymentData.prevouts: ', paymentData.prevouts);
 
         if (!paymentData.outputs) {
             paymentData.outputs = [];

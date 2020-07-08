@@ -261,7 +261,7 @@ export abstract class CtRpc extends Rpc {
             throw new Error('Missing wallet. (createPrevoutFrom)');
         }
 
-        console.log('createPrevoutFrom, wallet: ' + wallet);
+        console.log('OMP_LIB: createPrevoutFrom() createPrevoutFrom, wallet: ' + wallet);
 
         let prevout: BlindPrevout;
         const sx = await this.getNewStealthAddress(wallet);
@@ -275,6 +275,18 @@ export abstract class CtRpc extends Rpc {
         if (!txid) {
             throw new Error('Send failed!');
         }
+
+        // TODO: not sure if this is a bug in core or not, but it is not guaranteed that the output exists right after sendTypeTo
+        // 2020-07-08T09:39:15.197Z - debug: [CoreRpcService] call: sendtypeto ["anon" "blind" [{"address":"Tetxxx" "amount":0.9158134 "blindingfactor":"xxx"}]]
+        // 2020-07-08T09:39:15.360Z - debug: [CoreRpcService] txid:  0=[8bc2db72eb650c1cb328d83912ed25fce1452c104758c1f03d7b4d5cca479e5c]
+        // 2020-07-08T09:39:15.361Z - debug: [CoreRpcService] call: listunspentblind [0 9999999]
+        // 2020-07-08T09:39:15.364Z - debug: [ZmqWorker] ZMQ: receive(hashtx):  0=[8bc2db72eb650c1cb328d83912ed25fce1452c104758c1f03d7b4d5cca479e5c]
+        // Error: Not enough inputs!
+
+        // TODO: doing something retarted here, this needs to be fixed!!!
+        await this.getRawTransaction(txid).catch(reason => console.log('OMP_LIB: createPrevoutFrom() txid: ' + txid + ' not available yet.'));
+        await this.getRawTransaction(txid).catch(reason => console.log('OMP_LIB: createPrevoutFrom() txid: ' + txid + ' not available yet.'));
+        await this.getRawTransaction(txid).catch(reason => console.log('OMP_LIB: createPrevoutFrom() txid: ' + txid + ' not available yet.'));
 
         const unspent: RpcUnspentOutput[] = await this.listUnspent(wallet, typeTo, 0);
         const found = unspent.find(tmpVout => {

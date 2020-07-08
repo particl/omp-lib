@@ -13,7 +13,7 @@ import {
     RpcWalletDir,
     RpcBlindSendToOutput,
     RpcMnemonic,
-    RpcExtKeyGenesisImport, RpcWalletInfo, BlockchainInfo
+    RpcExtKeyGenesisImport, RpcWalletInfo, RpcBlockchainInfo
 } from '../src/interfaces/rpc';
 
 
@@ -241,7 +241,7 @@ export class CtCoreRpcService extends CtRpc {
      *
      * @returns {Promise<BlockchainInfo>}
      */
-    public async getBlockchainInfo(): Promise<BlockchainInfo> {
+    public async getBlockchainInfo(): Promise<RpcBlockchainInfo> {
         return await this.call('getblockchaininfo', []);
     }
 
