@@ -37,8 +37,9 @@ export enum EscrowType {
 }
 
 export enum EscrowReleaseType {
-    BLIND = 'BLIND',
-    ANON = 'ANON'
+    // these need to be lowercase, particld seems to be case-sensitive
+    BLIND = 'blind',
+    ANON = 'anon'
 }
 
 /**

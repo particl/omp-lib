@@ -74,9 +74,9 @@ export enum CryptoAddressType {
 }
 
 export enum OutputType {
-    PART = 'PART',
-    BLIND = 'BLIND',
-    ANON = 'ANON'
+    PART = 'part',
+    BLIND = 'blind',
+    ANON = 'anon'
 }
 
 /**

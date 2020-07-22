@@ -61,8 +61,8 @@ export class MadCTBuilder implements IMadCTBuilder {
         buyer_output.blindFactor = lib.getRandomBlindFactor();
         buyer_output.address = await lib.getNewStealthAddressWithEphem(wallet);
 
-
         const address: CryptoAddress = await lib.getNewStealthAddressWithEphem(wallet, buyer_output.address);
+
         // TODO (security): randomize value and PRESENCE. Can be undefined! -> randomizes index too
         const blindFactor = lib.getRandomBlindFactor();
         // const blindFactor = undefined;
