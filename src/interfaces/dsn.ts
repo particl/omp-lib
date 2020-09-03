@@ -23,7 +23,8 @@ export interface ContentReference {
  * Protocols supported by the protocol.
  */
 export enum ProtocolDSN {
-    LOCAL = 'LOCAL',
+    FILE = 'FILE',
+    REQUEST = 'REQUEST',
     SMSG = 'SMSG',
     URL = 'URL',
     IPFS = 'IPFS'

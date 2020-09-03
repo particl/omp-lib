@@ -33,16 +33,16 @@ export class FV_CONTENT {
             throw new Error('dsn: unknown protocol');
         }
 
-        if (!isString(dsn.dataId)) {
+        if (dsn.dataId && !isString(dsn.dataId)) {
             throw new Error('dsn.dataId: not a string!');
         }
 
-        if (dsn.protocol === ProtocolDSN.LOCAL) {
-            if (!isString(dsn.encoding)) {
+        if (dsn.protocol === ProtocolDSN.FILE) {
+            if (dsn.encoding && !isString(dsn.encoding)) {
                 throw new Error('dsn.encoding: not a string!');
             }
 
-            if (!isString(dsn.data)) {
+            if (dsn.data && !isString(dsn.data)) {
                 throw new Error('dsn.data: not a string!');
             }
         }
