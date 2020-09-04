@@ -4082,10 +4082,10 @@ semver-diff@^2.0.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.0.tgz#790a7cf6fea5459bac96110b29b60412dc8ff96b"
   integrity sha512-Ya52jSX2u7QKghxeoFGpLwCtGlt7j0oY9DYb5apt9nPlJ42ID+ulTXESnt/qAQcoSERyZ5sl3LDIOw0nAn/5DA==
 
-semverv@^5.6.4:
-  version "5.6.4"
-  resolved "https://registry.yarnpkg.com/semverv/-/semverv-5.6.4.tgz#bbccb3ba6ceb5f928e147d79c56ebc2219137c09"
-  integrity sha512-xr1KZkOi42ErYGHUpRoGbZ7ZhssUgw/6dK1msdY5g1u/r9JoRIaFwf5cuEXyRtlYorLQlpXcsnZ63zWl6/TZ1g==
+semverv@^5.6.5:
+  version "5.6.5"
+  resolved "https://registry.yarnpkg.com/semverv/-/semverv-5.6.5.tgz#539404c56ab027384ecf1c2ecfad753dd5fbf4f1"
+  integrity sha512-oeC5Va4AlNJVfdlXmM/beEqScJF85HR3G0GgII42+kiLfYZfxYdV0RUDCdTVDk9RbiLnrlExg9KwryvtXICxkw==
   dependencies:
     js-sha256 "^0.9.0"
     lodash "^4.17.11"

@@ -18,7 +18,7 @@ export class ConfigurableHasher {
      */
     public static hash(objectToHash: any, config: HashableConfig): string {
         const hashable: HashableObject = ConfigurableHasher.toHashable(objectToHash, config);
-        new HashableValidator(config).valid(hashable);
+        new HashableValidator(config).valid(hashable, config);
         // console.log('OMP_LIB: ConfigurableHasher.hash(), in: ', JSON.stringify(hashable, null, 2));
         const result = this.hashInner(hashable);
         // console.log('OMP_LIB: ConfigurableHasher.hash(), out: ', result);
