@@ -18,10 +18,11 @@ export class ConfigurableHasher {
      */
     public static hash(objectToHash: any, config: HashableConfig): string {
         const hashable: HashableObject = ConfigurableHasher.toHashable(objectToHash, config);
-        // console.log('OMP_LIB: ConfigurableHasher.hash(), in: ', JSON.stringify(hashable, null, 2));
+        console.log('OMP_LIB: hash(), hashable: ', JSON.stringify(hashable, null, 2));
+        console.log('OMP_LIB: hash(), config: ', JSON.stringify(config, null, 2));
         new HashableValidator(config).valid(hashable, config);
         const result = this.hashInner(hashable);
-        // console.log('OMP_LIB: ConfigurableHasher.hash(), out: ', result);
+        console.log('OMP_LIB: ConfigurableHasher.hash(), out: ', result);
         return result;
     }
 
@@ -74,6 +75,7 @@ export function hash(v: any): string {
 
 function hashObject(unordered: object): string {
     const sorted = deepSortObject(unordered);
+    // console.log('OMP_LIB: hashObject(), sorted: ', JSON.stringify(sorted, null, 2));
     const toHash = JSON.stringify(sorted);
     return sha256(toHash);
 }
@@ -105,6 +107,7 @@ export function deepSortObject(unordered: any): any {
     // order the keys alphabetically!
     const result = {};
     let ordered;
+
     if (isArray(unordered)) {
         ordered = unordered.sort();
     } else if (isObject(unordered)) {
