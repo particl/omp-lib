@@ -18,11 +18,11 @@ export class ConfigurableHasher {
      */
     public static hash(objectToHash: any, config: HashableConfig): string {
         const hashable: HashableObject = ConfigurableHasher.toHashable(objectToHash, config);
-        console.log('OMP_LIB: hash(), hashable: ', JSON.stringify(hashable, null, 2));
-        console.log('OMP_LIB: hash(), config: ', JSON.stringify(config, null, 2));
+        // console.log('OMP_LIB: hash(), hashable: ', JSON.stringify(hashable, null, 2));
+        // console.log('OMP_LIB: hash(), config: ', JSON.stringify(config, null, 2));
         new HashableValidator(config).valid(hashable, config);
         const result = this.hashInner(hashable);
-        console.log('OMP_LIB: ConfigurableHasher.hash(), out: ', result);
+        // console.log('OMP_LIB: ConfigurableHasher.hash(), out: ', result);
         return result;
     }
 
