@@ -44,8 +44,8 @@ export class ConfidentialTransactionBuilder extends TransactionBuilder {
     /**
      * Puzzle together the release witness for a party from their output.
      * @param bidPrevout The previous output from the bid transaction (buyer or seller)
-     * @param party The signatures of the buyer or seller
-     * @param secret The secret revealed by the buyer
+     * @param seller The signatures of the buyer or seller
+     * @param buyer The secret revealed by the buyer
      */
     public puzzleReleaseWitness(bidPrevout: BlindPrevout, seller: ISignature, buyer: ISignature): boolean {
         const input = this.tx.inputs.find((tmpInput) => (tmpInput.outputIndex === bidPrevout.vout));

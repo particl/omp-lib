@@ -164,8 +164,8 @@ export class MadCTBuilder implements IMadCTBuilder {
             seller_output.address = await lib.getNewStealthAddressWithEphem(wallet);
         }
 
-         // Load all trusted values for prevouts from blockchain.
-         //     commitment, scriptPubKey, ...
+        // Load all trusted values for prevouts from blockchain.
+        //     commitment, scriptPubKey, ...
         await asyncMap(bidPaymentData.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(wallet, i));
         await asyncMap(acceptPaymentData.prevouts, async i => await lib.loadTrustedFieldsForBlindUtxo(wallet, i));
 

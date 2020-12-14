@@ -369,7 +369,7 @@ export abstract class CtRpc extends Rpc {
         return utxo;
     }
 
-    public async generateRawConfidentialTx(wallet: string, inputs: any[], outputs: ToBeBlindOutput[], feeSatoshis: number): Promise<string> {
+    public async generateRawConfidentialTx(wallet: string, inputs: BlindPrevout[], outputs: ToBeBlindOutput[], feeSatoshis: number): Promise<string> {
 
         // Already a cloned object, rename fields to fit createrawparttransaction
         // inputs.forEach((prevout: any) => { prevout.amount_commitment = prevout._commitment; prevout.blindingfactor = prevout.blindFactor; });
@@ -390,7 +390,7 @@ export abstract class CtRpc extends Rpc {
                 scriptPubKey: prevout._scriptPubKey,
                 amount_commitment: prevout._commitment, // fromSatoshis(prevout._satoshis),
                 blindingfactor: prevout.blindFactor
-            };
+            } as RpcBlindInput;
 
             if (prevout._redeemScript) {
                 (<any> i).redeemScript = prevout._redeemScript;
