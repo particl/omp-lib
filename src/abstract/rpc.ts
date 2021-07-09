@@ -1,7 +1,17 @@
 import * as _ from 'lodash';
-import { BlindPrevout, CryptoAddress, Cryptocurrency, EphemeralKey, ISignature, OutputType, Prevout, ToBeBlindOutput } from '../interfaces/crypto';
+import {
+    BlindPrevout,
+    CryptoAddress,
+    Cryptocurrency,
+    EphemeralKey,
+    ISignature,
+    OutputType,
+    Prevout,
+    ToBeBlindOutput,
+    CryptoAddressType
+} from '../interfaces/crypto';
 import { TransactionBuilder } from '../transaction-builder/transaction';
-import { clone, fromSatoshis, toSatoshis } from '../util';
+import { clone, fromSatoshis, isObject, isString, isStringAndEnumValue, toSatoshis } from '../util';
 import {
     RpcBlockchainInfo,
     RpcAddressInfo,
@@ -256,7 +266,9 @@ export abstract class CtRpc extends Rpc {
     // Importing and signing
     public abstract async verifyCommitment(wallet: string, commitment: string, blindFactor: string, amount: number): Promise<boolean>;
 
-    public async createPrevoutFrom(wallet: string, typeFrom: OutputType, typeTo: OutputType, satoshis: number, blindingfactor?: string): Promise<BlindPrevout> {
+    public async createPrevoutFrom(
+        wallet: string, typeFrom: OutputType, typeTo: OutputType, satoshis: number, blindingfactor?: string, address?: CryptoAddress
+    ): Promise<BlindPrevout> {
         if (wallet === undefined) {
             throw new Error('Missing wallet. (createPrevoutFrom)');
         }
@@ -264,14 +276,23 @@ export abstract class CtRpc extends Rpc {
         console.log('OMP_LIB: createPrevoutFrom() createPrevoutFrom, wallet: ' + wallet);
 
         let prevout: BlindPrevout;
-        const sx = await this.getNewStealthAddress(wallet);
+        let sx: CryptoAddress;
+
+        if (address && isObject(address) && isStringAndEnumValue(address.type, CryptoAddressType) && isString(address.address)) {
+            sx = address;
+        } else {
+            sx = await this.getNewStealthAddress(wallet);
+            if (!isObject(sx) || !isStringAndEnumValue(sx.type, CryptoAddressType) || !isString(sx.address)) {
+                throw new Error('Missing address. (createPrevoutFrom)');
+            }
+        }
         const amount = fromSatoshis(satoshis);
 
         if (!blindingfactor) {
             blindingfactor = this.getRandomBlindFactor();
         }
 
-        const txid = await this.sendTypeTo(wallet, typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor}]);
+        const txid = await this.sendTypeTo(wallet, typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor}]).catch(() => '');
         if (!txid) {
             throw new Error('Send failed!');
         }
