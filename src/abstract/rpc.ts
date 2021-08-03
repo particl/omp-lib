@@ -292,7 +292,12 @@ export abstract class CtRpc extends Rpc {
             blindingfactor = this.getRandomBlindFactor();
         }
 
-        const txid = await this.sendTypeTo(wallet, typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor}]).catch(() => '');
+        const txid = await this.sendTypeTo(wallet, typeFrom, typeTo, [{ address: sx.address, amount, blindingfactor}]).catch(err => {
+            if (err) {
+                throw err;
+            }
+            return '';
+        });
         if (!txid) {
             throw new Error('Send failed!');
         }
